@@ -865,16 +865,20 @@
 
             const observer = new ResizeObserver(entries => {
                 const entry = entries[0];
+                if (!entry) return;
+
                 const wrapperWidth = entry.contentRect.width;
                 const reportWidth = 1200; // A largura intrínseca do relatório anual
 
                 if (wrapperWidth > 0 && wrapperWidth < reportWidth) {
                     const scale = wrapperWidth / reportWidth;
                     reportEl.style.transform = `scale(${scale})`;
-                    reportEl.style.transformOrigin = 'top center';
-                    wrapperEl.style.height = `${reportEl.offsetHeight * scale}px`;
+                    reportEl.style.transformOrigin = 'top left'; // Usar 'top left' é mais estável
+                    // Ajusta a altura do contêiner para a altura dimensionada do conteúdo
+                    wrapperEl.style.height = `${reportEl.getBoundingClientRect().height}px`;
                 } else {
                     reportEl.style.transform = 'none';
+                    reportEl.style.transformOrigin = 'center';
                     wrapperEl.style.height = 'auto';
                 }
             });
@@ -882,7 +886,7 @@
             observer.observe(wrapperEl);
 
             return () => observer.disconnect();
-        }, [annualData]); // Re-executa se o relatório for carregado/descarregado
+        }, [annualData]); // Re-executa se os dados do relatório forem carregados
 
         const handleSaveJpg = async () => { 
             if (!printableRef.current) return; setIsSavingJpg(true);
