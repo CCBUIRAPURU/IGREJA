@@ -866,19 +866,17 @@
             const observer = new ResizeObserver(entries => {
                 const entry = entries[0];
                 if (!entry) return;
-
+                
                 const wrapperWidth = entry.contentRect.width;
                 const reportWidth = 1200; // A largura intrínseca do relatório anual
 
                 if (wrapperWidth > 0 && wrapperWidth < reportWidth) {
                     const scale = wrapperWidth / reportWidth;
                     reportEl.style.transform = `scale(${scale})`;
-                    reportEl.style.transformOrigin = 'top left'; // Usar 'top left' é mais estável
-                    // Ajusta a altura do contêiner para a altura dimensionada do conteúdo
-                    wrapperEl.style.height = `${reportEl.getBoundingClientRect().height}px`;
+                    reportEl.style.transformOrigin = 'top center'; // CORRIGIDO
+                    wrapperEl.style.height = `${reportEl.offsetHeight * scale}px`; // CORRIGIDO
                 } else {
                     reportEl.style.transform = 'none';
-                    reportEl.style.transformOrigin = 'center';
                     wrapperEl.style.height = 'auto';
                 }
             });
