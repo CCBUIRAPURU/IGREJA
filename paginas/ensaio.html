@@ -861,30 +861,38 @@
         useEffect(() => {
             const reportEl = printableRef.current;
             const wrapperEl = wrapperRef.current;
-            if (!reportEl || !wrapperEl) return;
+            if (!reportEl || !wrapperEl || !annualData) return;
 
-            const observer = new ResizeObserver(entries => {
-                const entry = entries[0];
-                if (!entry) return;
-                
-                const wrapperWidth = entry.contentRect.width;
-                const reportWidth = 1200; // A largura intrínseca do relatório anual
+            const resizeReport = () => {
+                if (!reportEl || !wrapperEl) return;
+
+                const wrapperWidth = wrapperEl.offsetWidth;
+                const reportWidth = 1200;
 
                 if (wrapperWidth > 0 && wrapperWidth < reportWidth) {
                     const scale = wrapperWidth / reportWidth;
                     reportEl.style.transform = `scale(${scale})`;
-                    reportEl.style.transformOrigin = 'top center'; // CORRIGIDO
-                    wrapperEl.style.height = `${reportEl.offsetHeight * scale}px`; // CORRIGIDO
+                    reportEl.style.transformOrigin = 'top center';
+                    if (reportEl.offsetHeight > 0) { // Garante que a altura não seja 0
+                        wrapperEl.style.height = `${reportEl.offsetHeight * scale}px`;
+                    }
                 } else {
                     reportEl.style.transform = 'none';
                     wrapperEl.style.height = 'auto';
                 }
-            });
+            };
 
+            // Espera um instante para garantir que o layout complexo foi calculado
+            const timerId = setTimeout(resizeReport, 100);
+            
+            const observer = new ResizeObserver(resizeReport);
             observer.observe(wrapperEl);
 
-            return () => observer.disconnect();
-        }, [annualData]); // Re-executa se os dados do relatório forem carregados
+            return () => {
+                clearTimeout(timerId);
+                observer.disconnect();
+            };
+        }, [annualData]);
 
         const handleSaveJpg = async () => { 
             if (!printableRef.current) return; setIsSavingJpg(true);
