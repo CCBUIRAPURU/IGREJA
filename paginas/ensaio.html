@@ -683,7 +683,7 @@
           const pageWrapperClass = !isSavingJpg ? 'mb-8' : '';
 
           return (
-              <div ref={ref} className={`p-4 print-container annual-report-content`} style={{ width: '1200px', fontFamily: 'Arial, sans-serif' }}>
+              <div ref={ref} className="p-4 print-container" style={{ width: '1200px', fontFamily: 'Arial, sans-serif' }}>
                   <div className={`bg-white text-xs p-4 shadow-lg flex flex-col print-page text-black ${pageWrapperClass}`} style={{ height: 'auto' }}>
                       <PageHeader year={year} />
                       <div className="mb-4">
@@ -857,6 +857,36 @@
           if (churchData.name) loadAnnualData();
         }, [cep, displayedYear, churchData.name]);
         
+        // Efeito para dimensionar o relatório para caber na largura do contêiner
+        useEffect(() => {
+            const reportEl = printableRef.current;
+            const wrapperEl = wrapperRef.current;
+            if (!reportEl || !wrapperEl) return;
+
+            const observer = new ResizeObserver(entries => {
+                const entry = entries[0];
+                if (!entry) return;
+                
+                const wrapperWidth = entry.contentRect.width;
+                const reportWidth = 1200; // Largura intrínseca do relatório anual
+
+                if (wrapperWidth > 0 && wrapperWidth < reportWidth) {
+                    const scale = wrapperWidth / reportWidth;
+                    reportEl.style.transform = `scale(${scale})`;
+                    reportEl.style.transformOrigin = 'top center';
+                    wrapperEl.style.height = `${reportEl.offsetHeight * scale}px`;
+                } else {
+                    reportEl.style.transform = 'none';
+                    wrapperEl.style.height = 'auto';
+                }
+            });
+
+            observer.observe(wrapperEl);
+
+            return () => {
+                if (observer) observer.disconnect();
+            };
+        }, [annualData]);
 
         const handleSaveJpg = async () => { 
             if (!printableRef.current) return; setIsSavingJpg(true);
@@ -885,7 +915,7 @@
                     </div>
                     )}
                 </header>
-                <div ref={wrapperRef} className="p-4 bg-gray-100 rounded-lg flex justify-center print-wrapper overflow-x-auto">
+                <div ref={wrapperRef} className="p-4 bg-gray-100 rounded-lg flex justify-center print-wrapper">
                     {isLoading ? <LoadingSpinner text="Buscando dados anuais..." /> : 
                       error ? <InfoBox>{error}</InfoBox> :
                       annualData ? <PrintableAnnualReport ref={printableRef} data={annualData} isSavingJpg={isSavingJpg} /> : 
