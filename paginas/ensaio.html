@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
   <head>
@@ -786,6 +785,7 @@
         const [annualData, setAnnualData] = useState(null); const [isLoading, setIsLoading] = useState(false);
         const [error, setError] = useState(''); const [isSavingJpg, setIsSavingJpg] = useState(false);
         const printableRef = useRef(null);
+        const wrapperRef = useRef(null); // Ref para o contêiner de escala
 
         const handleCepSubmit = (e) => { e.preventDefault(); setCep(inputCep.replace(/\D/g, '')); };
         
@@ -857,6 +857,33 @@
           if (churchData.name) loadAnnualData();
         }, [cep, displayedYear, churchData.name]);
         
+        // Efeito para dimensionar o relatório para caber na largura do contêiner
+        useEffect(() => {
+            const reportEl = printableRef.current;
+            const wrapperEl = wrapperRef.current;
+            if (!reportEl || !wrapperEl) return;
+
+            const observer = new ResizeObserver(entries => {
+                const entry = entries[0];
+                const wrapperWidth = entry.contentRect.width;
+                const reportWidth = 1200; // A largura intrínseca do relatório anual
+
+                if (wrapperWidth > 0 && wrapperWidth < reportWidth) {
+                    const scale = wrapperWidth / reportWidth;
+                    reportEl.style.transform = `scale(${scale})`;
+                    reportEl.style.transformOrigin = 'top center';
+                    wrapperEl.style.height = `${reportEl.offsetHeight * scale}px`;
+                } else {
+                    reportEl.style.transform = 'none';
+                    wrapperEl.style.height = 'auto';
+                }
+            });
+
+            observer.observe(wrapperEl);
+
+            return () => observer.disconnect();
+        }, [annualData]); // Re-executa se o relatório for carregado/descarregado
+
         const handleSaveJpg = async () => { 
             if (!printableRef.current) return; setIsSavingJpg(true);
             try {
@@ -884,7 +911,7 @@
                     </div>
                     )}
                 </header>
-                <div className="p-4 bg-gray-100 rounded-lg flex justify-center print-wrapper overflow-x-auto">
+                <div ref={wrapperRef} className="p-4 bg-gray-100 rounded-lg flex justify-center print-wrapper overflow-x-auto">
                     {isLoading ? <LoadingSpinner text="Buscando dados anuais..." /> : 
                       error ? <InfoBox>{error}</InfoBox> :
                       annualData ? <PrintableAnnualReport ref={printableRef} data={annualData} isSavingJpg={isSavingJpg} /> : 
@@ -1130,4 +1157,3 @@
     </script>
   </body>
 </html>
-
