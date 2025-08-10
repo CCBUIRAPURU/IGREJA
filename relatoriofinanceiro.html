@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gerador de Relatório Financeiro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React and ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <!-- Babel Standalone -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- html2canvas for JPG export -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <style>
+      /* Custom scrollbar for a more modern look */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 10px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #555;
+      }
+      body {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        /* Watermark */
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3e%3ctext x='50%25' y='50%25' font-size='40' font-weight='bold' fill='%23000' fill-opacity='0.05' text-anchor='middle' dominant-baseline='middle' transform='rotate(-30 125,125)'%3eCBB%3c/text%3e%3c/svg%3e");
+      }
+      @media print {
+        body {
+          /* Ensure watermark doesn't print */
+          background-image: none !important;
+        }
+        .print-hidden {
+            display: none !important;
+        }
+        body * {
+          visibility: hidden;
+        }
+        #report-root, #report-root * {
+          visibility: visible;
+        }
+        #report-root {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+          transform: scale(1) !important;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+          overflow: visible !important; /* Ensure content is not clipped */
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-gray-100 dark:bg-gray-900">
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useState, useEffect, useCallback, useMemo } = React;
+
+      // --- START SUPABASE SETUP ---
+      const SUPABASE_URL = 'https://nlkcdvvgiavcswppmqha.supabase.co';
+      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sa2NkdnZnaWF2Y3N3cHBtcWhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM3MzI0MDcsImV4cCI6MjA2OTMwODQwN30.rzX8PS6TNkX5MvQCkJMv7d738x93UCQiNBv-PpNapKQ';
+
+      let supabaseClient;
+      const supabaseCredentialsProvided = SUPABASE_URL && SUPABASE_ANON_KEY && SUPABASE_URL !== 'YOUR_SUPABASE_URL';
+
+      if (supabaseCredentialsProvided) {
+        try {
+          supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch (e) {
+          console.error("Erro fatal na inicialização do Supabase:", e);
+          supabaseClient = null;
+        }
+      } else {
+        console.warn("AVISO: Credenciais do Supabase não fornecidas. App em modo offline.");
+        supabaseClient = null;
+      }
+      
+      /* 
+       * GUIA DE SEGURANÇA E INSTALAÇÃO - Execute tudo de uma vez no SQL Editor do Supabase.
+       * Este script apaga a configuração antiga e cria uma nova, limpa e segura.
+       *
+       * -- PASSO 1: (Opcional, mas seguro) Apaga as políticas de segurança antigas se existirem.
+       * DROP POLICY IF EXISTS "Permitir leitura dos próprios relatórios" ON public.reports;
+       * DROP POLICY IF EXISTS "Permitir criação de novos relatórios" ON public.reports;
+       * DROP POLICY IF EXISTS "Permitir atualização dos próprios relatórios" ON public.reports;
+       * DROP POLICY IF EXISTS "Permitir exclusão dos próprios relatórios" ON public.reports;
+       * 
+       * -- PASSO 2: Apaga a tabela antiga.
+       * DROP TABLE IF EXISTS public.reports CASCADE;
+       *
+       * -- PASSO 3: Cria a tabela novamente com a estrutura correta (usando snake_case).
+       * CREATE TABLE public.reports (
+       *   id TEXT PRIMARY KEY NOT NULL,
+       *   user_id UUID REFERENCES auth.users(id) NOT NULL,
+       *   updated_at TIMESTAMPTZ DEFAULT now(),
+       *   title TEXT,
+       *   transactions JSONB,
+       *   card_rows INT,
+       *   deposit_rows INT,
+       *   pix_rows INT
+       * );
+       * 
+       * -- PASSO 4: Ativa a Segurança a Nível de Linha (RLS). Essencial para a segurança.
+       * ALTER TABLE public.reports ENABLE ROW LEVEL SECURITY;
+       *
+       * -- PASSO 5: Cria as políticas de segurança que garantem a privacidade dos dados.
+       * CREATE POLICY "Permitir leitura dos próprios relatórios"
+       * ON public.reports FOR SELECT
+       * USING (auth.uid() = user_id);
+       *
+       * CREATE POLICY "Permitir criação de novos relatórios"
+       * ON public.reports FOR INSERT
+       * WITH CHECK (auth.uid() = user_id);
+       *
+       * CREATE POLICY "Permitir atualização dos próprios relatórios"
+       * ON public.reports FOR UPDATE
+       * USING (auth.uid() = user_id);
+       *
+       * CREATE POLICY "Permitir exclusão dos próprios relatórios"
+       * ON public.reports FOR DELETE
+       * USING (auth.uid() = user_id);
+      */
+      // --- END SUPABASE SETUP ---
+
+      const PaymentType = { Cartao: 'Cartão', Deposito: 'Depósito', Pix: 'Pix' };
+      const PAYMENT_TYPES = [PaymentType.Cartao, PaymentType.Deposito, PaymentType.Pix];
+      const MONTHS = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+
+      const formatCurrency = (amount) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount);
+      const getYears = () => {
+        const currentYear = new Date().getFullYear();
+        const years = [];
+        for (let i = currentYear + 1; i >= 2020; i--) years.push(i);
+        return years;
+      };
+
+      const getErrorMessage = (error) => {
+        if (!error) return 'Ocorreu um erro desconhecido.';
+        if (typeof error === 'string') return error;
+        if (error.message) return error.message;
+        if (error.error_description) return error.error_description;
+        try {
+            const jsonError = JSON.stringify(error);
+            if(jsonError !== '{}') return jsonError;
+        } catch (e) {
+            // Ignore stringify error
+        }
+        return 'Ocorreu um erro inesperado. Verifique o console para mais detalhes.';
+      };
+
+      const TransactionForm = ({ onAddTransaction, onUpdateTransaction, editingTransaction, onCancelEdit }) => {
+        const [type, setType] = useState(PaymentType.Cartao);
+        const [date, setDate] = useState('');
+        const [amount, setAmount] = useState('');
+        const [error, setError] = useState('');
+        const isEditing = !!editingTransaction;
+
+        useEffect(() => {
+          if (editingTransaction) {
+            setType(editingTransaction.type);
+            const dateParts = editingTransaction.date.split('/');
+            if (dateParts.length === 3) {
+              const [day, month, year] = dateParts;
+              setDate(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
+            } else { setDate(''); }
+            setAmount(String(editingTransaction.amount).replace('.', ','));
+            setError('');
+          } else {
+            setType(PaymentType.Cartao); setDate(''); setAmount(''); setError('');
+          }
+        }, [editingTransaction]);
+
+        const handleSubmit = (e) => {
+          e.preventDefault();
+          if (!date || !amount) { setError('Data e valor são obrigatórios.'); return; }
+          const numericAmount = parseFloat(amount.replace(/\./g, '').replace(',', '.'));
+          if (isNaN(numericAmount) || numericAmount <= 0) { setError('Por favor, insira um valor válido.'); return; }
+          const formattedDate = new Date(date).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+          const transactionData = { type, date: formattedDate, amount: numericAmount };
+          if (isEditing) onUpdateTransaction({ ...transactionData, id: editingTransaction.id });
+          else onAddTransaction(transactionData);
+          if (!isEditing) { setDate(''); setAmount(''); setError(''); }
+        };
+
+        return (
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+            <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100">{isEditing ? 'Editar Transação' : 'Adicionar Transação'}</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo</label>
+                <select id="type" value={type} onChange={(e) => setType(e.target.value)} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200">
+                  {PAYMENT_TYPES.map((pt) => <option key={pt} value={pt}>{pt}</option>)}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Data</label>
+                <input type="date" id="date" value={date} onChange={(e) => setDate(e.target.value)} className="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" />
+              </div>
+              <div>
+                <label htmlFor="amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Valor (R$)</label>
+                <input type="text" id="amount" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Ex: 150,00" className="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" />
+              </div>
+              {error && <p className="text-red-500 text-sm">{error}</p>}
+              <div className="flex gap-2">
+                <button type="submit" className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">{isEditing ? 'Atualizar' : 'Adicionar'}</button>
+                {isEditing && (<button type="button" onClick={onCancelEdit} className="flex-1 bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600">Cancelar</button>)}
+              </div>
+            </form>
+          </div>
+        );
+      };
+      
+      const TransactionList = ({ transactions, onEdit, onDelete }) => {
+        if (transactions.length === 0) return (
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md text-center">
+                <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100">Transação Selecionada</h2>
+                <p className="text-gray-500 dark:text-gray-400">Clique em uma transação no relatório para editar.</p>
+            </div>
+        );
+
+        return (
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md">
+            <h2 className="text-xl font-bold p-4 border-b border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100">Transação Selecionada</h2>
+            <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+              {transactions.map((t) => (
+                <li key={t.id} className="p-4 flex justify-between items-center">
+                  <div>
+                    <p className="font-semibold text-gray-800 dark:text-gray-100">{t.type}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{t.date}</p>
+                    <p className="font-semibold text-lg text-gray-800 dark:text-gray-100">{formatCurrency(t.amount)}</p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                      <button onClick={() => onEdit(t.id)} className="text-gray-500 hover:text-blue-600 p-2 rounded-full transition-colors"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg></button>
+                      <button onClick={() => onDelete(t.id)} className="text-gray-500 hover:text-red-600 p-2 rounded-full transition-colors"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" /></svg></button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+      };
+
+      const TableSection = ({ title, items, totalRows, showSeparator, onRowClick, selectedTransactionId }) => {
+        const total = items.reduce((sum, item) => sum + item.amount, 0);
+        return (
+          <div className="mb-1">
+            <table className="w-full border-collapse border border-black">
+              <thead><tr><th colSpan={2} className="bg-gray-200 p-1 text-black font-bold border border-black text-center">{title}</th></tr></thead>
+              <tbody>
+                {items.map((item) => (
+                  <tr key={item.id} onClick={() => onRowClick(item.id)} className={`transition-colors text-black ${item.id === selectedTransactionId ? 'bg-blue-200' : 'hover:bg-gray-100'} cursor-pointer`}>
+                    <td className="border border-black w-1/2 h-7 p-0">
+                      <div className="flex items-center justify-center h-full p-1">{item.date}</div>
+                    </td>
+                    <td className="border border-black w-1/2 h-7 p-0">
+                      <div className="flex items-center justify-center h-full p-1">{formatCurrency(item.amount)}</div>
+                    </td>
+                  </tr>
+                ))}
+                {Array.from({ length: Math.max(0, totalRows - items.length) }).map((_, i) => <tr key={`empty-${title}-${i}`}><td className="border border-black p-1 h-7"></td><td className="border border-black p-1"></td></tr>)}
+              </tbody>
+              <tfoot>
+                 <tr className="font-bold text-black">
+                    <td className="border border-black p-0 bg-gray-200">
+                        <div className="flex items-center justify-center h-full p-1">TOTAL</div>
+                    </td>
+                    <td className="border border-black p-0 bg-gray-200">
+                        <div className="flex items-center justify-center h-full p-1">{formatCurrency(total)}</div>
+                    </td>
+                </tr>
+                {showSeparator && <tr><td colSpan={2} className="p-1 border-x border-black text-center bg-gray-200 text-gray-600" style={{ letterSpacing: '2px' }}>WWWWWWWWWWWWWWWWWWWWWW</td></tr>}
+              </tfoot>
+            </table>
+          </div>
+        );
+      };
+      
+      const Report = ({ dateText, transactions, cardRows, depositRows, pixRows, onTransactionSelect, selectedTransactionId }) => (
+        <div id="report-root" className="bg-white p-1 border-2 border-black font-sans shadow-lg" style={{ width: '794px' }}>
+          <header className="w-full border-b-2 border-black mb-1 p-2 text-center">
+            <h1 className="text-2xl font-bold text-black uppercase">Relatório Financeiro</h1>
+            <h2 className="text-lg font-semibold text-black uppercase">{dateText}</h2>
+          </header>
+          <div className="flex">
+            <div className="w-1/2 pr-1 flex flex-col">
+              <TableSection title="Cartão" items={transactions.filter(t => t.type === PaymentType.Cartao)} totalRows={cardRows} onRowClick={onTransactionSelect} selectedTransactionId={selectedTransactionId} />
+              <TableSection title="Depósito" items={transactions.filter(t => t.type === PaymentType.Deposito)} totalRows={depositRows} onRowClick={onTransactionSelect} selectedTransactionId={selectedTransactionId} />
+              <TableSection title="Pix" items={transactions.filter(t => t.type === PaymentType.Pix)} totalRows={pixRows} showSeparator={false} onRowClick={onTransactionSelect} selectedTransactionId={selectedTransactionId} />
+            </div>
+            <div className="w-1/2 pl-1 border-l-2 border-black flex flex-col items-center justify-center">
+              <div className="text-center">
+                <h2 className="text-4xl font-bold text-black">TOTAL GERAL</h2>
+                <p className="text-6xl font-bold mt-8 text-black">{formatCurrency(transactions.reduce((s, i) => s + i.amount, 0))}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+      
+      const SaveStatus = {
+        SAVED: 'Salvo na nuvem',
+        PENDING: 'Alterações pendentes...',
+        SAVING: 'Salvando...',
+        ERROR: 'Erro ao salvar',
+        OFFLINE: 'Salvo localmente'
+      };
+
+      const AnnualReport = ({ year, data }) => {
+        const grandTotals = data.reduce((acc, monthData) => {
+            acc.cartao += monthData.cartao;
+            acc.deposito += monthData.deposito;
+            acc.pix += monthData.pix;
+            return acc;
+        }, { cartao: 0, deposito: 0, pix: 0 });
+
+        const grandTotalYear = grandTotals.cartao + grandTotals.deposito + grandTotals.pix;
+
+        return (
+            <div id="annual-report-root" className="bg-white p-4 border-2 border-black font-sans shadow-lg" style={{ width: '794px' }}>
+                <header className="w-full border-b-2 border-black mb-4 p-2 text-center">
+                    <h1 className="text-2xl font-bold text-black uppercase">Relatório Financeiro Anual</h1>
+                    <h2 className="text-lg font-semibold text-black uppercase">{year}</h2>
+                </header>
+                <table className="w-full border-collapse border border-black text-black text-sm">
+                    <thead className="bg-gray-200 font-bold">
+                        <tr>
+                            <th className="border border-black p-2">Mês</th>
+                            <th className="border border-black p-2">Cartão</th>
+                            <th className="border border-black p-2">Depósito</th>
+                            <th className="border border-black p-2">Pix</th>
+                            <th className="border border-black p-2">Total Mensal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {data.map((monthData, index) => {
+                            const monthTotal = monthData.cartao + monthData.deposito + monthData.pix;
+                            return (
+                                <tr key={index} className="odd:bg-white even:bg-gray-50">
+                                    <td className="border border-black p-2 font-semibold">{MONTHS[index]}</td>
+                                    <td className="border border-black p-2 text-right">{formatCurrency(monthData.cartao)}</td>
+                                    <td className="border border-black p-2 text-right">{formatCurrency(monthData.deposito)}</td>
+                                    <td className="border border-black p-2 text-right">{formatCurrency(monthData.pix)}</td>
+                                    <td className="border border-black p-2 text-right font-bold">{formatCurrency(monthTotal)}</td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                    <tfoot className="bg-gray-200 font-bold">
+                        <tr>
+                            <td className="border border-black p-2">TOTAL ANUAL</td>
+                            <td className="border border-black p-2 text-right">{formatCurrency(grandTotals.cartao)}</td>
+                            <td className="border border-black p-2 text-right">{formatCurrency(grandTotals.deposito)}</td>
+                            <td className="border border-black p-2 text-right">{formatCurrency(grandTotals.pix)}</td>
+                            <td className="border border-black p-2 text-right">{formatCurrency(grandTotalYear)}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        );
+      };
+
+      const ReportGenerator = ({ user }) => {
+        const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+        const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+        const [transactions, setTransactions] = useState([]);
+        const [editingTransactionId, setEditingTransactionId] = useState(null);
+        const [selectedTransactionId, setSelectedTransactionId] = useState(null);
+        const [cardRows, setCardRows] = useState(8);
+        const [depositRows, setDepositRows] = useState(8);
+        const [pixRows, setPixRows] = useState(7);
+        const [isLoading, setIsLoading] = useState(true);
+        const [initialLoad, setInitialLoad] = useState(true);
+        const [saveStatus, setSaveStatus] = useState(supabaseClient ? SaveStatus.SAVED : SaveStatus.OFFLINE);
+        const [saveError, setSaveError] = useState('');
+        const [isSavingJpg, setIsSavingJpg] = useState(false);
+        const [isSavingAnnualJpg, setIsSavingAnnualJpg] = useState(false);
+
+        const docId = useMemo(() => `report-${user.id}-${selectedYear}-${selectedMonth}`, [user, selectedYear, selectedMonth]);
+
+        const parseAmount = useCallback((value) => {
+          if (typeof value === 'number') {
+            return value;
+          }
+          if (typeof value !== 'string' || value.trim() === '') {
+            return 0;
+          }
+          // Esta lógica robusta lida com o formato de moeda pt-BR (ex: "1.500,50" e "1.500").
+          // Remove os separadores de milhares (.) e substitui a vírgula decimal (,) por um ponto.
+          const cleanedString = value.trim().replace(/\./g, '').replace(',', '.');
+          const number = parseFloat(cleanedString);
+          // Retorna o número analisado ou 0 se a análise falhar.
+          return isNaN(number) ? 0 : number;
+        }, []);
+
+        const sortTransactions = useCallback((ts) => [...ts].sort((a,b) => {
+          try {
+            const dateA = new Date(a.date.split('/').reverse().join('-')).getTime();
+            const dateB = new Date(b.date.split('/').reverse().join('-')).getTime();
+            return dateA - dateB;
+          } catch(e) { return 0; }
+        }), []);
+        
+        const updateState = useCallback((updater) => {
+            if (supabaseClient) setSaveStatus(SaveStatus.PENDING);
+            updater();
+        }, [supabaseClient]);
+
+        useEffect(() => {
+          const loadData = async () => {
+            setIsLoading(true);
+            setSaveStatus(supabaseClient ? SaveStatus.SAVED : SaveStatus.OFFLINE);
+            setSaveError('');
+            setSelectedTransactionId(null);
+            setEditingTransactionId(null);
+
+            const defaultState = { transactions: [], cardRows: 8, depositRows: 8, pixRows: 7 };
+
+            if (!supabaseClient || !user?.id) {
+              setTransactions(defaultState.transactions);
+              setCardRows(defaultState.cardRows);
+              setDepositRows(defaultState.depositRows);
+              setPixRows(defaultState.pixRows);
+              setIsLoading(false);
+              setInitialLoad(false);
+              return;
+            }
+
+            try {
+              const { data, error } = await supabaseClient.from('reports').select('*').eq('id', docId).single();
+              if (error && error.code !== 'PGRST116') { throw error; }
+
+              if (data) {
+                const sanitizedTransactions = (data.transactions || []).map(t => ({
+                  ...t,
+                  amount: parseAmount(t.amount)
+                }));
+                setTransactions(sortTransactions(sanitizedTransactions));
+                setCardRows(data.card_rows ?? 8);
+                setDepositRows(data.deposit_rows ?? 8);
+                setPixRows(data.pix_rows ?? 7);
+              } else {
+                setTransactions(defaultState.transactions);
+                setCardRows(defaultState.cardRows);
+                setDepositRows(defaultState.depositRows);
+                setPixRows(defaultState.pixRows);
+              }
+            } catch (error) {
+              console.error("Erro ao carregar dados:", error);
+              setSaveStatus(SaveStatus.ERROR);
+              setSaveError(`Falha ao carregar: ${getErrorMessage(error)}`);
+              setTransactions([]);
+            } finally {
+              setIsLoading(false);
+              setInitialLoad(false);
+            }
+          };
+
+          loadData();
+        }, [docId, user, sortTransactions, parseAmount]);
+
+        useEffect(() => {
+          if (initialLoad || saveStatus !== SaveStatus.PENDING) return;
+
+          const handler = setTimeout(async () => {
+            setSaveStatus(SaveStatus.SAVING);
+            setSaveError('');
+            try {
+              const { error } = await supabaseClient.from('reports').upsert({
+                    id: docId, 
+                    user_id: user.id, 
+                    updated_at: new Date().toISOString(),
+                    transactions, 
+                    card_rows: cardRows, 
+                    deposit_rows: depositRows, 
+                    pix_rows: pixRows,
+              });
+              if (error) throw error;
+              setSaveStatus(SaveStatus.SAVED);
+            } catch (error) { 
+              console.error("Erro ao salvar dados:", error);
+              setSaveStatus(SaveStatus.ERROR);
+              setSaveError(`Falha: ${getErrorMessage(error)}`);
+            }
+          }, 500);
+
+          return () => clearTimeout(handler);
+        }, [transactions, cardRows, depositRows, pixRows, docId, user, initialLoad, saveStatus]);
+        
+        useEffect(() => {
+            const handleBeforeUnload = (e) => {
+                if (saveStatus === SaveStatus.PENDING || saveStatus === SaveStatus.SAVING) {
+                    e.preventDefault();
+                    e.returnValue = '';
+                }
+            };
+            window.addEventListener('beforeunload', handleBeforeUnload);
+            return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+        }, [saveStatus]);
+
+        const handleAddTransaction = (transaction) => {
+          const newTransaction = { ...transaction, id: `trans_${Date.now()}` };
+          updateState(() => setTransactions(prev => sortTransactions([...prev, newTransaction])));
+        };
+
+        const handleUpdateTransaction = (updatedTransaction) => {
+          updateState(() => setTransactions(prev => sortTransactions(prev.map(t => t.id === updatedTransaction.id ? updatedTransaction : t))));
+          setEditingTransactionId(null);
+          setSelectedTransactionId(updatedTransaction.id);
+        };
+
+        const handleDeleteTransaction = (id) => {
+          if (window.confirm("Tem certeza que deseja apagar esta transação?")) {
+            updateState(() => setTransactions(prev => prev.filter(t => t.id !== id)));
+            if (selectedTransactionId === id) setSelectedTransactionId(null);
+            if (editingTransactionId === id) setEditingTransactionId(null);
+          }
+        };
+
+        const handleEditTransaction = (id) => { setEditingTransactionId(id); setSelectedTransactionId(id); };
+        const handleCancelEdit = () => { setEditingTransactionId(null); };
+
+        const handleSaveAsJpg = () => {
+            const reportElement = document.getElementById('report-root');
+            const reportContainer = document.getElementById('report-container');
+            if (reportElement && reportContainer && typeof html2canvas !== 'undefined' && !isSavingJpg) {
+                setIsSavingJpg(true);
+                const originalTransform = reportContainer.style.transform;
+                reportContainer.style.transform = 'scale(1)';
+
+                setTimeout(() => {
+                    html2canvas(reportElement, {
+                        scale: 2,
+                        useCORS: true,
+                        backgroundColor: '#ffffff',
+                    }).then(canvas => {
+                        const link = document.createElement('a');
+                        const dateText = `${MONTHS[selectedMonth]}_${selectedYear}`;
+                        link.download = `Relatorio_Financeiro_${dateText}.jpg`;
+                        link.href = canvas.toDataURL('image/jpeg', 0.95);
+                        link.click();
+                    }).catch(err => {
+                        console.error('Erro ao gerar JPG:', err);
+                        alert(`Erro ao salvar JPG: ${getErrorMessage(err)}`);
+                    }).finally(() => {
+                        reportContainer.style.transform = originalTransform;
+                        setIsSavingJpg(false);
+                    });
+                }, 100);
+            } else if (!isSavingJpg) {
+                console.error('Elemento do relatório não encontrado ou html2canvas não está carregado.');
+                alert('Não foi possível gerar o JPG. Verifique o console para mais detalhes.');
+            }
+        };
+        
+        const handleSaveAnnualJpg = async () => {
+            if (!supabaseClient) {
+              alert('A geração de relatórios anuais requer conexão com a nuvem.');
+              return;
+            }
+            if (isSavingAnnualJpg) return;
+
+            setIsSavingAnnualJpg(true);
+            try {
+              const annualData = Array(12).fill(null).map(() => ({ cartao: 0, deposito: 0, pix: 0 }));
+
+              for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
+                const monthDocId = `report-${user.id}-${selectedYear}-${monthIndex}`;
+                
+                const { data: monthReport, error: monthError } = await supabaseClient
+                  .from('reports')
+                  .select('transactions')
+                  .eq('id', monthDocId)
+                  .single();
+
+                if (monthError && monthError.code !== 'PGRST116') {
+                  throw monthError;
+                }
+                
+                if (monthReport && monthReport.transactions) {
+                  monthReport.transactions.forEach(t => {
+                    const amount = parseAmount(t.amount);
+                    if (t.type === PaymentType.Cartao) {
+                      annualData[monthIndex].cartao += amount;
+                    } else if (t.type === PaymentType.Deposito) {
+                      annualData[monthIndex].deposito += amount;
+                    } else if (t.type === PaymentType.Pix) {
+                      annualData[monthIndex].pix += amount;
+                    }
+                  });
+                }
+              }
+
+              const tempContainer = document.createElement('div');
+              tempContainer.style.position = 'absolute';
+              tempContainer.style.left = '-9999px';
+              tempContainer.style.top = '-9999px';
+              document.body.appendChild(tempContainer);
+
+              const root = ReactDOM.createRoot(tempContainer);
+              root.render(<AnnualReport year={selectedYear} data={annualData} />);
+
+              await new Promise(resolve => setTimeout(resolve, 500));
+
+              const annualReportElement = tempContainer.querySelector('#annual-report-root');
+              if (!annualReportElement) throw new Error('Elemento do relatório anual não encontrado.');
+              
+              const canvas = await html2canvas(annualReportElement, {
+                  scale: 2,
+                  useCORS: true,
+                  backgroundColor: '#ffffff',
+              });
+              
+              const link = document.createElement('a');
+              link.download = `Relatorio_Anual_${selectedYear}.jpg`;
+              link.href = canvas.toDataURL('image/jpeg', 0.95);
+              link.click();
+
+              root.unmount();
+              document.body.removeChild(tempContainer);
+
+            } catch (err) {
+              console.error('Erro ao gerar JPG anual:', err);
+              alert(`Erro ao salvar JPG anual: ${getErrorMessage(err)}`);
+            } finally {
+              setIsSavingAnnualJpg(false);
+            }
+        };
+
+        const editingTransaction = useMemo(() => transactions.find(t => t.id === editingTransactionId), [transactions, editingTransactionId]);
+        const selectedTransactionsForList = useMemo(() => {
+            if (!selectedTransactionId) return [];
+            const transaction = transactions.find(t => t.id === selectedTransactionId);
+            return transaction ? [transaction] : [];
+        }, [transactions, selectedTransactionId]);
+        
+        const dateText = `${MONTHS[selectedMonth]} / ${selectedYear}`;
+
+        return (
+            <div className="flex flex-col lg:flex-row gap-8 p-4 sm:p-8 max-w-screen-2xl mx-auto">
+                <div className="lg:w-[420px] flex-shrink-0 flex flex-col gap-6 print-hidden">
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                        <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100">Controles do Relatório</h2>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label htmlFor="month-select" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Mês</label>
+                                <select id="month-select" value={selectedMonth} onChange={e => setSelectedMonth(Number(e.target.value))} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200">{MONTHS.map((m, i) => <option key={i} value={i}>{m}</option>)}</select>
+                            </div>
+                            <div>
+                                <label htmlFor="year-select" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Ano</label>
+                                <select id="year-select" value={selectedYear} onChange={e => setSelectedYear(Number(e.target.value))} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200">{getYears().map(y => <option key={y} value={y}>{y}</option>)}</select>
+                            </div>
+                        </div>
+                        <div className="mt-4 space-y-2">
+                          <div className="flex justify-between items-center gap-2">
+                              <button 
+                                  onClick={handleSaveAsJpg}
+                                  disabled={isSavingJpg}
+                                  className="flex-1 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors disabled:opacity-50"
+                              >
+                                  {isSavingJpg ? 'Salvando...' : 'Mensal JPG'}
+                              </button>
+                              <button 
+                                  onClick={handleSaveAnnualJpg}
+                                  disabled={isSavingAnnualJpg || !supabaseClient}
+                                  title={!supabaseClient ? "Funcionalidade disponível apenas online" : "Gerar relatório anual consolidado"}
+                                  className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                  {isSavingAnnualJpg ? 'Gerando...' : 'Anual JPG'}
+                              </button>
+                          </div>
+                           <div className={`text-sm text-right ${saveStatus === SaveStatus.ERROR ? 'text-red-500' : 'text-gray-500 dark:text-gray-400'}`}>
+                                {saveStatus === SaveStatus.ERROR ? saveError : saveStatus}
+                            </div>
+                        </div>
+                    </div>
+
+                    <TransactionForm onAddTransaction={handleAddTransaction} onUpdateTransaction={handleUpdateTransaction} editingTransaction={editingTransaction} onCancelEdit={handleCancelEdit} />
+                    <TransactionList transactions={selectedTransactionsForList} onEdit={handleEditTransaction} onDelete={handleDeleteTransaction}/>
+
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                        <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100">Layout do Relatório</h2>
+                        <div className="space-y-3"><div className="flex justify-between items-center"><label htmlFor="card-rows" className="text-sm font-medium text-gray-700 dark:text-gray-300">Linhas de Cartão:</label><input type="number" id="card-rows" value={cardRows} onChange={e => updateState(() => setCardRows(Number(e.target.value)))} className="w-20 p-1 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 text-center" /></div><div className="flex justify-between items-center"><label htmlFor="deposit-rows" className="text-sm font-medium text-gray-700 dark:text-gray-300">Linhas de Depósito:</label><input type="number" id="deposit-rows" value={depositRows} onChange={e => updateState(() => setDepositRows(Number(e.target.value)))} className="w-20 p-1 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 text-center" /></div><div className="flex justify-between items-center"><label htmlFor="pix-rows" className="text-sm font-medium text-gray-700 dark:text-gray-300">Linhas de Pix:</label><input type="number" id="pix-rows" value={pixRows} onChange={e => updateState(() => setPixRows(Number(e.target.value)))} className="w-20 p-1 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 text-center" /></div></div>
+                    </div>
+                </div>
+
+                <div className="flex-1 flex flex-col items-center lg:items-start">
+                    <div id="report-container" className="relative transform scale-[0.6] sm:scale-75 lg:scale-95 origin-top" style={{ minHeight: '1123px' }}>
+                        {isLoading ? ( <div className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-gray-900/80 z-10 rounded-lg"><div className="text-center"><svg className="animate-spin h-10 w-10 text-blue-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><p className="mt-2 text-lg font-semibold text-gray-700 dark:text-gray-200">Carregando Relatório...</p></div></div> ) 
+                        : ( <Report dateText={dateText} transactions={transactions} cardRows={cardRows} depositRows={depositRows} pixRows={pixRows} onTransactionSelect={(id) => setSelectedTransactionId(prev => prev === id ? null : id)} selectedTransactionId={selectedTransactionId} />)}
+                    </div>
+                </div>
+            </div>
+        );
+      };
+
+      const Spinner = ({ message }) => (<div className="fixed inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-900"><div className="text-center"><svg className="animate-spin h-10 w-10 text-blue-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><p className="mt-2 text-lg font-semibold text-gray-700 dark:text-gray-200">{message}</p></div></div>);
+      
+      const AuthScreen = ({ initialError = '' }) => {
+        const [authMode, setAuthMode] = useState('login'); // 'login', 'signup', 'forgotPassword'
+        const [email, setEmail] = useState('');
+        const [password, setPassword] = useState('');
+        const [loading, setLoading] = useState(false);
+        const [error, setError] = useState(initialError);
+        const [message, setMessage] = useState('');
+
+        const handleAuth = async (e) => {
+            e.preventDefault(); setLoading(true); setError(''); setMessage('');
+            const isLogin = authMode === 'login';
+            try {
+                if (isLogin) {
+                    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                    if (error) throw error;
+                } else { // signup
+                    const { error } = await supabaseClient.auth.signUp({ email, password });
+                    if (error) throw error;
+                    setMessage('Cadastro realizado! Verifique seu e-mail para confirmar a conta.');
+                }
+            } catch (err) { setError(getErrorMessage(err)); } 
+            finally { setLoading(false); }
+        };
+
+        const handlePasswordReset = async (e) => {
+            e.preventDefault(); setLoading(true); setError(''); setMessage('');
+            try {
+                const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+                  redirectTo: 'https://k10.netlify.app/recursos/relatoriofinanceiro',
+                });
+                if (error) throw error;
+                setMessage('Instruções para redefinir a senha foram enviadas para o seu e-mail.');
+            } catch (err) {
+                setError(getErrorMessage(err));
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        const resetFormState = () => {
+            setEmail('');
+            setPassword('');
+            setError('');
+            setMessage('');
+        }
+
+        if (authMode === 'forgotPassword') {
+            return (
+                <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+                    <div className="max-w-md w-full space-y-8">
+                        <div><h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">Recuperar Senha</h2></div>
+                        <form className="mt-8 space-y-6" onSubmit={handlePasswordReset}>
+                            <div className="rounded-md shadow-sm">
+                                <div><input id="email-address-reset" name="email" type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" placeholder="Endereço de e-mail" /></div>
+                            </div>
+                            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+                            {message && <p className="text-green-500 text-sm text-center">{message}</p>}
+                            <div><button type="submit" disabled={loading} className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50">{loading ? 'Enviando...' : 'Enviar Instruções'}</button></div>
+                        </form>
+                        <div className="text-center">
+                            <button onClick={() => { setAuthMode('login'); resetFormState(); }} className="font-medium text-blue-600 hover:text-blue-500">Voltar para o Login</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        
+        const isLogin = authMode === 'login';
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+                <div className="max-w-md w-full space-y-8">
+                    <div><h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">{isLogin ? 'Acesse sua conta' : 'Crie uma nova conta'}</h2></div>
+                    <form className="mt-8 space-y-6" onSubmit={handleAuth}>
+                        {error && <p className="text-red-500 text-sm text-center mb-4">{error}</p>}
+                        {message && <p className="text-green-500 text-sm text-center mb-4">{message}</p>}
+                        <div className="rounded-md shadow-sm -space-y-px">
+                            <div><input id="email-address" name="email" type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" placeholder="Endereço de e-mail" /></div>
+                            <div><input id="password" name="password" type="password" autoComplete="current-password" required value={password} onChange={e => setPassword(e.target.value)} className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" placeholder="Senha" /></div>
+                        </div>
+                        
+                        <div className="flex items-center justify-end text-sm">
+                            {isLogin && (
+                                <button type="button" onClick={() => { setAuthMode('forgotPassword'); resetFormState(); }} className="font-medium text-blue-600 hover:text-blue-500 focus:outline-none">
+                                    Esqueceu a senha?
+                                </button>
+                            )}
+                        </div>
+                        
+                        <div><button type="submit" disabled={loading} className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50">{loading ? 'Processando...' : (isLogin ? 'Entrar' : 'Cadastrar')}</button></div>
+                    </form>
+                    <div className="text-center">
+                        <button onClick={() => { setAuthMode(isLogin ? 'signup' : 'login'); resetFormState(); }} className="font-medium text-blue-600 hover:text-blue-500">
+                            {isLogin ? 'Não tem uma conta? Cadastre-se' : 'Já tem uma conta? Entre'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+      };
+
+      const UpdatePasswordScreen = ({ onUpdateSuccess }) => {
+          const [password, setPassword] = useState('');
+          const [confirmPassword, setConfirmPassword] = useState('');
+          const [showPassword, setShowPassword] = useState(false);
+          const [loading, setLoading] = useState(false);
+          const [submitError, setSubmitError] = useState('');
+          const [validationError, setValidationError] = useState('');
+          const [message, setMessage] = useState('');
+
+          useEffect(() => {
+              if (password && password.length < 6) {
+                  setValidationError('A senha deve ter pelo menos 6 caracteres.');
+              } else if (confirmPassword && password !== confirmPassword) {
+                  setValidationError('As senhas digitadas não coincidem.');
+              } else {
+                  setValidationError('');
+              }
+          }, [password, confirmPassword]);
+
+          const handleUpdate = async (e) => {
+              e.preventDefault();
+              
+              if (validationError) {
+                  setSubmitError(validationError);
+                  return;
+              }
+              if (password !== confirmPassword) {
+                  setSubmitError('As senhas não coincidem.');
+                  return;
+              }
+
+              setLoading(true);
+              setSubmitError('');
+              setMessage('');
+
+              try {
+                  const { error } = await supabaseClient.auth.updateUser({ password });
+                  if (error) throw error;
+                  setMessage('Senha atualizada com sucesso! Redirecionando...');
+                  setTimeout(() => {
+                      onUpdateSuccess();
+                  }, 2000);
+              } catch (err) {
+                  if (err.message && err.message.includes('New password should be different')) {
+                      setSubmitError('A nova senha deve ser diferente da senha atual.');
+                  } else {
+                      setSubmitError(getErrorMessage(err));
+                  }
+              } finally {
+                  setLoading(false);
+              }
+          };
+          
+          const EyeIcon = ({isOpen}) => isOpen ? 
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.27 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" /></svg>
+            : 
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zM10 12a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" /><path d="M2.973 7.646A10.016 10.016 0 00.458 10c1.274 4.057 5.27 7 9.542 7 .847 0 1.67-.111 2.457-.317l-1.878-1.878A4.002 4.002 0 0110 14a4 4 0 01-4-4c0-.77.22-1.48.59-2.093l-1.625-1.625z" /></svg>;
+
+          return (
+              <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+                  <div className="max-w-md w-full space-y-8">
+                      <div><h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">Redefinir sua Senha</h2></div>
+                      <form className="mt-8 space-y-6" onSubmit={handleUpdate}>
+                          <div className="rounded-md shadow-sm space-y-4">
+                              <div className="relative">
+                                  <input 
+                                      id="new-password" name="password" type={showPassword ? 'text' : 'password'} required 
+                                      value={password} onChange={e => { setPassword(e.target.value); setSubmitError(''); }} 
+                                      className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" 
+                                      placeholder="Digite sua nova senha" />
+                                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5 text-gray-500 hover:text-gray-700 focus:outline-none">
+                                      <EyeIcon isOpen={showPassword} />
+                                  </button>
+                              </div>
+                               <div className="relative">
+                                  <input 
+                                      id="confirm-password" name="confirm-password" type={showPassword ? 'text' : 'password'} required 
+                                      value={confirmPassword} onChange={e => { setConfirmPassword(e.target.value); setSubmitError(''); }} 
+                                      className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" 
+                                      placeholder="Confirme sua nova senha" />
+                                   <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5 text-gray-500 hover:text-gray-700 focus:outline-none">
+                                      <EyeIcon isOpen={showPassword} />
+                                  </button>
+                              </div>
+                          </div>
+
+                          {(validationError || submitError) && <p className="text-red-500 text-sm text-center">{validationError || submitError}</p>}
+                          {message && <p className="text-green-500 text-sm text-center">{message}</p>}
+
+                          <div><button type="submit" disabled={loading || message || !!validationError} className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">{loading ? 'Atualizando...' : 'Atualizar Senha'}</button></div>
+                      </form>
+                  </div>
+              </div>
+          );
+      };
+
+      const OfflineWarning = () => (<div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 print-hidden" role="alert"><p className="font-bold">Modo Offline</p><p>O aplicativo não está conectado a um banco de dados. Suas alterações não serão salvas na nuvem.</p></div>);
+
+      const App = () => {
+        const [session, setSession] = useState(null);
+        const [authLoading, setAuthLoading] = useState(true);
+        const [isLoggingOut, setIsLoggingOut] = useState(false);
+        const [authView, setAuthView] = useState('app'); // 'app', 'update_password'
+        const [initialAuthError, setInitialAuthError] = useState('');
+
+        useEffect(() => {
+            if (!supabaseClient) {
+                setAuthLoading(false);
+                return;
+            }
+
+            // Handle URL hash errors on initial load
+            const hash = window.location.hash;
+            if (hash.includes('error=access_denied')) {
+                setInitialAuthError('O link para redefinição de senha é inválido ou expirou. Por favor, solicite um novo.');
+                window.history.replaceState(null, document.title, window.location.pathname + window.location.search);
+            }
+
+            const getSession = async () => {
+                try {
+                    const { data: { session } } = await supabaseClient.auth.getSession();
+                    setSession(session);
+                } catch (error) {
+                    console.error("Erro ao obter sessão:", error);
+                } finally {
+                    setAuthLoading(false);
+                }
+            };
+            
+            getSession();
+            
+            const { data: { subscription } } = supabaseClient.auth.onAuthStateChange((_event, session) => {
+                if (_event === "PASSWORD_RECOVERY") {
+                    setAuthView('update_password');
+                }
+                setSession(session);
+            });
+            
+            return () => subscription.unsubscribe();
+        }, []);
+
+        const handleLogout = async () => {
+            if (!supabaseClient) return;
+            setIsLoggingOut(true);
+            try {
+                const { error } = await supabaseClient.auth.signOut();
+                if (error) throw error;
+            } catch(error) {
+                alert(`Erro ao sair: ${getErrorMessage(error)}`);
+            } finally {
+                setIsLoggingOut(false);
+            }
+        };
+
+        if (authLoading || isLoggingOut) {
+            return <Spinner message={isLoggingOut ? "Saindo..." : "Verificando autenticação..."} />;
+        }
+        
+        const user = session?.user;
+
+        if (user && authView === 'update_password') {
+            return <UpdatePasswordScreen onUpdateSuccess={() => setAuthView('app')} />;
+        }
+
+        return (
+            <>
+                {!supabaseClient && <OfflineWarning />}
+                {user ? (
+                    <>
+                        <header className="bg-white dark:bg-gray-800 shadow-md p-4 flex justify-between items-center print-hidden">
+                            <span className="text-sm text-gray-600 dark:text-gray-300">Logado como: <strong>{user.email}</strong></span>
+                            <button onClick={handleLogout} className="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition-colors">Sair</button>
+                        </header>
+                        <ReportGenerator user={user} />
+                    </>
+                ) : (
+                    supabaseClient ? <AuthScreen initialError={initialAuthError} /> : <ReportGenerator user={{id: 'offline-user'}}/>
+                )}
+            </>
+        );
+      };
+
+      ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+  </body>
+</html>
