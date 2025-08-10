@@ -30,6 +30,44 @@
         }
         .print-page:last-child { page-break-after: auto; }
       }
+
+      /* Predefined scales for the annual report on mobile */
+      @media screen and (max-width: 1199px) {
+          .annual-report-content {
+              transform: scale(0.9);
+              transform-origin: top center;
+          }
+      }
+      @media screen and (max-width: 991px) {
+          .annual-report-content {
+              transform: scale(0.75);
+              transform-origin: top center;
+          }
+      }
+      @media screen and (max-width: 767px) {
+          .annual-report-content {
+              transform: scale(0.6);
+              transform-origin: top center;
+          }
+      }
+      @media screen and (max-width: 575px) {
+          .annual-report-content {
+              transform: scale(0.45);
+              transform-origin: top center;
+          }
+      }
+      @media screen and (max-width: 449px) {
+          .annual-report-content {
+              transform: scale(0.35);
+              transform-origin: top center;
+          }
+      }
+       @media screen and (max-width: 379px) {
+          .annual-report-content {
+              transform: scale(0.31);
+              transform-origin: top center;
+          }
+      }
     </style>
     <!-- React & ReactDOM -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -683,7 +721,7 @@
           const pageWrapperClass = !isSavingJpg ? 'mb-8' : '';
 
           return (
-              <div ref={ref} className="p-4 print-container" style={{ width: '1200px', fontFamily: 'Arial, sans-serif' }}>
+              <div ref={ref} className={`p-4 print-container annual-report-content`} style={{ width: '1200px', fontFamily: 'Arial, sans-serif' }}>
                   <div className={`bg-white text-xs p-4 shadow-lg flex flex-col print-page text-black ${pageWrapperClass}`} style={{ height: 'auto' }}>
                       <PageHeader year={year} />
                       <div className="mb-4">
@@ -785,7 +823,7 @@
         const [annualData, setAnnualData] = useState(null); const [isLoading, setIsLoading] = useState(false);
         const [error, setError] = useState(''); const [isSavingJpg, setIsSavingJpg] = useState(false);
         const printableRef = useRef(null);
-        const wrapperRef = useRef(null); // Ref para o contêiner de escala
+        const wrapperRef = useRef(null); 
 
         const handleCepSubmit = (e) => { e.preventDefault(); setCep(inputCep.replace(/\D/g, '')); };
         
@@ -857,40 +895,46 @@
           if (churchData.name) loadAnnualData();
         }, [cep, displayedYear, churchData.name]);
         
-        // Efeito para dimensionar o relatório para caber na largura do contêiner
+        // Efeito para ajustar a altura do contêiner com base na escala definida pelo CSS
         useEffect(() => {
             const reportEl = printableRef.current;
             const wrapperEl = wrapperRef.current;
-            if (!reportEl || !wrapperEl || !annualData) return;
 
-            const resizeReport = () => {
+            if (!reportEl || !wrapperEl || !annualData) {
+                if (wrapperEl) wrapperEl.style.height = 'auto';
+                return;
+            };
+
+            const adjustHeight = () => {
                 if (!reportEl || !wrapperEl) return;
-
-                const wrapperWidth = wrapperEl.offsetWidth;
-                const reportWidth = 1200;
-
-                if (wrapperWidth > 0 && wrapperWidth < reportWidth) {
-                    const scale = wrapperWidth / reportWidth;
-                    reportEl.style.transform = `scale(${scale})`;
-                    reportEl.style.transformOrigin = 'top center';
-                    if (reportEl.offsetHeight > 0) { // Garante que a altura não seja 0
-                        wrapperEl.style.height = `${reportEl.offsetHeight * scale}px`;
-                    }
+                
+                // Pega o fator de escala do CSS
+                const computedStyle = window.getComputedStyle(reportEl);
+                const transformValue = computedStyle.getPropertyValue('transform');
+                let scale = 1;
+                if (transformValue && transformValue !== 'none') {
+                    const matrixMatch = transformValue.match(/matrix\(([^,]+)/);
+                    if (matrixMatch) scale = parseFloat(matrixMatch[1]);
+                }
+                
+                // Mede a altura original sem a transformação
+                const originalHeight = reportEl.offsetHeight;
+                
+                if (scale < 1) {
+                    wrapperEl.style.height = `${originalHeight * scale}px`;
                 } else {
-                    reportEl.style.transform = 'none';
                     wrapperEl.style.height = 'auto';
                 }
             };
-
-            // Espera um instante para garantir que o layout complexo foi calculado
-            const timerId = setTimeout(resizeReport, 100);
             
-            const observer = new ResizeObserver(resizeReport);
-            observer.observe(wrapperEl);
+            // Usa um temporizador para garantir que o navegador tenha renderizado o conteúdo antes de medir
+            const timerId = setTimeout(adjustHeight, 150);
+
+            window.addEventListener('resize', adjustHeight);
 
             return () => {
                 clearTimeout(timerId);
-                observer.disconnect();
+                window.removeEventListener('resize', adjustHeight);
             };
         }, [annualData]);
 
