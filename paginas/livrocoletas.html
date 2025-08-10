@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -204,7 +203,8 @@
                 let currentWeek = [];
                 let currentWeekStart = null;
                 data.forEach((row, index) => {
-                    const rowDate = new Date(row.id);
+                    const rowDateStr = row.id.replace('-duplicate', '');
+                    const rowDate = new Date(rowDateStr);
                     const weekStart = getWeekStart(rowDate);
                     const weekKey = weekStart.toISOString().split('T')[0];
                     if (currentWeekStart === null || currentWeekStart !== weekKey) {
@@ -284,11 +284,11 @@
             
             const daysOfWeek = useMemo(() => [
                 { value: '0', label: 'Domingo' },
-                { value: '1', label: 'Segunda-feira' },
-                { value: '2', label: 'Terça-feira' },
-                { value: '3', label: 'Quarta-feira' },
-                { value: '4', label: 'Quinta-feira' },
-                { value: '5', label: 'Sexta-feira' },
+                { value: '1', label: 'Segunda' },
+                { value: '2', label: 'Terça' },
+                { value: '3', label: 'Quarta' },
+                { value: '4', label: 'Quinta' },
+                { value: '5', label: 'Sexta' },
                 { value: '6', label: 'Sábado' }
             ], []);
 
@@ -299,8 +299,17 @@
                 });
                 return initial;
             }, [daysOfWeek]);
+            
+            const initialDuplicatedDays = useMemo(() => {
+                const initial = {};
+                daysOfWeek.forEach(day => {
+                    initial[day.value] = false;
+                });
+                return initial;
+            }, [daysOfWeek]);
 
             const [selectedDays, setSelectedDays] = useState(initialSelectedDays);
+            const [duplicatedDays, setDuplicatedDays] = useState(initialDuplicatedDays);
             const [availableDates, setAvailableDates] = useState([]);
             const [error, setError] = useState('');
             const [reportDayOfWeekTitle, setReportDayOfWeekTitle] = useState('');
@@ -308,6 +317,15 @@
             const handleDaySelectionChange = useCallback((event) => {
                 const { value, checked } = event.target;
                 setSelectedDays(prev => ({
+                    ...prev,
+                    [value]: checked
+                }));
+                setAvailableDates([]);
+            }, []);
+            
+            const handleDayDuplicationChange = useCallback((event) => {
+                const { value, checked } = event.target;
+                setDuplicatedDays(prev => ({
                     ...prev,
                     [value]: checked
                 }));
@@ -350,39 +368,58 @@
                 const daysInMonth = new Date(year, month, 0).getDate();
                 for (let day = 1; day <= daysInMonth; day++) {
                     const currentDate = new Date(Date.UTC(year, month - 1, day));
-                    if (activeDayValues.includes(currentDate.getUTCDay())) {
-                        dates.push({
-                            id: currentDate.toISOString(),
-                            formattedDate: currentDate.toLocaleDateString('pt-BR', { 
+                    const dayOfWeekValue = currentDate.getUTCDay();
+
+                    if (activeDayValues.includes(dayOfWeekValue)) {
+                        const dateInfo = {
+                             formattedDate: currentDate.toLocaleDateString('pt-BR', { 
                                 timeZone: 'UTC',
                                 day: '2-digit',
                                 month: '2-digit',
                                 year: 'numeric'
                             }),
                             selected: true,
-                        });
+                        };
+                        
+                        dates.push({ ...dateInfo, id: currentDate.toISOString() });
+
+                        if (duplicatedDays[dayOfWeekValue]) {
+                            dates.push({ ...dateInfo, id: `${currentDate.toISOString()}-duplicate` });
+                        }
                     }
                 }
-                setAvailableDates(dates);
+                
+                const sortedDates = dates.sort((a, b) => {
+                    const dateA = new Date(a.id.replace('-duplicate', ''));
+                    const dateB = new Date(b.id.replace('-duplicate', ''));
+                    if (dateA.getTime() !== dateB.getTime()) {
+                        return dateA.getTime() - dateB.getTime();
+                    }
+                    return a.id.includes('-duplicate') ? 1 : -1;
+                });
+
+                setAvailableDates(sortedDates);
+                
                 const selectedLabels = daysOfWeek
                     .filter(day => selectedDays[day.value])
                     .map(day => day.label);
                 const pluralize = (label) => {
-                    if (label.endsWith('-feira')) {
-                        return label.replace('-feira', '-feiras');
-                    }
-                    return label + 's';
+                    const pluralMap = {
+                        'Segunda': 'Segundas-feiras', 'Terça': 'Terças-feiras', 'Quarta': 'Quartas-feiras',
+                        'Quinta': 'Quintas-feiras', 'Sexta': 'Sextas-feiras', 'Sábado': 'Sábados', 'Domingo': 'Domingos'
+                    };
+                    return pluralMap[label] || label;
                 };
                 if (selectedLabels.length === daysOfWeek.length) {
                     setReportDayOfWeekTitle('Todos os Dias');
                 } else if (selectedLabels.length > 1) {
-                    setReportDayOfWeekTitle(selectedLabels.map(l => l.replace('-feira', '')).join(', '));
+                    setReportDayOfWeekTitle(selectedLabels.join(', '));
                 } else if (selectedLabels.length === 1) {
                     setReportDayOfWeekTitle(pluralize(selectedLabels[0]));
                 } else {
                     setReportDayOfWeekTitle('');
                 }
-            }, [selectedMonth, selectedDays, daysOfWeek]);
+            }, [selectedMonth, selectedDays, daysOfWeek, duplicatedDays]);
 
             const handleToggleDate = useCallback((id) => {
                 setAvailableDates(prevDates =>
@@ -407,7 +444,14 @@
                 return availableDates
                     .filter(d => d.selected)
                     .map(d => ({ id: d.id, formattedDate: d.formattedDate }))
-                    .sort((a, b) => new Date(a.id).getTime() - new Date(b.id).getTime());
+                    .sort((a, b) => {
+                         const dateA = new Date(a.id.replace('-duplicate', ''));
+                         const dateB = new Date(b.id.replace('-duplicate', ''));
+                         if (dateA.getTime() !== dateB.getTime()) {
+                             return dateA.getTime() - dateB.getTime();
+                         }
+                         return a.id.includes('-duplicate') ? 1 : -1;
+                    });
             }, [availableDates]);
 
             const handlePrint = useCallback(() => {
@@ -470,9 +514,18 @@
                                                 </label>
                                             </div>
                                         </div>
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2">
                                             {daysOfWeek.map(day => (
-                                                <div key={day.value} className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                                                <div key={day.value} className="flex items-center gap-2 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                                                    <input
+                                                        type="checkbox"
+                                                        id={`duplicate-day-${day.value}`}
+                                                        value={day.value}
+                                                        checked={duplicatedDays[day.value] || false}
+                                                        onChange={handleDayDuplicationChange}
+                                                        className="checkbox-custom"
+                                                        title={`Duplicar ${day.label}`}
+                                                    />
                                                     <input
                                                         type="checkbox"
                                                         id={`day-${day.value}`}
@@ -481,7 +534,7 @@
                                                         onChange={handleDaySelectionChange}
                                                         className="checkbox-custom"
                                                     />
-                                                    <label htmlFor={`day-${day.value}`} className="font-medium text-gray-700 cursor-pointer">
+                                                    <label htmlFor={`day-${day.value}`} className="font-medium text-gray-700 cursor-pointer whitespace-nowrap">
                                                         {day.label}
                                                     </label>
                                                 </div>
