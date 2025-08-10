@@ -30,44 +30,6 @@
         }
         .print-page:last-child { page-break-after: auto; }
       }
-
-      /* Predefined scales for the annual report on mobile */
-      @media screen and (max-width: 1199px) {
-          .annual-report-content {
-              transform: scale(0.9);
-              transform-origin: top center;
-          }
-      }
-      @media screen and (max-width: 991px) {
-          .annual-report-content {
-              transform: scale(0.75);
-              transform-origin: top center;
-          }
-      }
-      @media screen and (max-width: 767px) {
-          .annual-report-content {
-              transform: scale(0.6);
-              transform-origin: top center;
-          }
-      }
-      @media screen and (max-width: 575px) {
-          .annual-report-content {
-              transform: scale(0.45);
-              transform-origin: top center;
-          }
-      }
-      @media screen and (max-width: 449px) {
-          .annual-report-content {
-              transform: scale(0.35);
-              transform-origin: top center;
-          }
-      }
-       @media screen and (max-width: 379px) {
-          .annual-report-content {
-              transform: scale(0.31);
-              transform-origin: top center;
-          }
-      }
     </style>
     <!-- React & ReactDOM -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -895,48 +857,6 @@
           if (churchData.name) loadAnnualData();
         }, [cep, displayedYear, churchData.name]);
         
-        // Efeito para ajustar a altura do contêiner com base na escala definida pelo CSS
-        useEffect(() => {
-            const reportEl = printableRef.current;
-            const wrapperEl = wrapperRef.current;
-
-            if (!reportEl || !wrapperEl || !annualData) {
-                if (wrapperEl) wrapperEl.style.height = 'auto';
-                return;
-            };
-
-            const adjustHeight = () => {
-                if (!reportEl || !wrapperEl) return;
-                
-                // Pega o fator de escala do CSS
-                const computedStyle = window.getComputedStyle(reportEl);
-                const transformValue = computedStyle.getPropertyValue('transform');
-                let scale = 1;
-                if (transformValue && transformValue !== 'none') {
-                    const matrixMatch = transformValue.match(/matrix\(([^,]+)/);
-                    if (matrixMatch) scale = parseFloat(matrixMatch[1]);
-                }
-                
-                // Mede a altura original sem a transformação
-                const originalHeight = reportEl.offsetHeight;
-                
-                if (scale < 1) {
-                    wrapperEl.style.height = `${originalHeight * scale}px`;
-                } else {
-                    wrapperEl.style.height = 'auto';
-                }
-            };
-            
-            // Usa um temporizador para garantir que o navegador tenha renderizado o conteúdo antes de medir
-            const timerId = setTimeout(adjustHeight, 150);
-
-            window.addEventListener('resize', adjustHeight);
-
-            return () => {
-                clearTimeout(timerId);
-                window.removeEventListener('resize', adjustHeight);
-            };
-        }, [annualData]);
 
         const handleSaveJpg = async () => { 
             if (!printableRef.current) return; setIsSavingJpg(true);
