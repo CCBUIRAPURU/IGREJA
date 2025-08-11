@@ -511,24 +511,28 @@
       
               setIsSavingJpg(true);
       
+              // Salva os estilos originais para restaurá-los depois
               const originalReportStyle = nodeToCapture.style.cssText;
               const originalWrapperStyle = wrapperNode.style.cssText;
       
               try {
-                  // Redefinir temporariamente os estilos para garantir a captura em tamanho real e sem cortes
+                  // **ETAPA DE CORREÇÃO**
+                  // 1. Redefine temporariamente os estilos para garantir a captura em tamanho real e sem cortes.
                   wrapperNode.style.height = 'auto';
                   nodeToCapture.style.transform = 'none';
                   nodeToCapture.style.transformOrigin = 'initial';
       
-                  // Aguarda um instante para que o navegador aplique as mudanças de estilo
+                  // 2. Aguarda um instante para que o navegador aplique as mudanças de estilo antes de capturar.
                   await new Promise(resolve => setTimeout(resolve, 150));
       
+                  // 3. Captura a imagem do elemento agora em tamanho real.
                   const dataUrl = await htmlToImage.toJpeg(nodeToCapture, {
                       quality: 0.98,
                       backgroundColor: '#ffffff',
-                      pixelRatio: 2, // Mantém a alta resolução
+                      pixelRatio: 2, // Mantém a alta resolução para qualidade.
                   });
                   
+                  // 4. Inicia o download da imagem gerada.
                   const link = document.createElement('a');
                   link.download = `relatorio-mensal-${cep}-${displayedMonth}-${displayedYear}.jpg`;
                   link.href = dataUrl;
@@ -537,7 +541,8 @@
                   console.error('Falha ao gerar a imagem do relatório:', err);
                   alert('Ocorreu um erro ao gerar a imagem JPG. Por favor, verifique o console para mais detalhes.');
               } finally {
-                  // Restaura os estilos originais para não quebrar a visualização na tela
+                  // **ETAPA FINAL**
+                  // 5. Restaura os estilos originais para não quebrar a visualização na tela.
                   wrapperNode.style.cssText = originalWrapperStyle;
                   nodeToCapture.style.cssText = originalReportStyle;
                   setIsSavingJpg(false);
