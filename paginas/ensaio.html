@@ -1,8 +1,4 @@
-
 <!DOCTYPE html>
-
-
-
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
@@ -505,32 +501,17 @@
           }, [reportData]); // Re-run if the report is loaded/unloaded
 
           const handleSaveJpg = useCallback(async () => {
-            const nodeToCapture = printableRef.current;
-            if (!nodeToCapture) {
+            if (!printableRef.current) {
                 console.error("Elemento do relatório não encontrado para captura.");
                 return;
             }
             setIsSavingJpg(true);
             try {
-                // The intrinsic dimensions of the report.
-                const reportWidth = 1191;
-                const reportHeight = 1685;
-
-                const dataUrl = await htmlToImage.toJpeg(nodeToCapture, {
-                    quality: 0.95,
-                    backgroundColor: '#ffffff',
-                    pixelRatio: 2, // Capture at 2x resolution for high quality.
-                    // Set explicit dimensions for the capture canvas.
-                    width: reportWidth,
-                    height: reportHeight,
-                    // Temporarily override inline styles for the capture, forcing it to render at full size.
-                    style: {
-                        transform: 'none',
-                        transformOrigin: 'initial',
-                        margin: 0,
-                    }
+                const dataUrl = await htmlToImage.toJpeg(printableRef.current, { 
+                    quality: 0.95, 
+                    backgroundColor: '#ffffff', 
+                    pixelRatio: 2 
                 });
-                
                 const link = document.createElement('a');
                 link.download = `relatorio-mensal-${cep}-${displayedMonth}-${displayedYear}.jpg`;
                 link.href = dataUrl;
