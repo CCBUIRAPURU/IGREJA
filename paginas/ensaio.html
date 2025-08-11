@@ -1,4 +1,8 @@
+
 <!DOCTYPE html>
+
+
+
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
@@ -76,7 +80,7 @@
       };
       const INSTRUMENTS_LIST = ['Barítono', 'Clarinete', 'Clarinete Alto', 'Clarinete Baixo', 'Corne Inglês', 'Eufônio', 'Fagote', 'Flauta Transversal', 'Flugelhorn', 'Harmônico (acordeon)', 'Oboé', 'Oboé D\'Amore', 'Organistas (Órgão)', 'Saxofone Alto', 'Saxofone Barítono', 'Saxofone Soprano', 'Saxofone Tenor', 'Trombone', 'Trombonito', 'Trompa', 'Trompete', 'Trompete Cornet', 'Tuba', 'Viola', 'Violino', 'Violoncelo'];
       const MINISTRY_LIST = ['Anciães', 'Diáconos', 'Coop. do Ofício Ministerial', 'Coop. de Jovens e Menores', 'Encarregados Regionais', 'Encarregados Locais', 'Examinadoras de Organistas'];
-      const MONTHS_LIST = [{ value: '1', label: 'Janeiro' }, { value: '2', label: 'Fevereiro' }, { value: '3', label: 'Março' }, { value: '4', label: 'Abril' }, { value: '5', label: 'Maio' }, { value: '6', label: 'Junho' }, { value: '7', label: 'Julho' }, { value: '8', label: 'Agosto' }, { value: '9', label: 'Setembro' }, { value: '10', 'label': 'Outubro' }, { value: '11', label: 'Novembro' }, { value: '12', label: 'Dezembro' }];
+      const MONTHS_LIST = [{ value: '1', label: 'Janeiro' }, { value: '2', label: 'Fevereiro' }, { value: '3', label: 'Março' }, { value: '4', label: 'Abril' }, { value: '5', label: 'Maio' }, { value: '6', label: 'Junho' }, { value: '7', label: 'Julho' }, { value: '8', label: 'Agosto' }, { value: '9', label: 'Setembro' }, { value: '10', label: 'Outubro' }, { value: '11', label: 'Novembro' }, { value: '12', label: 'Dezembro' }];
       const SHORT_MONTHS = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
       
       // ===== From utils.ts =====
@@ -500,55 +504,43 @@
               return () => observer.disconnect();
           }, [reportData]); // Re-run if the report is loaded/unloaded
 
-          // ### INÍCIO DA CORREÇÃO ###
           const handleSaveJpg = useCallback(async () => {
-              const nodeToCapture = printableRef.current;
-              const wrapperNode = wrapperRef.current;
-              if (!nodeToCapture || !wrapperNode) {
-                  alert("Erro: Não foi possível encontrar o elemento do relatório para salvar.");
-                  return;
-              }
-      
-              setIsSavingJpg(true);
-      
-              // Salva os estilos originais para poder restaurá-los depois
-              const originalReportStyle = nodeToCapture.style.cssText;
-              const originalWrapperStyle = wrapperNode.style.cssText;
-      
-              try {
-                  // 1. Redefine temporariamente os estilos para garantir a captura em tamanho real
-                  wrapperNode.style.height = 'auto';
-                  nodeToCapture.style.transform = 'none';
-                  nodeToCapture.style.transformOrigin = 'initial';
-      
-                  // 2. Aguarda um instante para o navegador aplicar as mudanças
-                  await new Promise(resolve => setTimeout(resolve, 150));
-      
-                  // 3. Captura a imagem do elemento em tamanho real
-                  const dataUrl = await htmlToImage.toJpeg(nodeToCapture, {
-                      quality: 0.98,
-                      backgroundColor: '#ffffff',
-                      pixelRatio: 2, // Alta resolução
-                  });
-                  
-                  // 4. Inicia o download
-                  const link = document.createElement('a');
-                  link.download = `relatorio-mensal-${cep}-${displayedMonth}-${displayedYear}.jpg`;
-                  link.href = dataUrl;
-                  link.click();
+            const nodeToCapture = printableRef.current;
+            if (!nodeToCapture) {
+                console.error("Elemento do relatório não encontrado para captura.");
+                return;
+            }
+            setIsSavingJpg(true);
+            try {
+                // The intrinsic dimensions of the report.
+                const reportWidth = 1191;
+                const reportHeight = 1685;
 
-              } catch (err) {
-                  console.error('Falha ao gerar a imagem do relatório:', err);
-                  alert('Ocorreu um erro ao gerar a imagem JPG.');
-              } finally {
-                  // 5. Restaura os estilos originais para não quebrar a visualização na tela
-                  wrapperNode.style.cssText = originalWrapperStyle;
-                  nodeToCapture.style.cssText = originalReportStyle;
-                  setIsSavingJpg(false);
-              }
-          }, [printableRef, wrapperRef, cep, displayedMonth, displayedYear]);
-          // ### FIM DA CORREÇÃO ###
-
+                const dataUrl = await htmlToImage.toJpeg(nodeToCapture, {
+                    quality: 0.95,
+                    backgroundColor: '#ffffff',
+                    pixelRatio: 2, // Capture at 2x resolution for high quality.
+                    // Set explicit dimensions for the capture canvas.
+                    width: reportWidth,
+                    height: reportHeight,
+                    // Temporarily override inline styles for the capture, forcing it to render at full size.
+                    style: {
+                        transform: 'none',
+                        transformOrigin: 'initial',
+                        margin: 0,
+                    }
+                });
+                
+                const link = document.createElement('a');
+                link.download = `relatorio-mensal-${cep}-${displayedMonth}-${displayedYear}.jpg`;
+                link.href = dataUrl;
+                link.click();
+            } catch (err) {
+                console.error('Falha ao gerar a imagem do relatório:', err);
+            } finally {
+                setIsSavingJpg(false);
+            }
+          }, [printableRef, cep, displayedMonth, displayedYear]);
 
           const totals = useMemo(() => reportData ? calculateMonthlyTotals(reportData) : null, [reportData]);
           const handleCepSubmit = (e) => { e.preventDefault(); setCep(inputCep.replace(/\D/g, '')); };
