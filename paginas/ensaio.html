@@ -806,11 +806,11 @@
                     const scale = wrapperWidth / reportWidth;
                     reportEl.style.transform = `scale(${scale})`;
                     reportEl.style.transformOrigin = 'top center';
-                    // Adjust container height to prevent collapse
-                    wrapperEl.style.height = `${reportEl.offsetHeight * scale}px`;
+                    // The explicit height adjustment was causing the issue because the report's
+                    // offsetHeight was calculated before it was fully rendered.
+                    // Removing it allows the container to naturally fit the scaled content.
                 } else {
                     reportEl.style.transform = 'none';
-                    wrapperEl.style.height = 'auto';
                 }
             });
 
