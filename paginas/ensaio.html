@@ -168,8 +168,9 @@
         for (let i = 0; i < hymnCells.length; i += numColumns) { hymnRows.push(hymnCells.slice(i, i + numColumns)); }
         const formattedDate = header.date ? new Date(header.date + 'T00:00:00').toLocaleDateString('pt-BR') : '';
         const formatCep = (cep) => cep ? String(cep).replace(/\D/g, '').replace(/^(\d{5})(\d{3})$/, '$1-$2') : '';
-        const fullLocation = [header.church, header.cep ? `CEP: ${formatCep(header.cep)}` : '', header.municipio, header.estado].filter(Boolean).join(' - ');
-        
+        // CORREÇÃO: A lógica da localidade foi ajustada para combinar com a imagem.
+        const locationValue = `CCB - CEP: ${formatCep(header.cep)}`;
+
         return (
           <div ref={ref} className="bg-white text-black print-page" style={{ fontFamily: 'Arial, sans-serif' }}>
             <div className="p-[24px]" style={{ width: '1191px', height: '1685px', boxSizing: 'border-box' }}>
@@ -178,22 +179,25 @@
                   <div className="border border-black p-[6px] pt-[12px] text-center" style={{ width: '120px', height: '75px'}}>
                     <div className="text-[12px] leading-tight font-bold"><span>CONGREGAÇÃO</span><br/><span>CRISTÃ</span><br/><span>NO BRASIL</span></div>
                   </div>
-                  <div className="ml-[24px] flex-grow"><ReportField label="Localidade" value={fullLocation} /></div>
+                  {/* CORREÇÃO: Apenas exibe o valor formatado, sem outros campos. */}
+                  <div className="ml-[24px] flex-grow"><ReportField label="Localidade" value={locationValue} /></div>
                 </div>
+                {/* ===== INÍCIO DA SEÇÃO CORRIGIDA ===== */}
                 <div className="border-2 border-black p-[12px] space-y-[6px] text-xl mb-[12px]">
                     <div className="flex justify-between items-center">
                         <div className="flex items-center">
                             <span className="font-semibold text-xl mr-3 text-black">Ensaio:</span>
                             <ReportCheckbox label="Local" checked={header.rehearsalType === 'Local'} />
-                            <ReportCheckbox label="Técnico" checked={header.rehearsalType === 'Técnico'} />
+                            <span className="text-xl mr-6 text-black">( )</span>
                             <ReportCheckbox label="Regional" checked={header.rehearsalType === 'Regional'} />
                         </div>
                         <div style={{width: '270px'}}><ReportField label="Data" value={formattedDate} /></div>
                     </div>
-                    <ReportField label="Presidido pelo irmão" value={header.presidedBy} />
-                    <ReportField label="Encarregado de orquestra da casa" value={header.homeOrchestraLeader} />
+                    <ReportField label="Presidido pelo" value={header.presidedBy} />
+                    <ReportField label="irmão: Encarregado de orquestra da casa" value={header.homeOrchestraLeader} />
                     <ReportField label="Encarregado de orquestra visitante" value={(header.visitingOrchestraLeaders || []).filter(l => l.trim()).join(', ')} />
                 </div>
+                {/* ===== FIM DA SEÇÃO CORRIGIDA ===== */}
                 <div className="flex gap-[12px] flex-grow overflow-hidden">
                     <div className="w-[58%] flex flex-col">
                        <div className="flex-grow flex flex-col text-xl border-2 border-black">
