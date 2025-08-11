@@ -1,8 +1,4 @@
-
 <!DOCTYPE html>
-
-
-
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
@@ -789,9 +785,40 @@
         const [annualData, setAnnualData] = useState(null); const [isLoading, setIsLoading] = useState(false);
         const [error, setError] = useState(''); const [isSavingJpg, setIsSavingJpg] = useState(false);
         const printableRef = useRef(null);
+        const wrapperRef = useRef(null); // Ref for the scaling container
 
         const handleCepSubmit = (e) => { e.preventDefault(); setCep(inputCep.replace(/\D/g, '')); };
         
+        // Effect to scale the report to fit the container width
+        useEffect(() => {
+            const reportEl = printableRef.current;
+            const wrapperEl = wrapperRef.current;
+            if (!reportEl || !wrapperEl) return;
+
+            const observer = new ResizeObserver(entries => {
+                const entry = entries[0];
+                if (!entry) return;
+                
+                const wrapperWidth = entry.contentRect.width;
+                const reportWidth = 1200; // The annual report's intrinsic width
+
+                if (wrapperWidth > 0 && wrapperWidth < reportWidth) {
+                    const scale = wrapperWidth / reportWidth;
+                    reportEl.style.transform = `scale(${scale})`;
+                    reportEl.style.transformOrigin = 'top center';
+                    // Adjust container height to prevent collapse
+                    wrapperEl.style.height = `${reportEl.offsetHeight * scale}px`;
+                } else {
+                    reportEl.style.transform = 'none';
+                    wrapperEl.style.height = 'auto';
+                }
+            });
+
+            observer.observe(wrapperEl);
+
+            return () => observer.disconnect();
+        }, [annualData]); // Re-run if the report data changes, causing a re-render
+
         useEffect(() => {
           const fetchChurchMetadata = async () => {
             if (!cep || cep.length !== 8) { setChurchData({ name: '', availableYears: [String(new Date().getFullYear())] }); setAnnualData(null); return; }
@@ -887,7 +914,7 @@
                     </div>
                     )}
                 </header>
-                <div className="p-4 bg-gray-100 rounded-lg flex justify-center print-wrapper overflow-x-auto">
+                <div ref={wrapperRef} className="p-4 bg-gray-100 rounded-lg flex justify-center print-wrapper overflow-x-auto">
                     {isLoading ? <LoadingSpinner text="Buscando dados anuais..." /> : 
                       error ? <InfoBox>{error}</InfoBox> :
                       annualData ? <PrintableAnnualReport ref={printableRef} data={annualData} isSavingJpg={isSavingJpg} /> : 
