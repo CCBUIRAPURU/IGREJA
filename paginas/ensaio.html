@@ -63,8 +63,8 @@
       const { createClient } = window.supabase;
 
       // ===== Supabase Setup =====
-      const SUPABASE_URL = 'https://akgetdjbyshffjyeeiaa.supabase.co';
-      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFrZ2V0ZGpieXNoZmZqeWVlaWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3ODgyMTQsImV4cCI6MjA3MDM2NDIxNH0.UiOYnu2g5RF-FhguZ1krXjpbOBJU-l0xsbTgzd2oRA4';
+      const SUPABASE_URL = 'https://cjuarckwwksirzqwvvbx.supabase.co';
+      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqdWFyY2t3d2tzaXJ6cXd2dmJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM4NDUwMTIsImV4cCI6MjA2OTQyMTAxMn0.khjCb1UjDACJE5html1al15OL31uooKqVB1MqzTc5Xo';
       const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       // ===== From constants.ts =====
@@ -500,54 +500,55 @@
               return () => observer.disconnect();
           }, [reportData]); // Re-run if the report is loaded/unloaded
 
+          // ### INÍCIO DA CORREÇÃO ###
           const handleSaveJpg = useCallback(async () => {
               const nodeToCapture = printableRef.current;
               const wrapperNode = wrapperRef.current;
               if (!nodeToCapture || !wrapperNode) {
-                  console.error("Elemento do relatório ou seu contêiner não foi encontrado para captura.");
                   alert("Erro: Não foi possível encontrar o elemento do relatório para salvar.");
                   return;
               }
       
               setIsSavingJpg(true);
       
-              // Salva os estilos originais para restaurá-los depois
+              // Salva os estilos originais para poder restaurá-los depois
               const originalReportStyle = nodeToCapture.style.cssText;
               const originalWrapperStyle = wrapperNode.style.cssText;
       
               try {
-                  // **ETAPA DE CORREÇÃO**
-                  // 1. Redefine temporariamente os estilos para garantir a captura em tamanho real e sem cortes.
+                  // 1. Redefine temporariamente os estilos para garantir a captura em tamanho real
                   wrapperNode.style.height = 'auto';
                   nodeToCapture.style.transform = 'none';
                   nodeToCapture.style.transformOrigin = 'initial';
       
-                  // 2. Aguarda um instante para que o navegador aplique as mudanças de estilo antes de capturar.
+                  // 2. Aguarda um instante para o navegador aplicar as mudanças
                   await new Promise(resolve => setTimeout(resolve, 150));
       
-                  // 3. Captura a imagem do elemento agora em tamanho real.
+                  // 3. Captura a imagem do elemento em tamanho real
                   const dataUrl = await htmlToImage.toJpeg(nodeToCapture, {
                       quality: 0.98,
                       backgroundColor: '#ffffff',
-                      pixelRatio: 2, // Mantém a alta resolução para qualidade.
+                      pixelRatio: 2, // Alta resolução
                   });
                   
-                  // 4. Inicia o download da imagem gerada.
+                  // 4. Inicia o download
                   const link = document.createElement('a');
                   link.download = `relatorio-mensal-${cep}-${displayedMonth}-${displayedYear}.jpg`;
                   link.href = dataUrl;
                   link.click();
+
               } catch (err) {
                   console.error('Falha ao gerar a imagem do relatório:', err);
-                  alert('Ocorreu um erro ao gerar a imagem JPG. Por favor, verifique o console para mais detalhes.');
+                  alert('Ocorreu um erro ao gerar a imagem JPG.');
               } finally {
-                  // **ETAPA FINAL**
-                  // 5. Restaura os estilos originais para não quebrar a visualização na tela.
+                  // 5. Restaura os estilos originais para não quebrar a visualização na tela
                   wrapperNode.style.cssText = originalWrapperStyle;
                   nodeToCapture.style.cssText = originalReportStyle;
                   setIsSavingJpg(false);
               }
           }, [printableRef, wrapperRef, cep, displayedMonth, displayedYear]);
+          // ### FIM DA CORREÇÃO ###
+
 
           const totals = useMemo(() => reportData ? calculateMonthlyTotals(reportData) : null, [reportData]);
           const handleCepSubmit = (e) => { e.preventDefault(); setCep(inputCep.replace(/\D/g, '')); };
@@ -796,7 +797,6 @@
         const [annualData, setAnnualData] = useState(null); const [isLoading, setIsLoading] = useState(false);
         const [error, setError] = useState(''); const [isSavingJpg, setIsSavingJpg] = useState(false);
         const printableRef = useRef(null);
-        const wrapperRef = useRef(null); 
 
         const handleCepSubmit = (e) => { e.preventDefault(); setCep(inputCep.replace(/\D/g, '')); };
         
@@ -868,37 +868,6 @@
           if (churchData.name) loadAnnualData();
         }, [cep, displayedYear, churchData.name]);
         
-        // Efeito para dimensionar o relatório para caber na largura do contêiner
-        useEffect(() => {
-            const reportEl = printableRef.current;
-            const wrapperEl = wrapperRef.current;
-            if (!reportEl || !wrapperEl) return;
-
-            const observer = new ResizeObserver(entries => {
-                const entry = entries[0];
-                if (!entry) return;
-                
-                const wrapperWidth = entry.contentRect.width;
-                const reportWidth = 1200; // Largura intrínseca do relatório anual
-
-                if (wrapperWidth > 0 && wrapperWidth < reportWidth) {
-                    const scale = wrapperWidth / reportWidth;
-                    reportEl.style.transform = `scale(${scale})`;
-                    reportEl.style.transformOrigin = 'top center';
-                    wrapperEl.style.height = `${reportEl.offsetHeight * scale}px`;
-                } else {
-                    reportEl.style.transform = 'none';
-                    wrapperEl.style.height = 'auto';
-                }
-            });
-
-            observer.observe(wrapperEl);
-
-            return () => {
-                if (observer) observer.disconnect();
-            };
-        }, [annualData]);
-
         const handleSaveJpg = async () => { 
             if (!printableRef.current) return; setIsSavingJpg(true);
             try {
@@ -926,7 +895,7 @@
                     </div>
                     )}
                 </header>
-                <div ref={wrapperRef} className="p-4 bg-gray-100 rounded-lg flex justify-center print-wrapper">
+                <div className="p-4 bg-gray-100 rounded-lg flex justify-center print-wrapper overflow-x-auto">
                     {isLoading ? <LoadingSpinner text="Buscando dados anuais..." /> : 
                       error ? <InfoBox>{error}</InfoBox> :
                       annualData ? <PrintableAnnualReport ref={printableRef} data={annualData} isSavingJpg={isSavingJpg} /> : 
