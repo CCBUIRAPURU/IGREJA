@@ -1,7 +1,3 @@
-
-
-
-
 <!DOCTYPE html>
 <html lang="pt-BR">
   <head>
@@ -68,6 +64,7 @@
 
       // ===== Supabase Setup =====
       const SUPABASE_URL = 'https://akgetdjbyshffjyeeiaa.supabase.co';
+     const SUPABASE_URL = 'https://kgtntgmisoeagpyiuedb.supabase.co';
       const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFrZ2V0ZGpieXNoZmZqeWVlaWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3ODgyMTQsImV4cCI6MjA3MDM2NDIxNH0.UiOYnu2g5RF-FhguZ1krXjpbOBJU-l0xsbTgzd2oRA4';
       const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -408,12 +405,10 @@
           const [isSavingJpg, setIsSavingJpg] = useState(false);
 
           const handleSaveJpg = useCallback(async () => {
-              if (!printableRef.current) return;
               const nodeToCapture = printableRef.current;
               if (!nodeToCapture) return;
               setIsSavingJpg(true);
               try {
-                  const dataUrl = await htmlToImage.toJpeg(printableRef.current, { quality: 0.95, backgroundColor: '#ffffff', pixelRatio: 2 });
                   const dataUrl = await htmlToImage.toJpeg(nodeToCapture, {
                       quality: 1,
                       backgroundColor: '#ffffff',
@@ -525,20 +520,15 @@
             }
             setIsSavingJpg(true);
             try {
-                // The intrinsic dimensions of the report.
                 const reportWidth = 1191;
                 const reportHeight = 1685;
 
                 const dataUrl = await htmlToImage.toJpeg(nodeToCapture, {
-                    quality: 0.95,
                     quality: 1,
                     backgroundColor: '#ffffff',
-                    pixelRatio: 2, // Capture at 2x resolution for high quality.
-                    // Set explicit dimensions for the capture canvas.
                     pixelRatio: 3, // Increased for high quality
                     width: reportWidth,
                     height: reportHeight,
-                    // Temporarily override inline styles for the capture, forcing it to render at full size.
                     style: {
                         transform: 'none',
                         transformOrigin: 'initial',
@@ -808,7 +798,6 @@
 
         const handleCepSubmit = (e) => { e.preventDefault(); setCep(inputCep.replace(/\D/g, '')); };
 
-        // Effect to scale the report to fit the container width
         useEffect(() => {
             const reportEl = printableRef.current;
             const wrapperEl = wrapperRef.current;
@@ -819,16 +808,12 @@
                 if (!entry) return;
 
                 const wrapperWidth = entry.contentRect.width;
-                const reportWidth = 1200; // The annual report's intrinsic width
                 const reportWidth = 1200; 
 
                 if (wrapperWidth > 0 && wrapperWidth < reportWidth) {
                     const scale = wrapperWidth / reportWidth;
                     reportEl.style.transform = `scale(${scale})`;
                     reportEl.style.transformOrigin = 'top center';
-                    // The explicit height adjustment was causing the issue because the report's
-                    // offsetHeight was calculated before it was fully rendered.
-                    // Removing it allows the container to naturally fit the scaled content.
                 } else {
                     reportEl.style.transform = 'none';
                 }
@@ -837,7 +822,6 @@
             observer.observe(wrapperEl);
 
             return () => observer.disconnect();
-        }, [annualData]); // Re-run if the report data changes, causing a re-render
         }, [annualData]);
 
         useEffect(() => {
@@ -908,8 +892,6 @@
           if (churchData.name) loadAnnualData();
         }, [cep, displayedYear, churchData.name]);
 
-        const handleSaveJpg = async () => { 
-            if (!printableRef.current) return; setIsSavingJpg(true);
         const handleSaveJpg = async () => {
             const nodeToCapture = printableRef.current;
             if (!nodeToCapture) {
@@ -918,7 +900,6 @@
             }
             setIsSavingJpg(true);
             try {
-                const dataUrl = await htmlToImage.toJpeg(printableRef.current, { quality: 1, backgroundColor: '#ffffff', pixelRatio: 2 });
                 const reportWidth = 1200;
                 const reportHeight = nodeToCapture.scrollHeight;
 
@@ -938,7 +919,6 @@
                 link.download = `relatorio-anual-${cep}-${displayedYear}.jpg`;
                 link.href = dataUrl;
                 link.click();
-            } catch (err) { console.error('Falha ao gerar imagem:', err); } finally { setIsSavingJpg(false); }
             } catch (err) {
                 console.error('Falha ao gerar imagem do relatório anual:', err);
             } finally {
