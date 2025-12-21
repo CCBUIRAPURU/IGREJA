@@ -52,9 +52,9 @@
     </script>
   </head>
   <body class="bg-gray-100">
+    
     <div id="root"></div>
-
-    <script type="text/babel" data-presets="react,typescript">
+<script type="text/babel" data-presets="react,typescript">
       // Globals from CDN
       const { useState, useEffect, useCallback, useMemo, useRef, forwardRef, Fragment } = window.React;
       const { createRoot } = window.ReactDOM;
@@ -63,7 +63,7 @@
       const { createClient } = window.supabase;
 
       // ===== Supabase Setup =====
-     const SUPABASE_URL = 'https://kgtntgmisoeagpyiuedb.supabase.co';
+      const SUPABASE_URL = 'https://kgtntgmisoeagpyiuedb.supabase.co';
       const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtndG50Z21pc29lYWdweWl1ZWRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3ODY0NDQsImV4cCI6MjA3MDM2MjQ0NH0.ZbiGGHv5KiAzc5zCcfI4VyfswyK6SQ8z_htwt9eyCqc';
       const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
