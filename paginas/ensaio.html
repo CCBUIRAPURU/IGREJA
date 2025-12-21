@@ -113,7 +113,7 @@
 
         // --- Supabase Setup ---
         const SUPABASE_URL = 'https://kgtntgmisoeagpyiuedb.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtndG50Z21pc29lYWdweWl1ZWRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3ODY0NDQsImV4cCI6MjA3MDM2MjQ0NH0.ZbiGGHv5KiAzc5zCcfI4VyfswyK6SQ8z_htwt9eyCqc';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtndG50Z21pc29lYWdweWl1ZWRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3ODY0NDQsImV4cCI6MjA3MDM2MjQ0NH0.ZbiGGHv5KiAzc5zCcfI4VyfswyK6SQ8z_htwt9eyQqc';
         
         let supabase;
         const supabaseCredentialsProvided = SUPABASE_URL && SUPABASE_ANON_KEY && SUPABASE_URL !== 'YOUR_SUPABASE_URL';
@@ -1079,7 +1079,8 @@
                     setSaveStatus('typing'); // Indicate pending changes, might revert to error
 
                     try {
-                        const res = await fetch(`https://viacep.com.br/ws/${cleanedCep}/json/`);
+                        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(`https://viacep.com.br/ws/${cleanedCep}/json/`)}`;
+                        const res = await fetch(proxyUrl);
                         if (!res.ok) { // Check for HTTP errors like 404
                             const errorText = await res.text();
                             throw new Error(`Erro HTTP ${res.status}: ${errorText || res.statusText}`);
@@ -1091,7 +1092,14 @@
                         // setSaveStatus('typing'); // Already set above, this change will trigger the auto-save
                     } catch (error) { 
                         console.error("Erro ao buscar CEP:", error);
-                        setLastError('Falha ao buscar CEP: ' + error.message + '. Verifique sua conexão ou o CEP informado.');
+                        // Provide more specific feedback if it's a network/CORS issue
+                        let userMessage = 'Falha ao buscar CEP. Verifique sua conexão com a internet.';
+                        if (error.message.includes('CORS') || error.message.includes('network error') || error.message.includes('Failed to fetch')) {
+                            userMessage += ' Pode ser um problema de rede ou permissões (CORS). Tente novamente ou use um navegador diferente.';
+                        } else {
+                            userMessage += ` Detalhes: ${error.message}`;
+                        }
+                        setLastError(userMessage);
                         setSaveStatus('error'); // Set status to error
                     } finally { 
                         setIsFetchingCep(false); 
@@ -1208,7 +1216,7 @@
             );
 
             // Filter for the selected transaction if available, otherwise show all
-            const transactionsToDisplay = selectedTransactionId ? transactions.filter(t => t.id === selectedTransactionId) : transactions;
+            const transactionsToDisplay = selectedTransactionId ? transactions.filter(t => t.id === selectedTransactionId) : []; // Changed to only show selected for brevity in the sidebar
 
             return (
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md">
