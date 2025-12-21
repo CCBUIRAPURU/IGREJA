@@ -35,7 +35,7 @@
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     <!-- Babel for JSX/TS -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+   
     <!-- html-to-image -->
     <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.min.js"></script>
     <!-- Supabase -->
@@ -54,7 +54,7 @@
   <body class="bg-gray-100">
     
     <div id="root"></div>
-<script type="text/babel" data-presets="react,typescript">
+<script type="module">
       // Globals from CDN
       const { useState, useEffect, useCallback, useMemo, useRef, forwardRef, Fragment } = window.React;
       const { createRoot } = window.ReactDOM;
