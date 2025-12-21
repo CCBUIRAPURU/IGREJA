@@ -467,7 +467,7 @@
           const [reportData, setReportData] = useState(null); const [availableYears, setAvailableYears] = useState([String(now.getFullYear())]);
 
           const fetchYearsForCep = useCallback(async (currentCep) => {
-              if (!currentCep) return; const { data, error } = await supabase.from('reports').select('year').eq('cep', currentCep);
+              if (!currentCep) return; const { data, error } = await supabase.from('rehearsal_reports').select('year').eq('cep', currentCep);
               if (error) console.error('Error fetching years:', error);
               else if (data) { const fetchedYears = new Set(data.map(y => String(y.year))); fetchedYears.add(String(now.getFullYear())); const sortedYears = Array.from(fetchedYears).sort((a, b) => parseInt(b) - parseInt(a)); setAvailableYears(sortedYears); if (!sortedYears.includes(displayedYear)) setDisplayedYear(sortedYears[0]); }
           }, [displayedYear]);
@@ -477,7 +477,7 @@
           useEffect(() => {
             const loadMonthlyReport = async () => {
               if (!cep || !displayedYear || !displayedMonth) return setReportData(null); setIsLoading(true); setReportData(null);
-              const { data, error } = await supabase.from('reports').select('report_data').eq('cep', cep).eq('year', parseInt(displayedYear)).eq('month', parseInt(displayedMonth)).maybeSingle();
+              const { data, error } = await supabase.from('rehearsal_reports').select('report_data').eq('cep', cep).eq('year', parseInt(displayedYear)).eq('month', parseInt(displayedMonth)).maybeSingle();
               if (data && data.report_data) setReportData(data.report_data);
               setIsLoading(false);
             };
@@ -827,7 +827,7 @@
           const fetchChurchMetadata = async () => {
             if (!cep || cep.length !== 8) { setChurchData({ name: '', availableYears: [String(new Date().getFullYear())] }); setAnnualData(null); return; }
             setIsLoading(true); setError('');
-            const { data, error: err } = await supabase.from('reports').select('year, report_data->header->>church').eq('cep', cep);
+            const { data, error: err } = await supabase.from('rehearsal_reports').select('year, report_data->header->>church').eq('cep', cep);
             if(err) { setError('Falha ao buscar dados do CEP.'); setChurchData({ name: '', availableYears: [String(new Date().getFullYear())] }); } 
             else if (data && data.length > 0) {
                 const fetchedYears = new Set(data.map(y => String(y.year))); fetchedYears.add(String(new Date().getFullYear()));
@@ -845,7 +845,7 @@
           const loadAnnualData = async () => {
             if (!cep || !displayedYear) return setAnnualData(null);
             setIsLoading(true); setError(''); setAnnualData(null);
-            const { data: reports, error: fetchError } = await supabase.from('reports').select('report_data').eq('cep', cep).eq('year', parseInt(displayedYear));
+            const { data: reports, error: fetchError } = await supabase.from('rehearsal_reports').select('report_data').eq('cep', cep).eq('year', parseInt(displayedYear));
             if(fetchError) { setError("Falha ao carregar dados anuais."); }
             else if (reports && reports.length > 0) {
                 const PRESENCE_CATEGORIES = ['Músicos', 'Organistas', 'Total (Músicos + Organistas)', 'Irmãos Presentes', 'Irmãs Presentes', 'Total (Irmãos + Irmãs)', 'Ministério Presente', 'Total Geral de Pessoas Envolvidas'];
@@ -1015,8 +1015,8 @@
             setLastError('');
 
             try {
-                const { error } = await supabase.from('reports').upsert({ cep: cleanedCep, year: parseInt(header.year), month: parseInt(header.month), report_data: reportData, user_id: session.user.id }, { onConflict: 'cep,year,month' });
-                if (error) throw error;
+const { error } = await supabase.from('rehearsal_reports').upsert({ cep: cleanedCep, year: parseInt(header.year), month: parseInt(header.month), report_data: reportData, user_id: session.user.id }, { onConflict: 'cep,year,month' });
+              if (error) throw error;
 
                 setSaveStatus('saved');
                 if (!availableYears.includes(header.year)) {
@@ -1054,7 +1054,9 @@
             if (!session || view !== 'cadastro' || !cleanedCep || cleanedCep.length !== 8 || !year || !month) return;
             
             try {
-                const { data, error } = await supabase.from('reports').select('report_data').eq('cep', cleanedCep).eq('year', parseInt(year)).eq('month', parseInt(month)).maybeSingle();
+
+
+              const { data, error } = await supabase.from('rehearsal_reports').select('report_data').eq('cep', cleanedCep).eq('year', parseInt(year)).eq('month', parseInt(month)).maybeSingle();
                 if (signal.aborted) return;
                 if (error) throw error;
 
@@ -1063,7 +1065,7 @@
                     if (!loadedData.header.visitingOrchestraLeaders) loadedData.header.visitingOrchestraLeaders = [''];
                     setReportData(loadedData);
                 } else {
-                    const { data: churchNameData } = await supabase.from('reports').select('report_data->header->>church').eq('cep', cleanedCep).not('report_data->header->>church', 'is', null).limit(1).single();
+                    const { data: churchNameData } = await supabase.from('rehearsal_reports').select('report_data->header->>church').eq('cep', cleanedCep).not('report_data->header->>church', 'is', null).limit(1).single();
                     if (signal.aborted) return;
                     setReportData(prev => createBlankReport({ ...getInitialHeader(), cep: prev.header.cep, church: churchNameData?.church || '', year: prev.header.year, month: prev.header.month }));
                 }
