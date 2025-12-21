@@ -51,13 +51,7 @@
         console.error("Failed to load GoogleGenAI module", e);
       }
         </script>
- <script type="text/babel" data-presets="react,typescript" id="main-script-v2">
-  // Evitar redeclaração
-  if (window.appInitialized) {
-    console.log("App já inicializado");
-  } else {
-    window.appInitialized = true;
-    
+<script type="text/babel" data-presets="react,typescript">
     // Globals from CDN
     const { useState, useEffect, useCallback, useMemo, useRef, forwardRef, Fragment } = window.React;
     const { createRoot } = window.ReactDOM;
