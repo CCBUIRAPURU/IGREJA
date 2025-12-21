@@ -113,22 +113,24 @@
 
         // --- Supabase Setup ---
         const SUPABASE_URL = 'https://kgtntgmisoeagpyiuedb.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtndG50Z21pc29lYWdweWl1ZWRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3ODY0NDQsImV4cCI6MjA3MDM2MjQ0NH0.ZbiGGHv5KiAzc5zCcfI4VyfswyK6SQ8z_htwt9eyQqc';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtndG50Z21pc29lYWdweWl1ZWRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3ODY0NDQsImV4cCI6MjA3MDM2MjQ0NH0.ZbiGGHv5KiAzc5zCcfI4VyXswyK6SQ8z_htwt9eyQqc';
         
-        let supabase;
+        // Removed global 'supabase' variable declaration and initialization
+        // let supabase;
         const supabaseCredentialsProvided = SUPABASE_URL && SUPABASE_ANON_KEY && SUPABASE_URL !== 'YOUR_SUPABASE_URL';
 
-        if (supabaseCredentialsProvided) {
-          try {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-          } catch (e) {
-            console.error("Erro fatal na inicialização do Supabase:", e);
-            supabase = null;
-          }
-        } else {
-          console.warn("AVISO: Credenciais do Supabase não fornecidas. App em modo offline.");
-          supabase = null;
-        }
+        // Moved Supabase client creation to the App component's useEffect
+        // if (supabaseCredentialsProvided) {
+        //   try {
+        //     supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        //   } catch (e) {
+        //     console.error("Erro fatal na inicialização do Supabase:", e);
+        //     supabase = null;
+        //   }
+        // } else {
+        //   console.warn("AVISO: Credenciais do Supabase não fornecidas. App em modo offline.");
+        //   supabase = null;
+        // }
 
         // --- Constants (Rehearsal App Only) ---
         const INSTRUMENT_CATEGORIES = {
@@ -361,7 +363,7 @@
         };
         const RehearsalObservationsPanel = ({ value, onChange }) => (<div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden"><div className="p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700"><h3 className="text-lg font-semibold text-emerald-600 dark:text-emerald-400">Observações</h3></div><div className="p-6"><textarea value={value} onChange={onChange} rows={5} className="w-full bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm text-gray-900 dark:text-gray-200 p-3" placeholder="Adicione aqui observações gerais sobre o ensaio..."/></div></div>);
         
-        const RehearsalEditView = ({ reportData, handlers, availableYears, onManualSave, saveStatus, session }) => {
+        const RehearsalEditView = ({ reportData, handlers, availableYears, onManualSave, saveStatus, session, supabaseInstance }) => {
             const totals = useMemo(() => calculateMonthlyTotals(reportData), [reportData]);
             const printableRef = useRef(null);
             const [isSavingJpg, setIsSavingJpg] = useState(false);
@@ -413,7 +415,7 @@
                    <div className="no-print max-w-7xl mx-auto mt-8 p-6 bg-white dark:bg-gray-800 shadow-lg rounded-lg flex flex-wrap justify-center gap-4">
                         <button
                           onClick={onManualSave}
-                          disabled={!['typing', 'error'].includes(saveStatus) || !supabase || !session} // Added !session to disable save if not logged in
+                          disabled={!['typing', 'error'].includes(saveStatus) || !supabaseInstance || !session} // Added !session to disable save if not logged in
                           className="px-6 py-3 bg-emerald-600 text-white font-semibold rounded-md shadow-sm hover:bg-emerald-700 disabled:bg-emerald-400 disabled:cursor-not-allowed transition-colors"
                         >
                           {saveStatus === 'saving' ? 'Salvando...' : saveStatus === 'saved' ? 'Salvo!' : saveStatus === 'error' ? 'Tentar Novamente' : 'Salvar Alterações'}
@@ -421,7 +423,7 @@
                         <button onClick={handleSaveJpg} disabled={isSavingJpg} className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-md shadow-sm hover:bg-blue-700 disabled:bg-blue-400 transition-colors">{isSavingJpg ? 'Salvando JPG...' : 'Salvar como JPG'}</button>
                         <button onClick={() => window.print()} className="px-6 py-3 bg-gray-600 text-white font-semibold rounded-md shadow-sm hover:bg-gray-700 transition-colors">Imprimir Relatório</button>
                    </div>
-                   {!session && supabase && (
+                   {!session && supabaseInstance && (
                         <div className="text-center text-orange-600 dark:text-orange-400 mt-4 font-semibold no-print">
                             Você não está logado. Pode preencher o relatório, mas não poderá salvá-lo na nuvem.
                         </div>
@@ -739,7 +741,7 @@
                                     <div className="text-center font-bold text-base bg-[#595959] text-white py-1 mb-2">Análise de Tendências e Detalhes</div>
                                     <div className="grid grid-cols-2 gap-4 flex-grow">
                                          <div className="border border-slate-400 p-2 flex flex-col"><h3 className="text-center font-bold mb-1 uppercase">Tendência por Categoria de Instrumento</h3><div className="flex-grow relative"><LineChart data={monthlyCategoryTotals} colors={categoryColors} maxVal={maxCategoryValue} /></div><div className="flex flex-wrap justify-center gap-x-3 gap-y-1 text-[10px] border-t pt-1 mt-1">{Object.entries(categoryColors).map(([category, color]) => ( <div key={category} className="flex items-center"><span className="w-3 h-3 mr-1" style={{ backgroundColor: color }}></span><span>{category}</span></div> ))}</div></div>
-                                        <div className="border border-slate-400 p-2 flex flex-col"><h3 className="text-center font-bold mb-1 uppercase">Comparativo: Orquestra vs. Irmandade</h3><div className="flex-grow flex items-end justify-around px-2 gap-1">{monthlyComparisonTotals.map((total, i) => { const orchestra = monthlyOrchestra[i] || 0; const congregation = monthlyCongregation[i] || 0; return ( <div key={i} className="w-full flex flex-col items-center justify-end h-full"><span className="text-[9px] font-semibold text-orange-600">{congregation}</span><span className="text-[9px] font-semibold text-sky-600 -mb-1">{orchestra}</span><div className="w-full flex flex-col-reverse rounded-t overflow-hidden" style={{ height: `${(total / maxComparisonTotal) * 100}%` }}><div style={{ height: `${total > 0 ? (congregation/total)*100 : 0}%`, backgroundColor: '#fdba74' }}></div><div style={{ height: `${total > 0 ? (orchestra/total)*100 : 0}%`, backgroundColor: '#7dd3fc' }}></div></div></div> )})}</div><div className="flex justify-around text-center text-[10px] border-t mt-1 pt-1 font-bold">{SHORT_MONTHS_REHEARSAL.map(m => <span key={m} className="flex-1">{m}</span>)}</div></div>
+                                        <div className="border border-slate-400 p-2 flex flex-col"><h3 className="text-center font-bold mb-1 uppercase">Comparativo: Orquestra vs. Irmandade</h3><div className="flex-grow flex items-end justify-around px-2 gap-1">{monthlyComparisonTotals.map((total, i) => { const orchestra = monthlyOrchestra[i] || 0; const congregation = monthlyCongregation[i] || 0; return ( <div key={i} className="w-full flex flex-col items-center justify-end h-full"><span className="text-[9px] font-semibold text-orange-600">{congregation}</span><span className="text-[9px] font-semibold text-sky-600 -mb-1">{orchestra}</span><div className="w-full flex flex-col-reverse rounded-t overflow-hidden" style={{ height: `${total > 0 ? (congregation/total)*100 : 0}%`, backgroundColor: '#fdba74' }}></div><div style={{ height: `${total > 0 ? (orchestra/total)*100 : 0}%`, backgroundColor: '#7dd3fc' }}></div></div> )})}</div><div className="flex justify-around text-center text-[10px] border-t mt-1 pt-1 font-bold">{SHORT_MONTHS_REHEARSAL.map(m => <span key={m} className="flex-1">{m}</span>)}</div></div>
                                     </div>
                                 </div>
                             </div>
@@ -1105,7 +1107,7 @@
                         <div className="mt-8">
                             {currentSubView === 'cadastro' ? (
                                 // Always render RehearsalEditView, let its internal logic handle saving restrictions
-                                <RehearsalEditView reportData={reportData} handlers={handlers} availableYears={availableYears} onManualSave={saveReport} saveStatus={saveStatus} session={session} />
+                                <RehearsalEditView reportData={reportData} handlers={handlers} availableYears={availableYears} onManualSave={saveReport} saveStatus={saveStatus} session={session} supabaseInstance={supabaseInstance} />
                             ) : currentSubView === 'anual' ? (
                                 <RehearsalAnnualReportView supabaseInstance={supabaseInstance} />
                             ) : (
@@ -1125,6 +1127,11 @@
             const [loading, setLoading] = useState(false);
             const [error, setError] = useState(initialError);
             const [message, setMessage] = useState('');
+
+            // Update error if initialError changes (e.g., from App component)
+            useEffect(() => {
+                setError(initialError);
+            }, [initialError]);
 
             const handleAuth = async (e) => {
                 e.preventDefault(); setLoading(true); setError(''); setMessage('');
@@ -1276,7 +1283,7 @@
             };
             
             const EyeIcon = ({isOpen}) => isOpen ? 
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.27 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" /></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 0 100-4 2 2 0 000 4z" /><path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.27 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" /></svg>
                 : 
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zM10 12a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" /><path d="M2.973 7.646A10.016 10.016 0 00.458 10c1.274 4.057 5.27 7 9.542 7 .847 0 1.67-.111 2.457-.317l-1.878-1.878A4.002 4.002 0 0110 14a4 4 0 01-4-4c0-.77.22-1.48.59-2.093l-1.625-1.625z" /></svg>;
 
@@ -1323,85 +1330,127 @@
           const [session, setSession] = useState(null);
           const [authLoading, setAuthLoading] = useState(true);
           const [isLoggingOut, setIsLoggingOut] = useState(false);
-          const [currentView, setCurrentView] = useState(() => { // Renamed from mainView
-              const hash = window.location.hash.replace(/^#/, '');
-              if (hash === 'updatePassword') return 'updatePassword';
-              if (hash === 'auth') return 'auth';
-              return 'rehearsal'; // Default to rehearsal report
-          });
+          const [currentView, setCurrentView] = useState('loading'); // New: start in 'loading' to manage initial state
           const [rehearsalSubView, setRehearsalSubView] = useState(() => {
               const hash = window.location.hash.replace(/^#/, '');
               if (hash === 'rehearsal_cadastro') return 'cadastro';
               if (hash === 'rehearsal_anual') return 'anual';
               return 'mensal'; // Default rehearsal subview
           });
-          const [authScreenMode, setAuthScreenMode] = useState('login'); // 'login', 'signup', 'forgotPassword'
-          const [initialAuthError, setInitialAuthError] = useState('');
+          const [initialAuthError, setInitialAuthError] = useState(''); // For errors from initial session check
+          const [supabaseInitFailed, setSupabaseInitFailed] = useState(false); // Flag for client creation failure
 
-          const handleSetView = (newView) => { // Renamed from handleSetMainView
+          // Use useRef for Supabase instance to ensure it's stable across renders
+          const supabaseRef = useRef(null);
+
+          const handleSetView = useCallback((newView) => { 
             setCurrentView(newView);
             let newHash = '';
             if (newView === 'auth') newHash = 'auth';
             else if (newView === 'updatePassword') newHash = 'updatePassword';
             else if (newView === 'rehearsal') newHash = `rehearsal_${rehearsalSubView}`; // Keep subview for rehearsal
             window.location.hash = newHash;
-          };
-          const handleSetRehearsalSubView = (newSubView) => {
+          }, [rehearsalSubView]); // Dependency on rehearsalSubView
+
+          const handleSetRehearsalSubView = useCallback((newSubView) => {
             setRehearsalSubView(newSubView);
             window.location.hash = `rehearsal_${newSubView}`;
-          };
-          const handleSetAuthScreenMode = (mode) => {
-            setAuthScreenMode(mode);
-            window.location.hash = 'auth'; // Always go to auth view if mode is changed
-          };
-          const handleLoginSuccess = () => {
+          }, []);
+
+          const handleLoginSuccess = useCallback(() => {
               handleSetView('rehearsal'); // Redirect to rehearsal app after login
               window.location.hash = 'rehearsal_cadastro'; // Maybe redirect to editing a new report
-          };
-          const handlePasswordUpdated = () => {
+          }, [handleSetView]);
+
+          const handlePasswordUpdated = useCallback(() => {
               handleSetView('auth'); // Go to auth screen to log in with new password
-              setAuthScreenMode('login');
+              setInitialAuthError('Sua senha foi atualizada. Por favor, faça login com a nova senha.');
               window.location.hash = 'auth';
-          };
+          }, [handleSetView]);
           
+          // Supabase client initialization and session fetching
           useEffect(() => {
-              if (!supabase) {
+              if (supabaseRef.current) return; // Only run once for initialization
+
+              // 1. Initialize Supabase Client
+              if (!supabaseCredentialsProvided) {
+                  console.warn("AVISO: Credenciais do Supabase não fornecidas. App em modo offline.");
+                  supabaseRef.current = null;
+                  setSupabaseInitFailed(true); 
                   setAuthLoading(false);
+                  setCurrentView('rehearsal'); // In offline mode, proceed to the main app view
+                  return;
+              }
+              try {
+                  supabaseRef.current = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+              } catch (e) {
+                  console.error("Erro fatal na inicialização do Supabase:", e);
+                  setSupabaseInitFailed(true);
+                  setAuthLoading(false);
+                  setCurrentView('error'); // Show a dedicated error view if client creation fails
                   return;
               }
 
-              const hash = window.location.hash;
-              if (hash.includes('error=access_denied')) {
-                  setInitialAuthError('O link para redefinição de senha é inválido ou expirou. Por favor, solicite um novo.');
-                  window.history.replaceState(null, document.title, window.location.pathname + window.location.search);
-                  handleSetView('auth'); // Force to auth screen to show error
-              } else if (hash.includes('type=recovery') && !session) {
-                  handleSetView('updatePassword'); // Direct to password update if recovery link
+              // 2. Handle hash-based routing for initial view
+              const hash = window.location.hash.replace(/^#/, '');
+              if (hash === 'updatePassword') {
+                  setCurrentView('updatePassword');
+              } else if (hash === 'auth') {
+                  setCurrentView('auth');
+              } else if (hash.startsWith('rehearsal_')) {
+                  setCurrentView('rehearsal');
+                  setRehearsalSubView(hash.substring('rehearsal_'.length));
               }
 
+              // 3. Get initial session
               const getSession = async () => {
                   try {
-                      const { data: { session: s } } = await supabase.auth.getSession();
+                      const { data: { session: s }, error } = await supabaseRef.current.auth.getSession();
+                      if (error) {
+                          throw error;
+                      }
                       setSession(s);
+                      
+                      // Determine initial view after session check
+                      if (!s) { // No session found
+                          setInitialAuthError(''); // Clear any old errors if no session is just normal state
+                          if (currentView !== 'updatePassword' && currentView !== 'auth') {
+                              setCurrentView('auth'); // Default to auth screen if not already on updatePassword/auth
+                          }
+                      } else { // Session found
+                          if (currentView === 'loading' || currentView === 'auth') { // If still in loading state or on auth screen, go to rehearsal
+                              setCurrentView('rehearsal');
+                          }
+                      }
                   } catch (error) {
                       console.error("Erro ao obter sessão:", error);
+                      // If session fetching itself fails (e.g., 401 network error)
+                      setInitialAuthError(`Falha ao verificar sessão: ${getErrorMessage(error)}. Por favor, faça login.`);
+                      setCurrentView('auth'); // Force to auth screen on session fetch error
                   } finally {
                       setAuthLoading(false);
                   }
               };
               getSession();
               
-              const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
+              // 4. Set up auth state change listener
+              const { data: { subscription } } = supabaseRef.current.auth.onAuthStateChange((_event, s) => {
                   if (_event === "PASSWORD_RECOVERY") {
-                      handleSetView('updatePassword');
+                      setCurrentView('updatePassword');
                   } else {
                       setSession(s);
+                      if (!s && currentView !== 'updatePassword' && currentView !== 'auth') {
+                           setCurrentView('auth'); // If state changes to no session, go to auth
+                      } else if (s && (currentView === 'loading' || currentView === 'auth')) {
+                          setCurrentView('rehearsal'); // If session appears while on auth or loading, go to rehearsal
+                      }
                   }
               });
               
               return () => subscription.unsubscribe();
-          }, [session]); // Dependency on session to re-evaluate after login/logout
+          }, []); // Empty dependency array means this runs only once on mount
 
+          // Effect to handle hash changes dynamically after initial load
           useEffect(() => {
               const handleHashChange = () => {
                   const hash = window.location.hash.replace(/^#/, '');
@@ -1413,28 +1462,43 @@
                   } else if (hash === 'auth') {
                       setCurrentView('auth');
                   } else {
-                      setCurrentView('rehearsal'); // Default view
-                      setRehearsalSubView('mensal');
+                      // If hash is empty or unrecognized, and we have a session, default to rehearsal
+                      // If no session, the useEffect above will push to 'auth'
+                      if (session) {
+                          setCurrentView('rehearsal'); 
+                          setRehearsalSubView('mensal'); // Default subview if hash is invalid
+                      }
                   }
               };
               window.addEventListener('hashchange', handleHashChange);
               return () => window.removeEventListener('hashchange', handleHashChange);
-          }, []);
-
+          }, [session]); // Depend on session to re-evaluate default view if session status changes
+          
           const handleLogout = async () => {
-              if (!supabase) return;
+              if (!supabaseRef.current) return;
               setIsLoggingOut(true);
               try {
-                  const { error } = await supabase.auth.signOut();
+                  const { error } = await supabaseRef.current.auth.signOut();
                   if (error) throw error;
                   handleSetView('auth'); // After logout, go to auth screen
-                  setAuthScreenMode('login');
+                  setInitialAuthError(''); // Clear any previous auth errors
               } catch(error) {
                   alert(`Erro ao sair: ${getErrorMessage(error)}`);
               } finally {
                   setIsLoggingOut(false);
               }
           };
+
+          if (supabaseInitFailed && currentView === 'error') {
+            return (
+                <div className="min-h-screen flex flex-col items-center justify-center bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 p-8 text-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <p className="text-xl font-bold mb-2">Erro Fatal: Falha ao inicializar o Supabase.</p>
+                    <p className="text-lg">Verifique se as variáveis `SUPABASE_URL` e `SUPABASE_ANON_KEY` estão configuradas corretamente no código.</p>
+                    <p className="mt-4 text-sm">Consulte o console do navegador para mais detalhes técnicos sobre o erro.</p>
+                </div>
+            );
+          }
 
           if (authLoading || isLoggingOut) {
               return <Spinner message={isLoggingOut ? "Saindo..." : "Verificando autenticação..."} />;
@@ -1444,7 +1508,8 @@
 
           return (
               <div id="app-container" className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
-                  {!supabase && <OfflineWarning />}
+                  {!supabaseRef.current && supabaseCredentialsProvided && <OfflineWarning />} {/* Only show if supposed to be online but failed */}
+                  {!supabaseRef.current && !supabaseCredentialsProvided && <OfflineWarning />} {/* Show if intentionally offline */}
                   <header className="bg-white dark:bg-gray-800 shadow-md p-4 flex flex-col sm:flex-row justify-between items-center print-hidden">
                       <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2 sm:mb-0">Gerador de Relatórios CCB - Ensaio</h1>
                       <nav className="flex items-center gap-2 sm:gap-4 flex-wrap text-sm sm:text-base">
@@ -1455,16 +1520,16 @@
                                   <button onClick={handleLogout} className="text-red-500 hover:text-red-700 font-semibold">Sair</button>
                               </div>
                           ) : (
-                              <a href="#auth" onClick={(e) => {e.preventDefault(); handleSetView('auth'); setAuthScreenMode('login');}} className={`font-medium ${currentView === 'auth' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100'}`}>Login / Cadastro</a>
+                              <a href="#auth" onClick={(e) => {e.preventDefault(); handleSetView('auth');}} className={`font-medium ${currentView === 'auth' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100'}`}>Login / Cadastro</a>
                           )}
                       </nav>
                   </header>
                   {currentView === 'updatePassword' ? (
-                      <UpdatePasswordScreen onUpdateSuccess={handlePasswordUpdated} supabaseInstance={supabase} />
+                      <UpdatePasswordScreen onUpdateSuccess={handlePasswordUpdated} supabaseInstance={supabaseRef.current} />
                   ) : currentView === 'auth' ? (
-                      supabase ? <AuthScreen initialAuthError={initialAuthError} supabaseInstance={supabase} onLoginSuccess={handleLoginSuccess} /> : <InfoBox>Supabase não está configurado. Não é possível autenticar.</InfoBox>
+                      supabaseRef.current ? <AuthScreen initialError={initialAuthError} supabaseInstance={supabaseRef.current} onLoginSuccess={handleLoginSuccess} /> : <InfoBox>Supabase não está configurado. Não é possível autenticar.</InfoBox>
                   ) : ( // Default view is 'rehearsal'
-                      <RehearsalAppModule session={session} currentSubView={rehearsalSubView} handleSetSubView={handleSetRehearsalSubView} supabaseInstance={supabase}/>
+                      <RehearsalAppModule session={session} currentSubView={rehearsalSubView} handleSetSubView={handleSetRehearsalSubView} supabaseInstance={supabaseRef.current}/>
                   )}
               </div>
           );
