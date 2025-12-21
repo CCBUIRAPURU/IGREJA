@@ -959,6 +959,9 @@
                 const header = reportData.header;
                 const cleanedCep = header.cep?.replace(/\D/g, '');
                 if (!session || !supabaseInstance || !cleanedCep || cleanedCep.length !== 8 || !header.year || !header.month || !header.date) {
+                    // This is a client-side check, not an error from the backend. 
+                    // Set an error only if there's an actual failed Supabase interaction.
+                    // For now, let it proceed to Supabase to potentially get a specific error.
                     setSaveStatus('idle'); 
                     return;
                 }
@@ -971,14 +974,20 @@
                     // Important: Omit 'id' from the payload when using onConflict with (cep, year, month)
                     // This allows the DB to generate 'id' on insert and for the onConflict clause to correctly
                     // identify and update existing records based on the unique combination.
-                    const { error } = await supabaseInstance.from('rehearsal_reports').upsert({ 
+                    const { error, data, status } = await supabaseInstance.from('rehearsal_reports').upsert({ 
                         cep: cleanedCep, 
                         year: parseInt(header.year), 
                         month: parseInt(header.month), 
                         report_data: reportData, // reportData already contains the full object
                         user_id: session.user.id 
                     }, { onConflict: 'cep,year,month' });
-                    if (error) throw error;
+                    
+                    if (error) {
+                        if (status === 401) {
+                            throw new Error(`Não autorizado. Verifique seu login e as políticas de RLS no Supabase para a tabela 'rehearsal_reports'. Detalhes: ${error.message}`);
+                        }
+                        throw error;
+                    }
 
                     setSaveStatus('saved');
                     if (!availableYears.includes(header.year)) {
@@ -987,7 +996,7 @@
                     setTimeout(() => setSaveStatus('idle'), 2000);
                 } catch (error) {
                     console.error("Rehearsal Save Error:", error)
-                    setLastError('Falha ao salvar: ' + error.message);
+                    setLastError('Falha ao salvar: ' + getErrorMessage(error));
                     setSaveStatus('error');
                 } finally {
                     isSaving.current = false;
@@ -1012,12 +1021,23 @@
                 const { cep, year, month } = reportData.header;
                 const cleanedCep = cep?.replace(/\D/g, '');
                 // Only load if in 'cadastro' view and necessary parameters are present
-                if (!session || currentSubView !== 'cadastro' || !supabaseInstance || !cleanedCep || cleanedCep.length !== 8 || !year || !month) return;
+                if (!session || currentSubView !== 'cadastro' || !supabaseInstance || !cleanedCep || cleanedCep.length !== 8 || !year || !month) {
+                    // Clear report data if conditions for loading are not met (e.g., not logged in)
+                    setReportData(createBlankRehearsalReport(getInitialRehearsalHeader()));
+                    setSaveStatus('idle');
+                    return;
+                }
                 
                 try {
-                    const { data, error } = await supabaseInstance.from('rehearsal_reports').select('report_data').eq('cep', cleanedCep).eq('year', parseInt(year)).eq('month', parseInt(month)).maybeSingle();
+                    const { data, error, status } = await supabaseInstance.from('rehearsal_reports').select('report_data').eq('cep', cleanedCep).eq('year', parseInt(year)).eq('month', parseInt(month)).maybeSingle();
                     if (signal.aborted) return;
-                    if (error) throw error;
+                    
+                    if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found (not an actual error)
+                        if (status === 401) {
+                            throw new Error(`Não autorizado. Verifique seu login e as políticas de RLS no Supabase para a tabela 'rehearsal_reports'. Detalhes: ${error.message}`);
+                        }
+                        throw error;
+                    }
 
                     if (data && data.report_data) {
                         const loadedData = data.report_data;
@@ -1031,7 +1051,11 @@
                     }
                     setSaveStatus('idle'); 
                 } catch (e) {
-                    if (e.name !== 'AbortError') { console.error("Falha ao carregar relatório de ensaio", e); setLastError('Falha ao carregar.'); setSaveStatus('error'); }
+                    if (e.name !== 'AbortError') { 
+                        console.error("Falha ao carregar relatório de ensaio", e); 
+                        setLastError('Falha ao carregar: ' + getErrorMessage(e)); 
+                        setSaveStatus('error'); 
+                    }
                 }
             }, [reportData.header.cep, reportData.header.month, reportData.header.year, session, currentSubView, supabaseInstance]);
             
@@ -1076,12 +1100,12 @@
 
                     setIsFetchingCep(true);
                     setLastError(''); // Clear previous error
-                    setSaveStatus('typing'); // Indicate pending changes, might revert to error
+                    setSaveStatus('idle'); // Set status to idle, it might become 'error' if fetch fails
 
                     try {
-                        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(`https://viacep.com.br/ws/${cleanedCep}/json/`)}`;
+                        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://viacep.com.br/ws/${cleanedCep}/json/`)}`;
                         const res = await fetch(proxyUrl);
-                        if (!res.ok) { // Check for HTTP errors like 404
+                        if (!res.ok) { // Check for HTTP errors like 404, 500, 502 etc.
                             const errorText = await res.text();
                             throw new Error(`Erro HTTP ${res.status}: ${errorText || res.statusText}`);
                         }
@@ -1089,16 +1113,16 @@
                         if (cepData.erro) throw new Error('CEP inválido ou não encontrado.');
                         
                         setReportData(p => ({ ...p, header: { ...p.header, municipio: cepData.localidade, estado: cepData.uf, bairro: cepData.bairro } }));
-                        // setSaveStatus('typing'); // Already set above, this change will trigger the auto-save
+                        setSaveStatus('typing'); // This successful update should trigger an auto-save
                     } catch (error) { 
                         console.error("Erro ao buscar CEP:", error);
-                        // Provide more specific feedback if it's a network/CORS issue
-                        let userMessage = 'Falha ao buscar CEP. Verifique sua conexão com a internet.';
+                        let userMessage = 'Falha ao buscar CEP. Verifique sua conexão com a internet ou se o CEP está correto.';
                         if (error.message.includes('CORS') || error.message.includes('network error') || error.message.includes('Failed to fetch')) {
-                            userMessage += ' Pode ser um problema de rede ou permissões (CORS). Tente novamente ou use um navegador diferente.';
-                        } else {
-                            userMessage += ` Detalhes: ${error.message}`;
+                            userMessage += ' Pode ser um problema de rede ou política de segurança (CORS) com o serviço de CEP.';
+                        } else if (error.message.includes('HTTP 502')) {
+                            userMessage += ' O serviço de proxy ou o ViaCEP pode estar temporariamente indisponível (Erro 502 Bad Gateway).';
                         }
+                        userMessage += ` Detalhes: ${error.message}`;
                         setLastError(userMessage);
                         setSaveStatus('error'); // Set status to error
                     } finally { 
@@ -1111,7 +1135,7 @@
                 if (!session) return null;
                 if (saveStatus === 'saving') return <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400"><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg><span>Salvando...</span></div>;
                 if (saveStatus === 'saved') return <div className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg><span>Salvo na nuvem</span></div>;
-                if (saveStatus === 'error') return <div className="flex items-center gap-1 text-xs text-red-600 dark:text-red-400" title={lastError}><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><span>Erro: {lastError.substring(0, 50)}...</span></div>; {/* Display partial error and title for full text */}
+                if (saveStatus === 'error') return <div className="flex items-center gap-1 text-xs text-red-600 dark:text-red-400" title={lastError}><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><span>Erro: {lastError.split(':')[0]}...</span></div>; {/* Display first part of error and title for full text */}
                 if (saveStatus === 'typing') return <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400"><span>Salvamento automático pendente...</span></div>;
                 return <div className="h-5"></div>; 
             }
@@ -1422,8 +1446,14 @@
               }
 
               try {
-                const { data, error } = await supabaseInstance.from('reports').select('*').eq('id', docId).single();
-                if (error && error.code !== 'PGRST116') { throw error; }
+                const { data, error, status } = await supabaseInstance.from('reports').select('*').eq('id', docId).single();
+                
+                if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found (not an actual error)
+                    if (status === 401) {
+                        throw new Error(`Não autorizado. Verifique seu login e as políticas de RLS no Supabase para a tabela 'reports'. Detalhes: ${error.message}`);
+                    }
+                    throw error;
+                }
 
                 if (data) {
                   const sanitizedTransactions = (data.transactions || []).map(t => ({
@@ -1461,7 +1491,7 @@
               setSaveStatus(FinancialSaveStatus.SAVING);
               setSaveError('');
               try {
-                const { error } = await supabaseInstance.from('reports').upsert({
+                const { error, data, status } = await supabaseInstance.from('reports').upsert({
                       id: docId, 
                       user_id: user.id, 
                       updated_at: new Date().toISOString(),
@@ -1470,7 +1500,12 @@
                       deposit_rows: depositRows, 
                       pix_rows: pixRows,
                 });
-                if (error) throw error;
+                if (error) {
+                    if (status === 401) {
+                        throw new Error(`Não autorizado. Verifique seu login e as políticas de RLS no Supabase para a tabela 'reports'. Detalhes: ${error.message}`);
+                    }
+                    throw error;
+                }
                 setSaveStatus(FinancialSaveStatus.SAVED);
               } catch (error) { 
                 console.error("Erro ao salvar dados financeiros:", error);
@@ -1641,13 +1676,16 @@
                         for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
                             const docId = `report-${user.id}-${selectedYear}-${monthIndex}`;
                             
-                            const { data: monthReport, error: monthError } = await supabaseInstance
+                            const { data: monthReport, error: monthError, status } = await supabaseInstance
                                 .from('reports')
                                 .select('transactions')
                                 .eq('id', docId)
                                 .single();
 
                             if (monthError && monthError.code !== 'PGRST116') { // PGRST116 is 'not found'
+                                if (status === 401) {
+                                    throw new Error(`Não autorizado. Verifique seu login e as políticas de RLS no Supabase para a tabela 'reports'. Detalhes: ${monthError.message}`);
+                                }
                                 throw monthError;
                             }
                             
@@ -2143,7 +2181,7 @@
                   {mainView === 'updatePassword' ? (
                       <UpdatePasswordScreen onUpdateSuccess={handlePasswordUpdated} supabaseInstance={supabase} />
                   ) : mainView === 'auth' ? (
-                      supabase ? <AuthScreen initialError={initialAuthError} supabaseInstance={supabase} onLoginSuccess={handleLoginSuccess} /> : <InfoBox>Supabase não está configurado. Não é possível autenticar.</InfoBox>
+                      supabase ? <AuthScreen initialAuthError={initialAuthError} supabaseInstance={supabase} onLoginSuccess={handleLoginSuccess} /> : <InfoBox>Supabase não está configurado. Não é possível autenticar.</InfoBox>
                   ) : user || !supabase ? ( // If logged in, or in offline mode (no supabase)
                       mainView === 'rehearsal' ? (
                           <RehearsalAppModule session={session} currentSubView={rehearsalSubView} handleSetSubView={handleSetRehearsalSubView} supabaseInstance={supabase}/>
