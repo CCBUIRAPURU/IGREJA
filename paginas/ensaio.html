@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gerador de Relatórios CCB</title>
+    <title>Gerador de Relatórios CCB - Ensaio</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       /* Estilos gerais para impressão e scrollbar */
@@ -59,7 +59,7 @@
         }
       }
 
-      /* Custom scrollbar for a more modern look (Financial Report) */
+      /* Custom scrollbar for a more modern look (Financial Report - Removed) */
       ::-webkit-scrollbar {
         width: 8px;
         height: 8px;
@@ -89,7 +89,7 @@
     <!-- html-to-image (para Relatório de Ensaio JPG) -->
     <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.min.js"></script>
     
-    <!-- html2canvas (para Relatório Financeiro JPG - mantido para compatibilidade, mas tentaremos usar html-to-image) -->
+    <!-- html2canvas (No longer needed for Financial Report, but keeping if other uses arise) -->
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
     <!-- Supabase -->
@@ -130,8 +130,7 @@
           supabase = null;
         }
 
-        // --- Constants (Combined from both apps) ---
-        // Rehearsal App Constants
+        // --- Constants (Rehearsal App Only) ---
         const INSTRUMENT_CATEGORIES = {
           'Madeiras': ['Clarinete', 'Clarinete Alto', 'Clarinete Baixo', 'Corne Inglês', 'Flauta Transversal','Fagote', 'Oboé', 'Oboé D\'Amore', 'Saxofone Alto', 'Saxofone Tenor', 'Saxofone Barítono', 'Saxofone Soprano'],
           'Metais': ['Barítono', 'Eufônio', 'Flugelhorn', 'Trombonito', 'Trompa', 'Trompete', 'Trompete Cornet', 'Tuba', 'Trombone'],
@@ -143,13 +142,7 @@
         const MONTHS_LIST_REHEARSAL = [{ value: '1', label: 'Janeiro' }, { value: '2', label: 'Fevereiro' }, { value: '3', label: 'Março' }, { value: '4', label: 'Abril' }, { value: '5', label: 'Maio' }, { value: '6', label: 'Junho' }, { value: '7', label: 'Julho' }, { value: '8', label: 'Agosto' }, { value: '9', label: 'Setembro' }, { value: '10', label: 'Outubro' }, { value: '11', label: 'Novembro' }, { value: '12', label: 'Dezembro' }];
         const SHORT_MONTHS_REHEARSAL = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
         
-        // Financial App Constants
-        const PaymentType = { Cartao: 'Cartão', Deposito: 'Depósito', Pix: 'Pix' };
-        const PAYMENT_TYPES = [PaymentType.Cartao, PaymentType.Deposito, PaymentType.Pix];
-        const MONTHS_FINANCIAL = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-
-        // --- Utilities (Combined from both apps) ---
-        // Rehearsal App Utilities
+        // --- Utilities (Rehearsal App Only) ---
         const calculateMonthlyTotals = (reportData) => {
             if (!reportData || !reportData.instruments || !reportData.ministry || !reportData.congregation) return { musicians: 0, organists: 0, totalMusiciansAndOrganists: 0, brothers: 0, sisters: 0, totalCongregation: 0, totalMinistry: 0, grandTotal: 0, totalHymns: 0 };
             const organists = reportData.instruments['Organistas (Órgão)'] || 0;
@@ -179,14 +172,6 @@
             estado: '', municipio: '', bairro: '',
         });
 
-        // Financial App Utilities
-        const formatCurrency = (amount) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount);
-        const getFinancialYears = () => {
-          const currentYear = new Date().getFullYear();
-          const years = [];
-          for (let i = currentYear + 1; i >= 2020; i--) years.push(i);
-          return years;
-        };
         const getErrorMessage = (error) => {
             if (!error) return 'Ocorreu um erro desconhecido.';
             if (typeof error === 'string') return error;
@@ -200,8 +185,6 @@
             }
             return 'Ocorreu um erro inesperado. Verifique o console para mais detalhes.';
         };
-        // Removed global useCallback definitions for parseAmount and sortTransactions.
-        // They are now correctly defined within the components where they are used.
 
         // --- Common UI Components ---
         const InputField = ({ label, name, value, onChange, placeholder, type = "text", onBlur, disabled = false }) => (
@@ -378,7 +361,7 @@
         };
         const RehearsalObservationsPanel = ({ value, onChange }) => (<div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden"><div className="p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700"><h3 className="text-lg font-semibold text-emerald-600 dark:text-emerald-400">Observações</h3></div><div className="p-6"><textarea value={value} onChange={onChange} rows={5} className="w-full bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm text-gray-900 dark:text-gray-200 p-3" placeholder="Adicione aqui observações gerais sobre o ensaio..."/></div></div>);
         
-        const RehearsalEditView = ({ reportData, handlers, availableYears, onManualSave, saveStatus }) => {
+        const RehearsalEditView = ({ reportData, handlers, availableYears, onManualSave, saveStatus, session }) => {
             const totals = useMemo(() => calculateMonthlyTotals(reportData), [reportData]);
             const printableRef = useRef(null);
             const [isSavingJpg, setIsSavingJpg] = useState(false);
@@ -430,7 +413,7 @@
                    <div className="no-print max-w-7xl mx-auto mt-8 p-6 bg-white dark:bg-gray-800 shadow-lg rounded-lg flex flex-wrap justify-center gap-4">
                         <button
                           onClick={onManualSave}
-                          disabled={!['typing', 'error'].includes(saveStatus) || !supabase}
+                          disabled={!['typing', 'error'].includes(saveStatus) || !supabase || !session} // Added !session to disable save if not logged in
                           className="px-6 py-3 bg-emerald-600 text-white font-semibold rounded-md shadow-sm hover:bg-emerald-700 disabled:bg-emerald-400 disabled:cursor-not-allowed transition-colors"
                         >
                           {saveStatus === 'saving' ? 'Salvando...' : saveStatus === 'saved' ? 'Salvo!' : saveStatus === 'error' ? 'Tentar Novamente' : 'Salvar Alterações'}
@@ -438,6 +421,11 @@
                         <button onClick={handleSaveJpg} disabled={isSavingJpg} className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-md shadow-sm hover:bg-blue-700 disabled:bg-blue-400 transition-colors">{isSavingJpg ? 'Salvando JPG...' : 'Salvar como JPG'}</button>
                         <button onClick={() => window.print()} className="px-6 py-3 bg-gray-600 text-white font-semibold rounded-md shadow-sm hover:bg-gray-700 transition-colors">Imprimir Relatório</button>
                    </div>
+                   {!session && supabase && (
+                        <div className="text-center text-orange-600 dark:text-orange-400 mt-4 font-semibold no-print">
+                            Você não está logado. Pode preencher o relatório, mas não poderá salvá-lo na nuvem.
+                        </div>
+                    )}
                    <div className="hidden print-block"><PrintableRehearsalReport ref={printableRef} reportData={reportData} totals={totals}/></div>
                 </Fragment>
             );
@@ -880,7 +868,7 @@
                   const reportWidth = 1200;
                   const reportHeight = nodeToCapture.scrollHeight; // Captura a altura real do conteúdo
 
-                  const dataUrl = await htmlToImage.toJpeg(nodeToCapture, {
+                  const dataUrl = await htmlToImage.toJpeg(annualReportElement, { // Changed to annualReportElement
                       quality: 1,
                       backgroundColor: '#ffffff',
                       pixelRatio: Math.max(1, 3 / currentScale), // Adjust pixelRatio based on current display scale, min 1
@@ -937,9 +925,6 @@
             const [reportData, setReportData] = useState(() => createBlankRehearsalReport(getInitialRehearsalHeader()));
             const [availableYears, setAvailableYears] = useState(() => [String(new Date().getFullYear())]);
             
-            // isFetchingCep is no longer needed as CEP is manually entered
-            // const [isFetchingCep, setIsFetchingCep] = useState(false); 
-            
             const autoSaveTimeout = useRef(null);
             const loadController = useRef(new AbortController());
             const isSaving = useRef(false);
@@ -954,8 +939,10 @@
 
                 const header = reportData.header;
                 const cleanedCep = header.cep?.replace(/\D/g, '');
+                // Allow saving only if authenticated and all required fields are present
                 if (!session || !supabaseInstance || !cleanedCep || cleanedCep.length !== 8 || !header.year || !header.month || !header.date) {
-                    setSaveStatus('idle'); 
+                    setSaveStatus('error'); // Indicate why it couldn't save
+                    setLastError('Não é possível salvar: Verifique se você está logado e se o CEP, ano, mês e data estão preenchidos.');
                     return;
                 }
                 
@@ -1010,11 +997,12 @@
 
                 const { cep, year, month } = reportData.header;
                 const cleanedCep = cep?.replace(/\D/g, '');
-                // Only load if in 'cadastro' view and necessary parameters are present
-                if (!session || currentSubView !== 'cadastro' || !supabaseInstance || !cleanedCep || cleanedCep.length !== 8 || !year || !month) {
-                    // Clear report data if conditions for loading are not met (e.g., not logged in)
+                
+                // If not logged in, or no Supabase, or missing key parameters, just initialize a blank report.
+                if (!session || !supabaseInstance || !cleanedCep || cleanedCep.length !== 8 || !year || !month) {
                     setReportData(createBlankRehearsalReport(getInitialRehearsalHeader()));
                     setSaveStatus('idle');
+                    setLastError('');
                     return;
                 }
                 
@@ -1034,8 +1022,7 @@
                         if (!loadedData.header.visitingOrchestraLeaders) loadedData.header.visitingOrchestraLeaders = [''];
                         setReportData(loadedData);
                     } else {
-                        // If no report for the specific month exists, try to pre-fill church name from another report with the same CEP
-                        // In manual mode, we don't try to fetch church name. We just use the existing one or reset.
+                        // If no report for the specific month exists, initialize a new report
                         setReportData(prev => createBlankRehearsalReport({ ...getInitialRehearsalHeader(), cep: prev.header.cep, church: prev.header.church || '', year: prev.header.year, month: prev.header.month, municipio: prev.header.municipio || '', bairro: prev.header.bairro || '', estado: prev.header.estado || '' }));
                     }
                     setSaveStatus('idle'); 
@@ -1082,12 +1069,12 @@
                 handleVisitingLeaderChange: createChangeHandler((p, index, value) => ({ ...p, header: { ...p.header, visitingOrchestraLeaders: p.header.visitingOrchestraLeaders.map((l, i) => i === index ? value : l) } })),
                 handleAddVisitingLeader: createChangeHandler((p) => ({ ...p, header: { ...p.header, visitingOrchestraLeaders: [...p.header.visitingOrchestraLeaders, ''] } })),
                 handleRemoveVisitingLeader: createChangeHandler((p, index) => ({ ...p, header: { ...p.header, visitingOrchestraLeaders: p.header.visitingOrchestraLeaders.length > 1 ? p.header.visitingOrchestraLeaders.filter((_, i) => i !== index) : p.header.visitingOrchestraLeaders }})),
-                // handleCepBlur is no longer needed
-                // handleCepBlur: async (cep) => { ... }
             }), [createChangeHandler, saveReport]);
 
             const SaveStatusIndicator = () => {
-                if (!session) return null;
+                if (!supabaseInstance) return <div className="text-center text-yellow-700 dark:text-yellow-400 text-xs font-semibold">Modo Offline (Não é possível salvar)</div>;
+                if (!session) return <div className="text-center text-orange-600 dark:text-orange-400 text-xs font-semibold">Você não está logado. O salvamento está desativado.</div>;
+
                 if (saveStatus === 'saving') return <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400"><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg><span>Salvando...</span></div>;
                 if (saveStatus === 'saved') return <div className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg><span>Salvo na nuvem</span></div>;
                 if (saveStatus === 'error') return <div className="flex items-center gap-1 text-xs text-red-600 dark:text-red-400" title={lastError}><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><span>Erro: {lastError.split(':')[0]}...</span></div>; {/* Display first part of error and title for full text */}
@@ -1104,13 +1091,13 @@
                         <nav className="mt-6 flex justify-center items-center gap-2 sm:gap-4 flex-wrap no-print">
                             <a href="#rehearsal_mensal" onClick={(e) => {e.preventDefault(); handleSetSubView('mensal')}} className={`inline-flex items-center px-4 py-2 sm:px-6 sm:py-3 border border-transparent text-sm sm:text-base font-medium rounded-md shadow-sm transition-colors ${currentSubView === 'mensal' ? 'text-white bg-emerald-600 dark:bg-emerald-700 hover:bg-emerald-700 dark:hover:bg-emerald-800 ring-2 ring-offset-2 ring-emerald-500' : 'text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'}`}>Visualizar Mensal</a>
                             <a href="#rehearsal_anual" onClick={(e) => {e.preventDefault(); handleSetSubView('anual')}} className={`inline-flex items-center px-4 py-2 sm:px-6 sm:py-3 border border-transparent text-sm sm:text-base font-medium rounded-md shadow-sm transition-colors ${currentSubView === 'anual' ? 'text-white bg-emerald-600 dark:bg-emerald-700 hover:bg-emerald-700 dark:hover:bg-emerald-800 ring-2 ring-offset-2 ring-emerald-500' : 'text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'}`}>Visualizar Anual</a>
-                            {session && (
-                                <a href="#rehearsal_cadastro" onClick={(e) => {e.preventDefault(); handleSetSubView('cadastro')}} className={`inline-flex items-center px-4 py-2 sm:px-6 sm:py-3 border border-transparent text-sm sm:text-base font-medium rounded-md shadow-sm transition-colors ${currentSubView === 'cadastro' ? 'text-white bg-emerald-600 dark:bg-emerald-700 hover:bg-emerald-700 dark:hover:bg-emerald-800 ring-2 ring-offset-2 ring-emerald-500' : 'text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'}`}>Cadastrar/Editar</a>
-                            )}
+                            {/* Always show "Cadastrar/Editar" button */}
+                            <a href="#rehearsal_cadastro" onClick={(e) => {e.preventDefault(); handleSetSubView('cadastro')}} className={`inline-flex items-center px-4 py-2 sm:px-6 sm:py-3 border border-transparent text-sm sm:text-base font-medium rounded-md shadow-sm transition-colors ${currentSubView === 'cadastro' ? 'text-white bg-emerald-600 dark:bg-emerald-700 hover:bg-emerald-700 dark:hover:bg-emerald-800 ring-2 ring-offset-2 ring-emerald-500' : 'text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'}`}>Cadastrar/Editar</a>
                         </nav>
                         <div className="mt-8">
                             {currentSubView === 'cadastro' ? (
-                                session ? <RehearsalEditView reportData={reportData} handlers={handlers} availableYears={availableYears} onManualSave={saveReport} saveStatus={saveStatus} /> : <InfoBox>Faça login para cadastrar/editar relatórios.</InfoBox>
+                                // Always render RehearsalEditView, let its internal logic handle saving restrictions
+                                <RehearsalEditView reportData={reportData} handlers={handlers} availableYears={availableYears} onManualSave={saveReport} saveStatus={saveStatus} session={session} />
                             ) : currentSubView === 'anual' ? (
                                 <RehearsalAnnualReportView supabaseInstance={supabaseInstance} />
                             ) : (
@@ -1122,657 +1109,7 @@
             );
         };
 
-        // --- Financial Report App Components ---
-
-        const FinancialTransactionForm = ({ onAddTransaction, onUpdateTransaction, editingTransaction, onCancelEdit }) => {
-            const [type, setType] = useState(PaymentType.Cartao);
-            const [date, setDate] = useState('');
-            const [amount, setAmount] = useState('');
-            const [error, setError] = useState('');
-            const isEditing = !!editingTransaction;
-
-            useEffect(() => {
-              if (editingTransaction) {
-                setType(editingTransaction.type);
-                const dateParts = editingTransaction.date.split('/');
-                if (dateParts.length === 3) {
-                  const [day, month, year] = dateParts;
-                  setDate(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
-                } else { setDate(''); }
-                setAmount(String(editingTransaction.amount).replace('.', ','));
-                setError('');
-              } else {
-                setType(PaymentType.Cartao); setDate(''); setAmount(''); setError('');
-              }
-            }, [editingTransaction]);
-
-            const handleSubmit = (e) => {
-              e.preventDefault();
-              if (!date || !amount) { setError('Data e valor são obrigatórios.'); return; }
-              const numericAmount = parseFloat(amount.replace(/\./g, '').replace(',', '.'));
-              if (isNaN(numericAmount) || numericAmount <= 0) { setError('Por favor, insira um valor válido.'); return; }
-              const formattedDate = new Date(date + 'T00:00:00').toLocaleDateString('pt-BR', { timeZone: 'UTC' }); // Ensure UTC interpretation for consistency
-              const transactionData = { type, date: formattedDate, amount: numericAmount };
-              if (isEditing) onUpdateTransaction({ ...transactionData, id: editingTransaction.id });
-              else onAddTransaction(transactionData);
-              if (!isEditing) { setDate(''); setAmount(''); setError(''); }
-            };
-
-            return (
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100">{isEditing ? 'Editar Transação' : 'Adicionar Transação'}</h2>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div>
-                    <label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo</label>
-                    <select id="type" value={type} onChange={(e) => setType(e.target.value)} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200">
-                      {PAYMENT_TYPES.map((pt) => <option key={pt} value={pt}>{pt}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label htmlFor="date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Data</label>
-                    <input type="date" id="date" value={date} onChange={(e) => setDate(e.target.value)} className="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" />
-                  </div>
-                  <div>
-                    <label htmlFor="amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Valor (R$)</label>
-                    <input type="text" id="amount" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Ex: 150,00" className="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" />
-                  </div>
-                  {error && <p className="text-red-500 text-sm">{error}</p>}
-                  <div className="flex gap-2">
-                    <button type="submit" className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">{isEditing ? 'Atualizar' : 'Adicionar'}</button>
-                    {isEditing && (<button type="button" onClick={onCancelEdit} className="flex-1 bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600">Cancelar</button>)}
-                  </div>
-                </form>
-              </div>
-            );
-        };
-          
-        const FinancialTransactionList = ({ transactions, onEdit, onDelete, selectedTransactionId }) => { // Added selectedTransactionId prop
-            if (transactions.length === 0 && !selectedTransactionId) return ( // Only show placeholder if no transactions AND nothing explicitly selected
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md text-center">
-                    <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100">Transação Selecionada</h2>
-                    <p className="text-gray-500 dark:text-gray-400">Nenhuma transação.</p>
-                </div>
-            );
-
-            // Filter for the selected transaction if available, otherwise show all
-            const transactionsToDisplay = selectedTransactionId ? transactions.filter(t => t.id === selectedTransactionId) : []; // Changed to only show selected for brevity in the sidebar
-
-            return (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md">
-                <h2 className="text-xl font-bold p-4 border-b border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100">Transação Selecionada</h2>
-                <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {transactionsToDisplay.map((t) => (
-                    <li key={t.id} className="p-4 flex justify-between items-center">
-                      <div>
-                        <p className="font-semibold text-gray-800 dark:text-gray-100">{t.type}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">{t.date}</p>
-                        <p className="font-semibold text-lg text-gray-800 dark:text-gray-100">{formatCurrency(t.amount)}</p>
-                      </div>
-                      <div className="flex items-center gap-1">
-                          <button onClick={() => onEdit(t.id)} className="text-gray-500 hover:text-blue-600 p-2 rounded-full transition-colors"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg></button>
-                          <button onClick={() => onDelete(t.id)} className="text-gray-500 hover:text-red-600 p-2 rounded-full transition-colors"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" /></svg></button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            );
-        };
-
-        const FinancialTableSection = ({ title, items, totalRows, showSeparator, onRowClick, selectedTransactionId }) => {
-            const total = items.reduce((sum, item) => sum + item.amount, 0);
-            return (
-              <div className="mb-1">
-                <table className="w-full border-collapse border border-black text-black">
-                  <thead><tr><th colSpan={2} className="bg-gray-200 p-1 text-black font-bold border border-black text-center">{title}</th></tr></thead>
-                  <tbody>
-                    {items.map((item) => (
-                      <tr key={item.id} onClick={() => onRowClick(item.id)} className={`transition-colors text-black ${item.id === selectedTransactionId ? 'bg-blue-200' : 'hover:bg-gray-100'} cursor-pointer`}>
-                        <td className="border border-black w-1/2 h-7 p-0">
-                          <div className="flex items-center justify-center h-full p-1">{item.date}</div>
-                        </td>
-                        <td className="border border-black w-1/2 h-7 p-0">
-                          <div className="flex items-center justify-center h-full p-1">{formatCurrency(item.amount)}</div>
-                        </td>
-                      </tr>
-                    ))}
-                    {Array.from({ length: Math.max(0, totalRows - items.length) }).map((_, i) => <tr key={`empty-${title}-${i}`}><td className="border border-black p-1 h-7"></td><td className="border border-black p-1"></td></tr>)}
-                  </tbody>
-                  <tfoot>
-                     <tr className="font-bold text-black">
-                        <td className="border border-black p-0 bg-gray-200">
-                            <div className="flex items-center justify-center h-full p-1">TOTAL</div>
-                        </td>
-                        <td className="border border-black p-0 bg-gray-200">
-                            <div className="flex items-center justify-center h-full p-1">{formatCurrency(total)}</div>
-                        </td>
-                    </tr>
-                    {showSeparator && <tr><td colSpan={2} className="p-1 border-x border-black text-center bg-gray-200 text-gray-600" style={{ letterSpacing: '2px' }}>WWWWWWWWWWWWWWWWWWWWWW</td></tr>}
-                  </tfoot>
-                </table>
-              </div>
-            );
-        };
-          
-        const FinancialReport = ({ dateText, transactions, cardRows, depositRows, pixRows, onTransactionSelect, selectedTransactionId }) => (
-            <div id="report-root" className="bg-white p-1 border-2 border-black font-sans shadow-lg" style={{ width: '794px' }}>
-              <header className="w-full border-b-2 border-black mb-1 p-2 text-center">
-                <h1 className="text-2xl font-bold text-black uppercase">Relatório Financeiro</h1>
-                <h2 className="text-lg font-semibold text-black uppercase">{dateText}</h2>
-              </header>
-              <div className="flex">
-                <div className="w-1/2 pr-1 flex flex-col">
-                  <FinancialTableSection title="Cartão" items={transactions.filter(t => t.type === PaymentType.Cartao)} totalRows={cardRows} onRowClick={onTransactionSelect} selectedTransactionId={selectedTransactionId} />
-                  <FinancialTableSection title="Depósito" items={transactions.filter(t => t.type === PaymentType.Deposito)} totalRows={depositRows} onRowClick={onTransactionSelect} selectedTransactionId={selectedTransactionId} />
-                  <FinancialTableSection title="Pix" items={transactions.filter(t => t.type === PaymentType.Pix)} totalRows={pixRows} showSeparator={false} onRowClick={onTransactionSelect} selectedTransactionId={selectedTransactionId} />
-                </div>
-                <div className="w-1/2 pl-1 border-l-2 border-black flex flex-col items-center justify-center">
-                  <div className="text-center">
-                    <h2 className="text-4xl font-bold text-black">TOTAL GERAL</h2>
-                    <p className="text-6xl font-bold mt-8 text-black">{formatCurrency(transactions.reduce((s, i) => s + i.amount, 0))}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-        );
-          
-        const FinancialSaveStatus = {
-          SAVED: 'Salvo na nuvem',
-          PENDING: 'Alterações pendentes...',
-          SAVING: 'Salvando...',
-          ERROR: 'Erro ao salvar',
-          OFFLINE: 'Salvo localmente'
-        };
-
-        const FinancialAnnualReport = ({ year, data }) => {
-          const grandTotals = data.reduce((acc, monthData) => {
-              acc.cartao += monthData.cartao;
-              acc.deposito += monthData.deposito;
-              acc.pix += monthData.pix;
-              return acc;
-          }, { cartao: 0, deposito: 0, pix: 0 });
-
-          const grandTotalYear = grandTotals.cartao + grandTotals.deposito + grandTotals.pix;
-
-          return (
-              <div id="annual-report-root" className="bg-white p-4 border-2 border-black font-sans shadow-lg text-black" style={{ width: '794px' }}>
-                  <header className="w-full border-b-2 border-black mb-4 p-2 text-center">
-                      <h1 className="text-2xl font-bold text-black uppercase">Relatório Financeiro Anual</h1>
-                      <h2 className="text-lg font-semibold text-black uppercase">{year}</h2>
-                  </header>
-                  <table className="w-full border-collapse border border-black text-black text-sm">
-                      <thead className="bg-gray-200 font-bold">
-                          <tr>
-                              <th className="border border-black p-2">Mês</th>
-                              <th className="border border-black p-2">Cartão</th>
-                              <th className="border border-black p-2">Depósito</th>
-                              <th className="border border-black p-2">Pix</th>
-                              <th className="border border-black p-2">Total Mensal</th>
-                          </tr>
-                      </thead>
-                      <tbody>
-                          {data.map((monthData, index) => {
-                              const monthTotal = monthData.cartao + monthData.deposito + monthData.pix;
-                              return (
-                                  <tr key={index} className="odd:bg-white even:bg-gray-50">
-                                      <td className="border border-black p-2 font-semibold">{MONTHS_FINANCIAL[index]}</td>
-                                      <td className="border border-black p-2 text-right">{formatCurrency(monthData.cartao)}</td>
-                                      <td className="border border-black p-2 text-right">{formatCurrency(monthData.deposito)}</td>
-                                      <td className="border border-black p-2 text-right">{formatCurrency(monthData.pix)}</td>
-                                      <td className="border border-black p-2 text-right font-bold">{formatCurrency(monthTotal)}</td>
-                                  </tr>
-                              );
-                          })}
-                      </tbody>
-                      <tfoot className="bg-gray-200 font-bold">
-                          <tr>
-                              <td className="border border-black p-2">TOTAL ANUAL</td>
-                              <td className="border border-black p-2 text-right">{formatCurrency(grandTotals.cartao)}</td>
-                              <td className="border border-black p-2 text-right">{formatCurrency(grandTotals.deposito)}</td>
-                              <td className="border border-black p-2 text-right">{formatCurrency(grandTotals.pix)}</td>
-                              <td className="border border-black p-2 text-right">{formatCurrency(grandTotalYear)}</td>
-                          </tr>
-                      </tfoot>
-                  </table>
-              </div>
-          );
-        };
-
-        const FinancialAppMonthlyGenerator = ({ user, supabaseInstance }) => {
-          const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-          const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
-          const [transactions, setTransactions] = useState([]);
-          const [editingTransactionId, setEditingTransactionId] = useState(null);
-          const [selectedTransactionId, setSelectedTransactionId] = useState(null);
-          const [cardRows, setCardRows] = useState(8);
-          const [depositRows, setDepositRows] = useState(8);
-          const [pixRows, setPixRows] = useState(7);
-          const [isLoading, setIsLoading] = useState(true);
-          const [initialLoad, setInitialLoad] = useState(true);
-          const [saveStatus, setSaveStatus] = useState(supabaseInstance ? FinancialSaveStatus.SAVED : FinancialSaveStatus.OFFLINE);
-          const [saveError, setSaveError] = useState('');
-          const [isSavingJpg, setIsSavingJpg] = useState(false);
-
-          const docId = useMemo(() => `report-${user.id}-${selectedYear}-${selectedMonth}`, [user, selectedYear, selectedMonth]);
-          
-          const parseAmount = useCallback((value) => {
-            if (typeof value === 'number') {
-              return value;
-            }
-            if (typeof value !== 'string' || value.trim() === '') {
-              return 0;
-            }
-            const cleanedString = value.trim().replace(/\./g, '').replace(',', '.');
-            const number = parseFloat(cleanedString);
-            return isNaN(number) ? 0 : number;
-          }, []);
-
-          const sortTransactions = useCallback((ts) => [...ts].sort((a,b) => {
-            try {
-              const dateA = new Date(a.date.split('/').reverse().join('-')).getTime();
-              const dateB = new Date(b.date.split('/').reverse().join('-')).getTime();
-              return dateA - dateB;
-            } catch(e) { return 0; }
-          }), []);
-
-          const updateState = useCallback((updater) => {
-              if (supabaseInstance) setSaveStatus(FinancialSaveStatus.PENDING);
-              updater();
-          }, [supabaseInstance]);
-
-          useEffect(() => {
-            const loadData = async () => {
-              setIsLoading(true);
-              setSaveStatus(supabaseInstance ? FinancialSaveStatus.SAVED : FinancialSaveStatus.OFFLINE);
-              setSaveError('');
-              setSelectedTransactionId(null);
-              setEditingTransactionId(null);
-
-              const defaultState = { transactions: [], cardRows: 8, depositRows: 8, pixRows: 7 };
-
-              if (!supabaseInstance || !user?.id) {
-                setTransactions(defaultState.transactions);
-                setCardRows(defaultState.cardRows);
-                setDepositRows(defaultState.depositRows);
-                setPixRows(defaultState.pixRows);
-                setIsLoading(false);
-                setInitialLoad(false);
-                return;
-              }
-
-              try {
-                const { data, error, status } = await supabaseInstance.from('reports').select('*').eq('id', docId).single();
-                
-                if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found (not an actual error)
-                    if (status === 401) {
-                        throw new Error(`Não autorizado. Verifique seu login e as políticas de RLS no Supabase para a tabela 'reports'. Detalhes: ${error.message}`);
-                    }
-                    throw error;
-                }
-
-                if (data) {
-                  const sanitizedTransactions = (data.transactions || []).map(t => ({
-                    ...t,
-                    amount: parseAmount(t.amount)
-                  }));
-                  setTransactions(sortTransactions(sanitizedTransactions));
-                  setCardRows(data.card_rows ?? 8);
-                  setDepositRows(data.deposit_rows ?? 8);
-                  setPixRows(data.pix_rows ?? 7);
-                } else {
-                  setTransactions(defaultState.transactions);
-                  setCardRows(defaultState.cardRows);
-                  setDepositRows(defaultState.depositRows);
-                  setPixRows(defaultState.pixRows);
-                }
-              } catch (error) {
-                console.error("Erro ao carregar dados financeiros:", error);
-                setSaveStatus(FinancialSaveStatus.ERROR);
-                setSaveError(`Falha ao carregar: ${getErrorMessage(error)}`);
-                setTransactions([]);
-              } finally {
-                setIsLoading(false);
-                setInitialLoad(false);
-              }
-            };
-
-            loadData();
-          }, [docId, user, sortTransactions, parseAmount, supabaseInstance]);
-
-          useEffect(() => {
-            if (initialLoad || saveStatus !== FinancialSaveStatus.PENDING || !supabaseInstance) return;
-
-            const handler = setTimeout(async () => {
-              setSaveStatus(FinancialSaveStatus.SAVING);
-              setSaveError('');
-              try {
-                const { error, data, status } = await supabaseInstance.from('reports').upsert({
-                      id: docId, 
-                      user_id: user.id, 
-                      updated_at: new Date().toISOString(),
-                      transactions, 
-                      card_rows: cardRows, 
-                      deposit_rows: depositRows, 
-                      pix_rows: pixRows,
-                });
-                if (error) {
-                    if (status === 401) {
-                        throw new Error(`Não autorizado. Verifique seu login e as políticas de RLS no Supabase para a tabela 'reports'. Detalhes: ${error.message}`);
-                    }
-                    throw error;
-                }
-                setSaveStatus(FinancialSaveStatus.SAVED);
-              } catch (error) { 
-                console.error("Erro ao salvar dados financeiros:", error);
-                setSaveStatus(FinancialSaveStatus.ERROR);
-                setSaveError(`Falha: ${getErrorMessage(error)}`);
-              }
-            }, 500);
-
-            return () => clearTimeout(handler);
-          }, [transactions, cardRows, depositRows, pixRows, docId, user, initialLoad, saveStatus, supabaseInstance]);
-          
-          useEffect(() => {
-              const handleBeforeUnload = (e) => {
-                  if (saveStatus === FinancialSaveStatus.PENDING || saveStatus === FinancialSaveStatus.SAVING) {
-                      e.preventDefault();
-                      e.returnValue = '';
-                  }
-              };
-              window.addEventListener('beforeunload', handleBeforeUnload);
-              return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-          }, [saveStatus]);
-
-          const handleAddTransaction = (transaction) => {
-            const newTransaction = { ...transaction, id: `trans_${Date.now()}` };
-            updateState(() => setTransactions(prev => sortTransactions([...prev, newTransaction])));
-          };
-
-          const handleUpdateTransaction = (updatedTransaction) => {
-            updateState(() => setTransactions(prev => sortTransactions(prev.map(t => t.id === updatedTransaction.id ? updatedTransaction : t))));
-            setEditingTransactionId(null);
-            setSelectedTransactionId(updatedTransaction.id);
-          };
-
-          const handleDeleteTransaction = (id) => {
-            if (window.confirm("Tem certeza que deseja apagar esta transação?")) {
-              updateState(() => setTransactions(prev => prev.filter(t => t.id !== id)));
-              if (selectedTransactionId === id) setSelectedTransactionId(null);
-              if (editingTransactionId === id) setEditingTransactionId(null);
-            }
-          };
-
-          const handleEditTransaction = (id) => { setEditingTransactionId(id); setSelectedTransactionId(id); };
-          const handleCancelEdit = () => { setEditingTransactionId(null); };
-
-          const handleSaveAsJpg = () => {
-              const reportElement = document.getElementById('report-root');
-              const reportContainer = document.getElementById('financial-report-container');
-              if (reportElement && reportContainer && typeof htmlToImage !== 'undefined' && !isSavingJpg) { // Use htmlToImage
-                  setIsSavingJpg(true);
-                  const originalTransform = reportContainer.style.transform;
-                  reportContainer.style.transform = 'scale(1)'; // Capture at full scale
-
-                  setTimeout(() => { // Small delay to ensure styles apply
-                      htmlToImage.toJpeg(reportElement, {
-                          scale: 2, // Higher scale for better quality
-                          backgroundColor: '#ffffff',
-                          quality: 0.95,
-                          // No width/height needed if element is already correctly sized.
-                      }).then(dataUrl => {
-                          const link = document.createElement('a');
-                          const dateText = `${MONTHS_FINANCIAL[selectedMonth]}_${selectedYear}`;
-                          link.download = `Relatorio_Financeiro_${dateText}.jpg`;
-                          link.href = dataUrl;
-                          link.click();
-                      }).catch(err => {
-                          console.error('Erro ao gerar JPG:', err);
-                          alert(`Erro ao salvar JPG: ${getErrorMessage(err)}`);
-                      }).finally(() => {
-                          reportContainer.style.transform = originalTransform; // Restore original scale
-                          setIsSavingJpg(false);
-                      });
-                  }, 100);
-              } else if (!isSavingJpg) {
-                  console.error('Elemento do relatório não encontrado ou html-to-image não está carregado.');
-                  alert('Não foi possível gerar o JPG. Verifique o console para mais detalhes.');
-              }
-          };
-          
-          const dateText = `${MONTHS_FINANCIAL[selectedMonth]} / ${selectedYear}`;
-
-          // Filter selected transaction for the list in the sidebar, if one is selected
-          const selectedTransactionsForList = useMemo(() => {
-            return selectedTransactionId ? transactions.filter(t => t.id === selectedTransactionId) : [];
-          }, [transactions, selectedTransactionId]);
-
-
-          return (
-              <div className="flex flex-col lg:flex-row gap-8 p-4 sm:p-8 max-w-screen-2xl mx-auto">
-                  <div className="lg:w-[420px] flex-shrink-0 flex flex-col gap-6 print-hidden">
-                      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                          <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100">Controles do Relatório</h2>
-                          <div className="grid grid-cols-2 gap-4">
-                              <div>
-                                  <label htmlFor="month-select" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Mês</label>
-                                  <select id="month-select" value={selectedMonth} onChange={e => setSelectedMonth(Number(e.target.value))} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200">{MONTHS_FINANCIAL.map((m, i) => <option key={i} value={i}>{m}</option>)}</select>
-                              </div>
-                              <div>
-                                  <label htmlFor="year-select" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Ano</label>
-                                  <select id="year-select" value={selectedYear} onChange={e => setSelectedYear(Number(e.target.value))} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200">{getFinancialYears().map(y => <option key={y} value={y}>{y}</option>)}</select>
-                              </div>
-                          </div>
-                          <div className="mt-4 space-y-2">
-                              <button 
-                                  onClick={handleSaveAsJpg}
-                                  disabled={isSavingJpg}
-                                  className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors disabled:opacity-50"
-                              >
-                                  {isSavingJpg ? 'Salvando...' : 'Mensal JPG'}
-                              </button>
-                           <div className={`text-sm text-right ${saveStatus === FinancialSaveStatus.ERROR ? 'text-red-500' : 'text-gray-500 dark:text-gray-400'}`}>
-                                {saveStatus === FinancialSaveStatus.ERROR ? saveError : saveStatus}
-                            </div>
-                          </div>
-                      </div>
-
-                      <FinancialTransactionForm onAddTransaction={handleAddTransaction} onUpdateTransaction={handleUpdateTransaction} editingTransaction={editingTransaction} onCancelEdit={handleCancelEdit} />
-                      <FinancialTransactionList transactions={selectedTransactionsForList} onEdit={handleEditTransaction} onDelete={handleDeleteTransaction} selectedTransactionId={selectedTransactionId}/>
-
-                      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-                          <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-gray-100">Layout do Relatório</h2>
-                          <div className="space-y-3"><div className="flex justify-between items-center"><label htmlFor="card-rows" className="text-sm font-medium text-gray-700 dark:text-gray-300">Linhas de Cartão:</label><input type="number" id="card-rows" value={cardRows} onChange={e => updateState(() => setCardRows(Number(e.target.value)))} className="w-20 p-1 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 text-center" /></div><div className="flex justify-between items-center"><label htmlFor="deposit-rows" className="text-sm font-medium text-gray-700 dark:text-gray-300">Linhas de Depósito:</label><input type="number" id="deposit-rows" value={depositRows} onChange={e => updateState(() => setDepositRows(Number(e.target.value)))} className="w-20 p-1 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 text-center" /></div><div className="flex justify-between items-center"><label htmlFor="pix-rows" className="text-sm font-medium text-gray-700 dark:text-gray-300">Linhas de Pix:</label><input type="number" id="pix-rows" value={pixRows} onChange={e => updateState(() => setPixRows(Number(e.target.value)))} className="w-20 p-1 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 text-center" /></div></div>
-                      </div>
-                  </div>
-
-                  <div className="flex-1 flex flex-col items-center lg:items-start">
-                      <div id="financial-report-container" className="relative transform scale-[0.6] sm:scale-75 lg:scale-95 origin-top" style={{ minHeight: '1123px' }}>
-                          {isLoading ? ( <div className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-gray-900/80 z-10 rounded-lg"><div className="text-center"><svg className="animate-spin h-10 w-10 text-blue-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><p className="mt-2 text-lg font-semibold text-gray-700 dark:text-gray-200">Carregando Relatório...</p></div></div> ) 
-                          : ( <FinancialReport dateText={dateText} transactions={transactions} cardRows={cardRows} depositRows={depositRows} pixRows={pixRows} onTransactionSelect={(id) => setSelectedTransactionId(prev => prev === id ? null : id)} selectedTransactionId={selectedTransactionId} />)}
-                      </div>
-                  </div>
-              </div>
-          );
-        };
-
-        const FinancialAppAnnualReportView = ({ user, supabaseInstance }) => {
-            const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-            const [annualData, setAnnualData] = useState(null);
-            const [isLoading, setIsLoading] = useState(false);
-            const [error, setError] = useState('');
-            const [isSavingJpg, setIsSavingJpg] = useState(false);
-            const printableRef = useRef(null);
-
-            const parseAmount = useCallback((value) => {
-              if (typeof value === 'number') {
-                return value;
-              }
-              if (typeof value !== 'string' || value.trim() === '') {
-                return 0;
-              }
-              const cleanedString = value.trim().replace(/\./g, '').replace(',', '.');
-              const number = parseFloat(cleanedString);
-              return isNaN(number) ? 0 : number;
-            }, []);
-
-            useEffect(() => {
-                const loadAnnualData = async () => {
-                    if (!user || !supabaseInstance || !selectedYear) {
-                        setAnnualData(null);
-                        return;
-                    }
-                    setIsLoading(true);
-                    setError('');
-                    setAnnualData(null);
-
-                    try {
-                        const monthlyReports = Array(12).fill(null).map(() => ({ cartao: 0, deposito: 0, pix: 0 }));
-
-                        for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
-                            const docId = `report-${user.id}-${selectedYear}-${monthIndex}`;
-                            
-                            const { data: monthReport, error: monthError, status } = await supabaseInstance
-                                .from('reports')
-                                .select('transactions')
-                                .eq('id', docId)
-                                .single();
-
-                            if (monthError && monthError.code !== 'PGRST116') { // PGRST116 is 'not found'
-                                if (status === 401) {
-                                    throw new Error(`Não autorizado. Verifique seu login e as políticas de RLS no Supabase para a tabela 'reports'. Detalhes: ${monthError.message}`);
-                                }
-                                throw monthError;
-                            }
-                            
-                            if (monthReport && monthReport.transactions) {
-                                monthReport.transactions.forEach(t => {
-                                    const amount = parseAmount(t.amount);
-                                    if (t.type === PaymentType.Cartao) {
-                                        monthlyReports[monthIndex].cartao += amount;
-                                    } else if (t.type === PaymentType.Deposito) {
-                                        monthlyReports[monthIndex].deposito += amount;
-                                    } else if (t.type === PaymentType.Pix) {
-                                        monthlyReports[monthIndex].pix += amount;
-                                    }
-                                });
-                            }
-                        }
-                        setAnnualData(monthlyReports);
-
-                    } catch (err) {
-                        console.error('Erro ao carregar dados anuais financeiros:', err);
-                        setError(`Falha ao carregar relatório anual: ${getErrorMessage(err)}`);
-                        setAnnualData(null);
-                    } finally {
-                        setIsLoading(false);
-                    }
-                };
-
-                loadAnnualData();
-            }, [user, selectedYear, parseAmount, supabaseInstance]);
-
-            const handleSaveAnnualJpg = async () => {
-                if (!supabaseInstance || !annualData) {
-                    alert('A geração de relatórios anuais requer conexão com a nuvem e dados carregados.');
-                    return;
-                }
-                if (isSavingJpg) return;
-
-                setIsSavingJpg(true);
-                try {
-                    const tempContainer = document.createElement('div');
-                    tempContainer.style.position = 'absolute';
-                    tempContainer.style.left = '-9999px';
-                    tempContainer.style.top = '-9999px';
-                    document.body.appendChild(tempContainer);
-
-                    const root = createRoot(tempContainer);
-                    root.render(<FinancialAnnualReport year={selectedYear} data={annualData} />);
-
-                    // Give React a moment to render
-                    await new Promise(resolve => setTimeout(resolve, 100));
-
-                    const annualReportElement = tempContainer.querySelector('#annual-report-root');
-                    if (!annualReportElement) throw new Error('Elemento do relatório anual não encontrado.');
-                    
-                    // Using html-to-image for consistency
-                    const dataUrl = await htmlToImage.toJpeg(annualReportElement, {
-                        scale: 2, // Higher scale for better quality
-                        backgroundColor: '#ffffff',
-                        quality: 0.95,
-                    });
-                    
-                    const link = document.createElement('a');
-                    link.download = `Relatorio_Anual_Financeiro_${selectedYear}.jpg`;
-                    link.href = dataUrl;
-                    link.click();
-
-                    root.unmount();
-                    document.body.removeChild(tempContainer);
-
-                } catch (err) {
-                    console.error('Erro ao gerar JPG anual financeiro:', err);
-                    alert(`Erro ao salvar JPG anual: ${getErrorMessage(err)}`);
-                } finally {
-                    setIsSavingJpg(false);
-                }
-            };
-
-            return (
-                <div className="space-y-8 p-4 sm:p-8 max-w-screen-2xl mx-auto">
-                    <header className="text-center no-print space-y-4">
-                        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100">Visualizador de Relatório Financeiro Anual</h1>
-                        <div className="flex justify-center items-center gap-4 flex-wrap mt-4">
-                            <label htmlFor="financial-year-select" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Ano:</label>
-                            <select id="financial-year-select" value={selectedYear} onChange={e => setSelectedYear(Number(e.target.value))} className="block w-32 bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-md shadow-sm h-10 px-3 text-gray-900 dark:text-gray-200">
-                                {getFinancialYears().map(y => <option key={y} value={y}>{y}</option>)}
-                            </select>
-                            <button 
-                                onClick={handleSaveAnnualJpg}
-                                disabled={isSavingJpg || !annualData || !supabaseInstance}
-                                title={!supabaseInstance ? "Funcionalidade disponível apenas online" : "Gerar relatório anual consolidado"}
-                                className="px-6 py-3 bg-blue-600 dark:bg-blue-700 text-white font-semibold rounded-md shadow-sm hover:bg-blue-700 dark:hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                            >
-                                {isSavingJpg ? 'Gerando...' : 'Anual JPG'}
-                            </button>
-                        </div>
-                        {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
-                    </header>
-                    <div className="p-4 bg-gray-100 dark:bg-gray-900 rounded-lg flex justify-center print-wrapper overflow-x-auto">
-                        {isLoading ? (
-                            <LoadingSpinner text="Buscando dados anuais financeiros..." />
-                        ) : annualData ? (
-                            <FinancialAnnualReport ref={printableRef} year={selectedYear} data={annualData} />
-                        ) : (
-                            <InfoBox>Nenhum relatório anual financeiro encontrado para {selectedYear}.</InfoBox>
-                        )}
-                    </div>
-                </div>
-            );
-        };
-        
-        const FinancialAppModule = ({ user, supabaseInstance, currentSubView, handleSetSubView }) => {
-            return (
-                <div id="financial-app-module" className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
-                    <div className="max-w-screen-2xl mx-auto">
-                        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 text-center mt-4">Gerador de Relatório Financeiro</h1>
-                        <nav className="mt-6 flex justify-center items-center gap-2 sm:gap-4 flex-wrap no-print">
-                            <a href="#financial_monthly" onClick={(e) => {e.preventDefault(); handleSetSubView('monthly')}} className={`inline-flex items-center px-4 py-2 sm:px-6 sm:py-3 border border-transparent text-sm sm:text-base font-medium rounded-md shadow-sm transition-colors ${currentSubView === 'monthly' ? 'text-white bg-emerald-600 dark:bg-emerald-700 hover:bg-emerald-700 dark:hover:bg-emerald-800 ring-2 ring-offset-2 ring-emerald-500' : 'text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'}`}>Relatório Mensal</a>
-                            <a href="#financial_annual" onClick={(e) => {e.preventDefault(); handleSetSubView('annual')}} className={`inline-flex items-center px-4 py-2 sm:px-6 sm:py-3 border border-transparent text-sm sm:text-base font-medium rounded-md shadow-sm transition-colors ${currentSubView === 'annual' ? 'text-white bg-emerald-600 dark:bg-emerald-700 hover:bg-emerald-700 dark:hover:bg-emerald-800 ring-2 ring-offset-2 ring-emerald-500' : 'text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'}`}>Relatório Anual</a>
-                        </nav>
-                        <div className="mt-8">
-                            {currentSubView === 'monthly' ? (
-                                <FinancialAppMonthlyGenerator user={user} supabaseInstance={supabaseInstance} />
-                            ) : (
-                                <FinancialAppAnnualReportView user={user} supabaseInstance={supabaseInstance} />
-                            )}
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        // --- Auth Components (from Financial App, more robust) ---
+        // --- Auth Components ---
         const AuthScreen = ({ initialError = '', supabaseInstance, onLoginSuccess }) => {
             const [authMode, setAuthMode] = useState('login'); // 'login', 'signup', 'forgotPassword'
             const [email, setEmail] = useState('');
@@ -1978,56 +1315,43 @@
           const [session, setSession] = useState(null);
           const [authLoading, setAuthLoading] = useState(true);
           const [isLoggingOut, setIsLoggingOut] = useState(false);
-          const [mainView, setMainView] = useState(() => {
+          const [currentView, setCurrentView] = useState(() => { // Renamed from mainView
               const hash = window.location.hash.replace(/^#/, '');
-              if (hash.startsWith('rehearsal_')) return 'rehearsal';
-              if (hash.startsWith('financial_')) return 'financial';
               if (hash === 'updatePassword') return 'updatePassword';
               if (hash === 'auth') return 'auth';
-              return 'rehearsal'; // Default app view
+              return 'rehearsal'; // Default to rehearsal report
           });
           const [rehearsalSubView, setRehearsalSubView] = useState(() => {
               const hash = window.location.hash.replace(/^#/, '');
               if (hash === 'rehearsal_cadastro') return 'cadastro';
               if (hash === 'rehearsal_anual') return 'anual';
-              return 'mensal'; // Default rehearsal view
-          });
-          const [financialSubView, setFinancialSubView] = useState(() => {
-              const hash = window.location.hash.replace(/^#/, '');
-              if (hash === 'financial_annual') return 'annual';
-              return 'monthly'; // Default financial view
+              return 'mensal'; // Default rehearsal subview
           });
           const [authScreenMode, setAuthScreenMode] = useState('login'); // 'login', 'signup', 'forgotPassword'
           const [initialAuthError, setInitialAuthError] = useState('');
 
-          const handleSetMainView = (newView) => {
-            setMainView(newView);
-            // Default to appropriate sub-view or auth/updatePassword
+          const handleSetView = (newView) => { // Renamed from handleSetMainView
+            setCurrentView(newView);
             let newHash = '';
             if (newView === 'auth') newHash = 'auth';
             else if (newView === 'updatePassword') newHash = 'updatePassword';
-            else if (newView === 'rehearsal') newHash = `rehearsal_${rehearsalSubView}`;
-            else if (newView === 'financial') newHash = `financial_${financialSubView}`;
+            else if (newView === 'rehearsal') newHash = `rehearsal_${rehearsalSubView}`; // Keep subview for rehearsal
             window.location.hash = newHash;
           };
           const handleSetRehearsalSubView = (newSubView) => {
             setRehearsalSubView(newSubView);
             window.location.hash = `rehearsal_${newSubView}`;
           };
-          const handleSetFinancialSubView = (newSubView) => {
-            setFinancialSubView(newSubView);
-            window.location.hash = `financial_${newSubView}`;
-          };
           const handleSetAuthScreenMode = (mode) => {
             setAuthScreenMode(mode);
             window.location.hash = 'auth'; // Always go to auth view if mode is changed
           };
           const handleLoginSuccess = () => {
-              handleSetMainView('rehearsal'); // Redirect to a default app view after login
+              handleSetView('rehearsal'); // Redirect to rehearsal app after login
               window.location.hash = 'rehearsal_cadastro'; // Maybe redirect to editing a new report
           };
           const handlePasswordUpdated = () => {
-              handleSetMainView('auth'); // Go to auth screen to log in with new password
+              handleSetView('auth'); // Go to auth screen to log in with new password
               setAuthScreenMode('login');
               window.location.hash = 'auth';
           };
@@ -2042,9 +1366,9 @@
               if (hash.includes('error=access_denied')) {
                   setInitialAuthError('O link para redefinição de senha é inválido ou expirou. Por favor, solicite um novo.');
                   window.history.replaceState(null, document.title, window.location.pathname + window.location.search);
-                  handleSetMainView('auth'); // Force to auth screen to show error
+                  handleSetView('auth'); // Force to auth screen to show error
               } else if (hash.includes('type=recovery') && !session) {
-                  handleSetMainView('updatePassword'); // Direct to password update if recovery link
+                  handleSetView('updatePassword'); // Direct to password update if recovery link
               }
 
               const getSession = async () => {
@@ -2061,7 +1385,7 @@
               
               const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
                   if (_event === "PASSWORD_RECOVERY") {
-                      handleSetMainView('updatePassword');
+                      handleSetView('updatePassword');
                   } else {
                       setSession(s);
                   }
@@ -2074,17 +1398,14 @@
               const handleHashChange = () => {
                   const hash = window.location.hash.replace(/^#/, '');
                   if (hash.startsWith('rehearsal_')) {
-                      setMainView('rehearsal');
+                      setCurrentView('rehearsal');
                       setRehearsalSubView(hash.substring('rehearsal_'.length));
-                  } else if (hash.startsWith('financial_')) {
-                      setMainView('financial');
-                      setFinancialSubView(hash.substring('financial_'.length));
                   } else if (hash === 'updatePassword') {
-                      setMainView('updatePassword');
+                      setCurrentView('updatePassword');
                   } else if (hash === 'auth') {
-                      setMainView('auth');
+                      setCurrentView('auth');
                   } else {
-                      setMainView('rehearsal'); // Default view
+                      setCurrentView('rehearsal'); // Default view
                       setRehearsalSubView('mensal');
                   }
               };
@@ -2098,7 +1419,7 @@
               try {
                   const { error } = await supabase.auth.signOut();
                   if (error) throw error;
-                  handleSetMainView('auth'); // After logout, go to auth screen
+                  handleSetView('auth'); // After logout, go to auth screen
                   setAuthScreenMode('login');
               } catch(error) {
                   alert(`Erro ao sair: ${getErrorMessage(error)}`);
@@ -2117,37 +1438,25 @@
               <div id="app-container" className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
                   {!supabase && <OfflineWarning />}
                   <header className="bg-white dark:bg-gray-800 shadow-md p-4 flex flex-col sm:flex-row justify-between items-center print-hidden">
-                      <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2 sm:mb-0">Gerador de Relatórios CCB</h1>
+                      <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2 sm:mb-0">Gerador de Relatórios CCB - Ensaio</h1>
                       <nav className="flex items-center gap-2 sm:gap-4 flex-wrap text-sm sm:text-base">
-                          <a href="#rehearsal_mensal" onClick={(e) => {e.preventDefault(); handleSetMainView('rehearsal'); handleSetRehearsalSubView('mensal');}} className={`font-medium ${mainView === 'rehearsal' ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100'}`}>Ensaio</a>
-                          <span className="text-gray-400">|</span>
-                          <a href="#financial_monthly" onClick={(e) => {e.preventDefault(); handleSetMainView('financial'); handleSetFinancialSubView('monthly');}} className={`font-medium ${mainView === 'financial' ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100'}`}>Financeiro</a>
-                          <span className="text-gray-400">|</span>
+                          {/* Removed 'Financeiro' link */}
                           {user ? (
                               <div className="flex items-center gap-2">
                                   <span className="text-gray-600 dark:text-gray-300">{user.email}</span>
                                   <button onClick={handleLogout} className="text-red-500 hover:text-red-700 font-semibold">Sair</button>
                               </div>
                           ) : (
-                              <a href="#auth" onClick={(e) => {e.preventDefault(); handleSetMainView('auth'); setAuthScreenMode('login');}} className={`font-medium ${mainView === 'auth' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100'}`}>Login / Cadastro</a>
+                              <a href="#auth" onClick={(e) => {e.preventDefault(); handleSetView('auth'); setAuthScreenMode('login');}} className={`font-medium ${currentView === 'auth' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100'}`}>Login / Cadastro</a>
                           )}
                       </nav>
                   </header>
-                  {mainView === 'updatePassword' ? (
+                  {currentView === 'updatePassword' ? (
                       <UpdatePasswordScreen onUpdateSuccess={handlePasswordUpdated} supabaseInstance={supabase} />
-                  ) : mainView === 'auth' ? (
+                  ) : currentView === 'auth' ? (
                       supabase ? <AuthScreen initialAuthError={initialAuthError} supabaseInstance={supabase} onLoginSuccess={handleLoginSuccess} /> : <InfoBox>Supabase não está configurado. Não é possível autenticar.</InfoBox>
-                  ) : user || !supabase ? ( // If logged in, or in offline mode (no supabase)
-                      mainView === 'rehearsal' ? (
-                          <RehearsalAppModule session={session} currentSubView={rehearsalSubView} handleSetSubView={handleSetRehearsalSubView} supabaseInstance={supabase}/>
-                      ) : ( // mainView === 'financial'
-                          <FinancialAppModule user={user || {id: 'offline-user'}} supabaseInstance={supabase} currentSubView={financialSubView} handleSetSubView={handleSetFinancialSubView}/>
-                      )
-                  ) : (
-                      // If not logged in and supabase is available, but not on auth screen, redirect to auth.
-                      // This might happen if user clears hash or navigates directly to #rehearsal_mensal when not logged in.
-                      // This ensures that login is required for full functionality of authenticated sections.
-                      <InfoBox>Por favor, <button onClick={() => handleSetMainView('auth')} className="text-blue-600 hover:underline">faça login</button> para acessar os relatórios.</InfoBox>
+                  ) : ( // Default view is 'rehearsal'
+                      <RehearsalAppModule session={session} currentSubView={rehearsalSubView} handleSetSubView={handleSetRehearsalSubView} supabaseInstance={supabase}/>
                   )}
               </div>
           );
