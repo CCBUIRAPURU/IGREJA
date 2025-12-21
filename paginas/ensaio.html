@@ -64,7 +64,6 @@
 
       // ===== Supabase Setup =====
       const SUPABASE_URL = 'https://akgetdjbyshffjyeeiaa.supabase.co';
-     const SUPABASE_URL = 'https://kgtntgmisoeagpyiuedb.supabase.co';
       const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFrZ2V0ZGpieXNoZmZqeWVlaWFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3ODgyMTQsImV4cCI6MjA3MDM2NDIxNH0.UiOYnu2g5RF-FhguZ1krXjpbOBJU-l0xsbTgzd2oRA4';
       const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -79,7 +78,7 @@
       const MINISTRY_LIST = ['Anciães', 'Diáconos', 'Coop. do Ofício Ministerial', 'Coop. de Jovens e Menores', 'Encarregados Regionais', 'Encarregados Locais', 'Examinadoras de Organistas'];
       const MONTHS_LIST = [{ value: '1', label: 'Janeiro' }, { value: '2', label: 'Fevereiro' }, { value: '3', label: 'Março' }, { value: '4', label: 'Abril' }, { value: '5', label: 'Maio' }, { value: '6', label: 'Junho' }, { value: '7', label: 'Julho' }, { value: '8', label: 'Agosto' }, { value: '9', label: 'Setembro' }, { value: '10', label: 'Outubro' }, { value: '11', label: 'Novembro' }, { value: '12', label: 'Dezembro' }];
       const SHORT_MONTHS = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
-
+      
       // ===== From utils.ts =====
       const calculateMonthlyTotals = (reportData) => {
           if (!reportData || !reportData.instruments || !reportData.ministry || !reportData.congregation) return { musicians: 0, organists: 0, totalMusiciansAndOrganists: 0, brothers: 0, sisters: 0, totalCongregation: 0, totalMinistry: 0, grandTotal: 0, totalHymns: 0 };
@@ -137,7 +136,7 @@
               } catch (error) { console.error("Erro na API Gemini:", error); return "Ocorreu um erro ao gerar o resumo."; }
           };
       })();
-
+      
       // ===== UI Components =====
       const InputField = ({ label, name, value, onChange, placeholder, type = "text", onBlur }) => (
         <div className="flex-1">
@@ -151,7 +150,7 @@
         </div>
       );
       const InfoBox = ({ children }) => (<div className="text-center text-xl p-8 h-96 flex items-center justify-center bg-gray-50 rounded-lg text-gray-500">{children}</div>);
-
+      
       const PrintableReport = forwardRef(({ reportData, totals }, ref) => {
         if (!reportData || !totals) return null;
         const { header, instruments, ministry, congregation, hymns } = reportData;
@@ -170,7 +169,7 @@
         const formattedDate = header.date ? new Date(header.date + 'T00:00:00').toLocaleDateString('pt-BR') : '';
         const formatCep = (cep) => cep ? String(cep).replace(/\D/g, '').replace(/^(\d{5})(\d{3})$/, '$1-$2') : '';
         const fullLocation = [header.church, header.cep ? `CEP: ${formatCep(header.cep)}` : '', header.municipio, header.estado].filter(Boolean).join(' - ');
-
+        
         return (
           <div ref={ref} className="bg-white text-black print-page" style={{ fontFamily: 'Arial, sans-serif' }}>
             <div className="p-[24px]" style={{ width: '1191px', height: '1685px', boxSizing: 'border-box' }}>
@@ -372,7 +371,7 @@
             </div></div>
         );
       };
-
+      
       const UpdatePassword = ({ onPasswordUpdated }) => {
         const [password, setPassword] = useState(''); const [loading, setLoading] = useState(false);
         const [error, setError] = useState(''); const [message, setMessage] = useState('');
@@ -426,7 +425,7 @@
                   link.click();
               } catch (err) { console.error('Falha ao gerar imagem:', err); } finally { setIsSavingJpg(false); }
           }, [printableRef, reportData]);
-
+          
           return (
               <Fragment>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -474,7 +473,7 @@
           }, [displayedYear]);
 
           useEffect(() => { if (cep) fetchYearsForCep(cep); }, [cep, fetchYearsForCep]);
-
+          
           useEffect(() => {
             const loadMonthlyReport = async () => {
               if (!cep || !displayedYear || !displayedMonth) return setReportData(null); setIsLoading(true); setReportData(null);
@@ -535,7 +534,7 @@
                         margin: 0,
                     }
                 });
-
+                
                 const link = document.createElement('a');
                 link.download = `relatorio-mensal-${cep}-${displayedMonth}-${displayedYear}.jpg`;
                 link.href = dataUrl;
@@ -549,7 +548,7 @@
 
           const totals = useMemo(() => reportData ? calculateMonthlyTotals(reportData) : null, [reportData]);
           const handleCepSubmit = (e) => { e.preventDefault(); setCep(inputCep.replace(/\D/g, '')); };
-
+          
           return (
               <div className="space-y-8">
                   <header className="text-center no-print space-y-4">
@@ -601,9 +600,9 @@
               'Irmãos Presentes', 'Irmãs Presentes', 'Total (Irmãos + Irmãs)',
               'Ministério Presente', 'Total Geral de Pessoas Envolvidas'
           ];
-
+          
           const renderCell = (value) => value === 0 ? '0' : (value || '');
-
+          
           const totalHymnsByMonth = MONTHS_LIST.map(m => (hymns[m.value] || []).length);
           const totalAnnualHymns = totalHymnsByMonth.reduce((a, b) => a + b, 0);
 
@@ -626,7 +625,7 @@
           const monthlyMusicians = presences['Total (Músicos + Organistas)'] || [];
           const validMusicianMonths = monthlyMusicians.filter(v => typeof v === 'number');
           const averageMusicians = validMusicianMonths.length > 0 ? Math.round(validMusicianMonths.reduce((a, b) => a + b, 0) / validMusicianMonths.length) : 0;
-
+          
           const categoryTotals = {};
           let totalAllInstruments = 0;
           Object.entries(INSTRUMENT_CATEGORIES).forEach(([category, instruments]) => {
@@ -644,7 +643,7 @@
                   categoryPercentages[category] = Math.round((categoryTotals[category] / totalAllInstruments) * 100);
               }
           }
-
+          
           const annualMinistryTotals = {};
           if(ministryQuantities){
               MINISTRY_LIST.forEach(role => {
@@ -797,7 +796,7 @@
         const wrapperRef = useRef(null); // Ref for the scaling container
 
         const handleCepSubmit = (e) => { e.preventDefault(); setCep(inputCep.replace(/\D/g, '')); };
-
+        
         useEffect(() => {
             const reportEl = printableRef.current;
             const wrapperEl = wrapperRef.current;
@@ -806,7 +805,7 @@
             const observer = new ResizeObserver(entries => {
                 const entry = entries[0];
                 if (!entry) return;
-
+                
                 const wrapperWidth = entry.contentRect.width;
                 const reportWidth = 1200; 
 
@@ -854,7 +853,7 @@
                 const hymns = {}; for (let i = 1; i <= 12; i++) { hymns[String(i)] = []; }
                 const instrumentQuantities = {}; INSTRUMENTS_LIST.forEach(inst => { instrumentQuantities[inst] = Array(12).fill(null); });
                 const ministryQuantities = {}; MINISTRY_LIST.forEach(role => { ministryQuantities[role] = Array(12).fill(null); });
-
+                
                 reports.forEach(record => {
                     const report = record.report_data;
                     if (report?.header?.month) {
@@ -891,7 +890,7 @@
           }
           if (churchData.name) loadAnnualData();
         }, [cep, displayedYear, churchData.name]);
-
+        
         const handleSaveJpg = async () => {
             const nodeToCapture = printableRef.current;
             if (!nodeToCapture) {
@@ -925,7 +924,7 @@
                 setIsSavingJpg(false);
             }
         };
-
+        
         return (
             <div className="space-y-8">
                 <header className="text-center no-print space-y-4">
@@ -964,7 +963,7 @@
         const [reportData, setReportData] = useState(() => createBlankReport(getInitialHeader()));
         const [availableYears, setAvailableYears] = useState(() => [String(new Date().getFullYear())]);
         const [isFetchingCep, setIsFetchingCep] = useState(false);
-
+        
         const autoSaveTimeout = useRef(null);
         const loadController = useRef(new AbortController());
         const isSaving = useRef(false);
@@ -994,7 +993,7 @@
 
         const handleSetView = (newView) => window.location.hash = newView;
         const handleLogout = async () => { await supabase.auth.signOut(); handleSetView('mensal'); };
-
+        
         const saveReport = useCallback(async () => {
             if (isSaving.current) return;
 
@@ -1010,7 +1009,7 @@
                 setSaveStatus('idle'); // Not enough data to save, so reset status.
                 return;
             }
-
+            
             isSaving.current = true;
             setSaveStatus('saving');
             setLastError('');
@@ -1033,7 +1032,7 @@
                 isSaving.current = false;
             }
         }, [reportData, session, availableYears]);
-
+        
         useEffect(() => {
             if (saveStatus === 'typing') {
                 if (autoSaveTimeout.current) clearTimeout(autoSaveTimeout.current);
@@ -1053,7 +1052,7 @@
             const { cep, year, month } = reportData.header;
             const cleanedCep = cep?.replace(/\D/g, '');
             if (!session || view !== 'cadastro' || !cleanedCep || cleanedCep.length !== 8 || !year || !month) return;
-
+            
             try {
                 const { data, error } = await supabase.from('reports').select('report_data').eq('cep', cleanedCep).eq('year', parseInt(year)).eq('month', parseInt(month)).maybeSingle();
                 if (signal.aborted) return;
@@ -1073,7 +1072,7 @@
                 if (e.name !== 'AbortError') { console.error("Falha ao carregar relatório", e); setLastError('Falha ao carregar.'); setSaveStatus('error'); }
             }
         }, [reportData.header.cep, reportData.header.month, reportData.header.year, session, view]);
-
+        
         useEffect(() => { 
           loadController.current.abort();
           loadController.current = new AbortController();
@@ -1110,7 +1109,7 @@
             handleRemoveVisitingLeader: createChangeHandler((p, index) => ({ ...p, header: { ...p.header, visitingOrchestraLeaders: p.header.visitingOrchestraLeaders.length > 1 ? p.header.visitingOrchestraLeaders.filter((_, i) => i !== index) : p.header.visitingOrchestraLeaders }})),
             handleCepBlur: async (cep) => {
                 const cleanedCep = cep.replace(/\D/g, ''); if (cleanedCep.length !== 8) return;
-
+                
                 // Triggers the data loading effect
                 handlers.handleHeaderChange({ target: { name: 'cep', value: cleanedCep } });
 
@@ -1119,7 +1118,7 @@
                     const res = await fetch(`https://viacep.com.br/ws/${cleanedCep}/json/`);
                     const cepData = await res.json();
                     if (cepData.erro) throw new Error('CEP inválido');
-
+                    
                     setReportData(p => ({ ...p, header: { ...p.header, municipio: cepData.localidade, estado: cepData.uf, bairro: cepData.bairro } }));
                     // This change will trigger the auto-save
                     setSaveStatus('typing');
@@ -1160,7 +1159,7 @@
                 </header>
             );
         };
-
+        
         const renderView = () => {
             switch (view) {
                 case 'anual': return <AnnualReportView />;
@@ -1171,7 +1170,7 @@
         };
 
         if (authLoading) return <LoadingSpinner text="Autenticando..." />;
-
+        
         return (
             <div id="app-container" className="min-h-screen bg-gray-100 text-gray-800 p-4 sm:p-6 lg:p-8">
               <div className="max-w-screen-2xl mx-auto">
@@ -1181,7 +1180,7 @@
             </div>
         );
       };
-
+      
       const root = createRoot(document.getElementById('root'));
       root.render(<App />);
 
