@@ -50,27 +50,24 @@
       } catch (e) {
         console.error("Failed to load GoogleGenAI module", e);
       }
-    </script>
+ <script type="text/babel" data-presets="react,typescript" id="main-script-v2">
+  // Evitar redeclaração
+  if (window.appInitialized) {
+    console.log("App já inicializado");
+  } else {
+    window.appInitialized = true;
     
-    <!-- Babel for JSX/TS -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  </head>
-  
-  <body class="bg-gray-100">
-    <div id="root"></div>
+    // Globals from CDN
+    const { useState, useEffect, useCallback, useMemo, useRef, forwardRef, Fragment } = window.React;
+    const { createRoot } = window.ReactDOM;
+    const htmlToImage = window.htmlToImage;
+    const GoogleGenAI = window.GoogleGenAI;
+    const { createClient } = window.supabase;
 
-    <script type="text/babel" data-presets="react,typescript">
-      // Globals from CDN
-      const { useState, useEffect, useCallback, useMemo, useRef, forwardRef, Fragment } = window.React;
-      const { createRoot } = window.ReactDOM;
-      const htmlToImage = window.htmlToImage;
-      const GoogleGenAI = window.GoogleGenAI;
-      const { createClient } = window.supabase;
-      
-      // ===== Supabase Setup =====
-      const SUPABASE_URL = 'https://kgtntgmisoeagpyiuedb.supabase.co';
-      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtndG50Z21pc29lYWdweWl1ZWRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3ODY0NDQsImV4cCI6MjA3MDM2MjQ0NH0.ZbiGGHv5KiAzc5zCcfI4VyfswyK6SQ8z_htwt9eyCqc';
-      const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // ===== Supabase Setup =====
+    const SUPABASE_URL = 'https://kgtntgmisoeagpyiuedb.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtndG50Z21pc29lYWdweWl1ZWRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3ODY0NDQsImV4cCI6MjA3MDM2MjQ0NH0.ZbiGGHv5KiAzc5zCcfI4VyfswyK6SQ8z_htwt9eyCqc';
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       // ===== From constants.ts =====
       const INSTRUMENT_CATEGORIES = {
