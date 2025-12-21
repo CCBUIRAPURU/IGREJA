@@ -112,12 +112,13 @@
         // const html2canvas = window.html2canvas;
 
         // --- Supabase Setup ---
-        const SUPABASE_URL = 'https://kgtntgmisoeagpyiuedb.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtndG50Z21pc29lYWdweWl1ZWRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ3ODY0NDQsImV4cCI6MjA3MDM2MjQ0NH0.ZbiGGHv5KiAzc5zCcfI4VyXswyK6SQ8z_htwt9eyQqc';
+        const SUPABASE_URL = 'https://akgetdjbyshffjyeeiaa.supabase.co'; // Updated to your new project ID
+        const SUPABASE_ANON_KEY = 'YOUR_NEW_SUPABASE_ANON_KEY_HERE'; // <<-- VOCÊ DEVE SUBSTITUIR ISSO PELA SUA CHAVE PÚBLICA ANON DO SEU NOVO PROJETO SUPABASE -->>
         
         // Removed global 'supabase' variable declaration and initialization
         // let supabase;
-        const supabaseCredentialsProvided = SUPABASE_URL && SUPABASE_ANON_KEY && SUPABASE_URL !== 'YOUR_SUPABASE_URL';
+        // Check if both URL and Key are provided AND the key is not the placeholder
+        const supabaseCredentialsProvided = SUPABASE_URL && SUPABASE_ANON_KEY && SUPABASE_URL !== 'YOUR_SUPABASE_URL' && SUPABASE_ANON_KEY !== 'YOUR_NEW_SUPABASE_ANON_KEY_HERE';
 
         // Moved Supabase client creation to the App component's useEffect
         // if (supabaseCredentialsProvided) {
