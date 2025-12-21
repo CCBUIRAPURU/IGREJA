@@ -296,16 +296,10 @@
           );
         });
 
-        const RehearsalHeaderForm = ({ data, onChange, onVisitingLeaderChange, onAddVisitingLeader, onRemoveVisitingLeader, availableYears, onCepBlur, isFetchingCep }) => (
+        const RehearsalHeaderForm = ({ data, onChange, onVisitingLeaderChange, onAddVisitingLeader, onRemoveVisitingLeader, availableYears }) => (
           <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                  <div>
-                    <label htmlFor="cep" className="block text-sm font-medium text-gray-700 dark:text-gray-300">CEP (Chave)</label>
-                    <div className="relative mt-1">
-                        <input type="text" id="cep" name="cep" value={data.cep} onChange={onChange} onBlur={(e) => onCepBlur(e.target.value)} placeholder="CEP da igreja" className="block w-full bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm text-gray-900 dark:text-gray-200 h-10 px-3" />
-                        {isFetchingCep && <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"><svg className="animate-spin h-5 w-5 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>}
-                    </div>
-                </div>
+                  <InputField label="CEP (Chave)" name="cep" value={data.cep} onChange={onChange} placeholder="CEP da igreja" />
                 <div>
                     <label htmlFor="month" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Mês</label>
                     <select id="month" name="month" value={data.month} onChange={onChange} className="mt-1 block w-full bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm text-gray-900 dark:text-gray-200 h-10 px-3">
@@ -321,9 +315,9 @@
               </div>
               <div className="border-t border-gray-200 dark:border-gray-700 pt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <InputField label="Igreja (Nome Comum)" name="church" value={data.church} onChange={onChange} placeholder="Ex: Sede, Central"/>
-                <InputField label="Município" name="municipio" value={data.municipio} onChange={onChange} placeholder="Preenchido pelo CEP" disabled={true}/>
-                <InputField label="Bairro" name="bairro" value={data.bairro} onChange={onChange} placeholder="Preenchido pelo CEP" disabled={true}/>
-                <InputField label="Estado" name="estado" value={data.estado} onChange={onChange} placeholder="Preenchido pelo CEP" disabled={true}/>
+                <InputField label="Município" name="municipio" value={data.municipio} onChange={onChange} placeholder="Nome do município" disabled={false}/>
+                <InputField label="Bairro" name="bairro" value={data.bairro} onChange={onChange} placeholder="Nome do bairro" disabled={false}/>
+                <InputField label="Estado" name="estado" value={data.estado} onChange={onChange} placeholder="Sigla do estado (Ex: SP)" disabled={false}/>
                 <InputField label="Data" name="date" type="date" value={data.date} onChange={onChange} />
                 <div className="md:col-span-2">
                     <label htmlFor="rehearsalType" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de Ensaio</label>
@@ -384,7 +378,7 @@
         };
         const RehearsalObservationsPanel = ({ value, onChange }) => (<div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden"><div className="p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700"><h3 className="text-lg font-semibold text-emerald-600 dark:text-emerald-400">Observações</h3></div><div className="p-6"><textarea value={value} onChange={onChange} rows={5} className="w-full bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm text-gray-900 dark:text-gray-200 p-3" placeholder="Adicione aqui observações gerais sobre o ensaio..."/></div></div>);
         
-        const RehearsalEditView = ({ reportData, handlers, isFetchingCep, availableYears, onManualSave, saveStatus }) => {
+        const RehearsalEditView = ({ reportData, handlers, availableYears, onManualSave, saveStatus }) => {
             const totals = useMemo(() => calculateMonthlyTotals(reportData), [reportData]);
             const printableRef = useRef(null);
             const [isSavingJpg, setIsSavingJpg] = useState(false);
@@ -423,7 +417,7 @@
                 <Fragment>
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                       <main className="lg:col-span-2 space-y-8">
-                          <RehearsalHeaderForm data={reportData.header} onChange={handlers.handleHeaderChange} onVisitingLeaderChange={handlers.handleVisitingLeaderChange} onAddVisitingLeader={handlers.handleAddVisitingLeader} onRemoveVisitingLeader={handlers.handleRemoveVisitingLeader} availableYears={availableYears} onCepBlur={handlers.handleCepBlur} isFetchingCep={isFetchingCep} />
+                          <RehearsalHeaderForm data={reportData.header} onChange={handlers.handleHeaderChange} onVisitingLeaderChange={handlers.handleVisitingLeaderChange} onAddVisitingLeader={handlers.handleAddVisitingLeader} onRemoveVisitingLeader={handlers.handleRemoveVisitingLeader} availableYears={availableYears} />
                           <RehearsalDataTable title="Instrumentos" items={reportData.instruments} itemOrder={INSTRUMENTS_LIST} onItemChange={(name, value) => handlers.handleTableChange('instruments', name, value)} total={totals.totalMusiciansAndOrganists} scrollable={false}/>
                       </main>
                       <aside className="space-y-8">
@@ -942,7 +936,9 @@
             const [lastError, setLastError] = useState('');
             const [reportData, setReportData] = useState(() => createBlankRehearsalReport(getInitialRehearsalHeader()));
             const [availableYears, setAvailableYears] = useState(() => [String(new Date().getFullYear())]);
-            const [isFetchingCep, setIsFetchingCep] = useState(false);
+            
+            // isFetchingCep is no longer needed as CEP is manually entered
+            // const [isFetchingCep, setIsFetchingCep] = useState(false); 
             
             const autoSaveTimeout = useRef(null);
             const loadController = useRef(new AbortController());
@@ -959,9 +955,6 @@
                 const header = reportData.header;
                 const cleanedCep = header.cep?.replace(/\D/g, '');
                 if (!session || !supabaseInstance || !cleanedCep || cleanedCep.length !== 8 || !header.year || !header.month || !header.date) {
-                    // This is a client-side check, not an error from the backend. 
-                    // Set an error only if there's an actual failed Supabase interaction.
-                    // For now, let it proceed to Supabase to potentially get a specific error.
                     setSaveStatus('idle'); 
                     return;
                 }
@@ -971,14 +964,11 @@
                 setLastError('');
 
                 try {
-                    // Important: Omit 'id' from the payload when using onConflict with (cep, year, month)
-                    // This allows the DB to generate 'id' on insert and for the onConflict clause to correctly
-                    // identify and update existing records based on the unique combination.
                     const { error, data, status } = await supabaseInstance.from('rehearsal_reports').upsert({ 
                         cep: cleanedCep, 
                         year: parseInt(header.year), 
                         month: parseInt(header.month), 
-                        report_data: reportData, // reportData already contains the full object
+                        report_data: reportData,
                         user_id: session.user.id 
                     }, { onConflict: 'cep,year,month' });
                     
@@ -1045,9 +1035,8 @@
                         setReportData(loadedData);
                     } else {
                         // If no report for the specific month exists, try to pre-fill church name from another report with the same CEP
-                        const { data: churchNameData } = await supabaseInstance.from('rehearsal_reports').select('report_data->header->>church').eq('cep', cleanedCep).not('report_data->header->>church', 'is', null).limit(1).single();
-                        if (signal.aborted) return;
-                        setReportData(prev => createBlankRehearsalReport({ ...getInitialRehearsalHeader(), cep: prev.header.cep, church: churchNameData?.report_data?.header?.church || '', year: prev.header.year, month: prev.header.month }));
+                        // In manual mode, we don't try to fetch church name. We just use the existing one or reset.
+                        setReportData(prev => createBlankRehearsalReport({ ...getInitialRehearsalHeader(), cep: prev.header.cep, church: prev.header.church || '', year: prev.header.year, month: prev.header.month, municipio: prev.header.municipio || '', bairro: prev.header.bairro || '', estado: prev.header.estado || '' }));
                     }
                     setSaveStatus('idle'); 
                 } catch (e) {
@@ -1093,43 +1082,9 @@
                 handleVisitingLeaderChange: createChangeHandler((p, index, value) => ({ ...p, header: { ...p.header, visitingOrchestraLeaders: p.header.visitingOrchestraLeaders.map((l, i) => i === index ? value : l) } })),
                 handleAddVisitingLeader: createChangeHandler((p) => ({ ...p, header: { ...p.header, visitingOrchestraLeaders: [...p.header.visitingOrchestraLeaders, ''] } })),
                 handleRemoveVisitingLeader: createChangeHandler((p, index) => ({ ...p, header: { ...p.header, visitingOrchestraLeaders: p.header.visitingOrchestraLeaders.length > 1 ? p.header.visitingOrchestraLeaders.filter((_, i) => i !== index) : p.header.visitingOrchestraLeaders }})),
-                handleCepBlur: async (cep) => {
-                    const cleanedCep = cep.replace(/\D/g, ''); if (cleanedCep.length !== 8) return;
-                    
-                    handlers.handleHeaderChange({ target: { name: 'cep', value: cleanedCep } });
-
-                    setIsFetchingCep(true);
-                    setLastError(''); // Clear previous error
-                    setSaveStatus('idle'); // Set status to idle, it might become 'error' if fetch fails
-
-                    try {
-                        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://viacep.com.br/ws/${cleanedCep}/json/`)}`;
-                        const res = await fetch(proxyUrl);
-                        if (!res.ok) { // Check for HTTP errors like 404, 500, 502 etc.
-                            const errorText = await res.text();
-                            throw new Error(`Erro HTTP ${res.status}: ${errorText || res.statusText}`);
-                        }
-                        const cepData = await res.json();
-                        if (cepData.erro) throw new Error('CEP inválido ou não encontrado.');
-                        
-                        setReportData(p => ({ ...p, header: { ...p.header, municipio: cepData.localidade, estado: cepData.uf, bairro: cepData.bairro } }));
-                        setSaveStatus('typing'); // This successful update should trigger an auto-save
-                    } catch (error) { 
-                        console.error("Erro ao buscar CEP:", error);
-                        let userMessage = 'Falha ao buscar CEP. Verifique sua conexão com a internet ou se o CEP está correto.';
-                        if (error.message.includes('CORS') || error.message.includes('network error') || error.message.includes('Failed to fetch')) {
-                            userMessage += ' Pode ser um problema de rede ou política de segurança (CORS) com o serviço de CEP.';
-                        } else if (error.message.includes('HTTP 502')) {
-                            userMessage += ' O serviço de proxy ou o ViaCEP pode estar temporariamente indisponível (Erro 502 Bad Gateway).';
-                        }
-                        userMessage += ` Detalhes: ${error.message}`;
-                        setLastError(userMessage);
-                        setSaveStatus('error'); // Set status to error
-                    } finally { 
-                        setIsFetchingCep(false); 
-                    }
-                }
-            }), [createChangeHandler, saveReport]); // Added saveReport to dependencies for handlers
+                // handleCepBlur is no longer needed
+                // handleCepBlur: async (cep) => { ... }
+            }), [createChangeHandler, saveReport]);
 
             const SaveStatusIndicator = () => {
                 if (!session) return null;
@@ -1155,7 +1110,7 @@
                         </nav>
                         <div className="mt-8">
                             {currentSubView === 'cadastro' ? (
-                                session ? <RehearsalEditView reportData={reportData} handlers={handlers} isFetchingCep={isFetchingCep} availableYears={availableYears} onManualSave={saveReport} saveStatus={saveStatus} /> : <InfoBox>Faça login para cadastrar/editar relatórios.</InfoBox>
+                                session ? <RehearsalEditView reportData={reportData} handlers={handlers} availableYears={availableYears} onManualSave={saveReport} saveStatus={saveStatus} /> : <InfoBox>Faça login para cadastrar/editar relatórios.</InfoBox>
                             ) : currentSubView === 'anual' ? (
                                 <RehearsalAnnualReportView supabaseInstance={supabaseInstance} />
                             ) : (
