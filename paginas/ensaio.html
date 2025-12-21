@@ -995,56 +995,65 @@
             }, [saveStatus, saveReport]);
 
             const loadReport = useCallback(async (signal) => {
+                // Ensure any pending auto-save is cleared to prevent conflicts
                 if (autoSaveTimeout.current) clearTimeout(autoSaveTimeout.current);
 
                 const { cep, year, month } = reportData.header;
                 const cleanedCep = cep?.replace(/\D/g, '');
                 
-                // If not logged in, or no Supabase, or missing key parameters, just initialize a blank report.
+                // Only attempt to load if ALL search criteria are met AND user is logged in/Supabase is active.
                 if (!session || !supabaseInstance || !cleanedCep || cleanedCep.length !== 8 || !year || !month) {
-                    setReportData(createBlankRehearsalReport(getInitialRehearsalHeader()));
-                    setSaveStatus('idle');
+                    // Do NOT reset reportData here. The user might be actively typing a new report.
+                    // Keep the current reportData state (which could be blank or partially filled).
+                    setSaveStatus('typing'); // Assume user is typing / report is unsaved
                     setLastError('');
                     return;
                 }
                 
                 try {
-                    const { data, error, status } = await supabaseInstance.from('rehearsal_reports').select('report_data').eq('cep', cleanedCep).eq('year', parseInt(year)).eq('month', parseInt(month)).maybeSingle();
-                    if (signal.aborted) return;
+                    const { data, error, status } = await supabaseInstance.from('rehearsal_reports').select('report_data').eq('cep', cleanedCep).eq('year', parseInt(year)).eq('month', parseInt(month)).maybeSingle({ signal });
+                    if (signal.aborted) return; // Exit if the request was cancelled
                     
                     if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found (not an actual error)
                         if (status === 401) {
                             throw new Error(`Não autorizado. Verifique seu login e as políticas de RLS no Supabase para a tabela 'rehearsal_reports'. Detalhes: ${error.message}`);
                         }
                         throw error;
-                        // Important: Re-setting the `session` state here would cause an infinite loop if `session` is a dependency
-                        // and `loadReport` is called on `session` change. Better to let `AuthScreen` handle re-authentication flow.
                     }
 
                     if (data && data.report_data) {
                         const loadedData = data.report_data;
                         // Ensure visitingOrchestraLeaders array is always present
                         if (!loadedData.header.visitingOrchestraLeaders) loadedData.header.visitingOrchestraLeaders = [''];
-                        setReportData(loadedData);
+                        setReportData(loadedData); // Replace current report with loaded one
+                        setSaveStatus('saved'); // It's a fresh load, so consider it saved
                     } else {
-                        // If no report for the specific month exists, initialize a new report
-                        setReportData(prev => createBlankRehearsalReport({ ...getInitialRehearsalHeader(), cep: prev.header.cep, church: prev.header.church || '', year: prev.header.year, month: prev.header.month, municipio: prev.header.municipio || '', bairro: prev.header.bairro || '', estado: prev.header.estado || '' }));
+                        // No report found for this valid CEP/Year/Month.
+                        // DO NOT reset. User might be filling a new one.
+                        setSaveStatus('typing'); // Indicate it's unsaved, a new report or modified
                     }
-                    setSaveStatus('idle'); 
+                    setLastError(''); // Clear any previous load errors
                 } catch (e) {
-                    if (e.name !== 'AbortError') { 
+                    if (e.name !== 'AbortError') { // Ignore abort errors from rapid typing
                         console.error("Falha ao carregar relatório de ensaio", e); 
                         setLastError('Falha ao carregar: ' + getErrorMessage(e)); 
                         setSaveStatus('error'); 
                     }
                 }
-            }, [reportData.header.cep, reportData.header.month, reportData.header.year, session, supabaseInstance]); // currentSubView removed, not needed for load
+            }, [reportData.header.cep, reportData.header.month, reportData.header.year, session, supabaseInstance]);
             
             useEffect(() => { 
+                // Abort previous load request if any
                 loadController.current.abort();
                 loadController.current = new AbortController();
+                // Trigger loadReport based on current header values
                 loadReport(loadController.current.signal); 
-            }, [loadReport]);
+
+                // Cleanup function
+                return () => {
+                    loadController.current.abort(); // Abort on unmount or before next effect run
+                };
+            }, [loadReport]); // `loadReport` is a dependency because it's a `useCallback`
 
             const createChangeHandler = useCallback((updateFn) => {
                 return (...args) => {
@@ -1056,14 +1065,8 @@
             const handlers = useMemo(() => ({
                 handleHeaderChange: (e) => {
                     const { name, value } = e.target;
-                    // For month, year, cep, reset save status and potentially reload
-                    if (name === 'month' || name === 'year' || name === 'cep') {
-                        if (autoSaveTimeout.current) clearTimeout(autoSaveTimeout.current);
-                        setSaveStatus('idle'); 
-                    } else {
-                        setSaveStatus('typing');
-                    }
                     setReportData(prev => ({ ...prev, header: { ...prev.header, [name]: value } }));
+                    setSaveStatus('typing'); // Always mark as typing when header changes
                 },
                 handleTableChange: createChangeHandler((p, category, name, value) => ({ ...p, [category]: { ...p[category], [name]: value } })),
                 handleCongregationChange: createChangeHandler((p, e) => ({ ...p, congregation: { ...p.congregation, [e.target.name]: parseInt(e.target.value) || 0 } })),
