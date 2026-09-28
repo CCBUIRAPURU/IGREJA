@@ -53,14 +53,12 @@ button.ghost:hover{color:var(--bad)}
 :focus-visible{outline:3px solid var(--acc);outline-offset:2px}
 .hint{color:var(--mute);font-size:14px;margin:6px 0 0}
 
-/* abas */
 .tabs{display:flex;gap:8px;margin:0 0 14px;flex-wrap:wrap}
 .tabbtn{font:700 19px var(--f-title);letter-spacing:.4px;padding:10px 22px;border-radius:8px;min-height:44px}
 .tabbtn .n{font-size:14px;font-weight:600;opacity:.75;margin-left:6px}
 .tabbtn.on{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
 .tabbtn.on.fem{background:var(--fem);border-color:var(--fem);color:var(--fem-ink)}
 
-/* lista */
 #lista{list-style:none;margin:14px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px}
 #lista li{border:1px solid var(--line);border-radius:8px;padding:10px 12px}
 #lista .nome{font:700 18px var(--f-title);text-transform:uppercase;letter-spacing:.3px;cursor:pointer;display:inline-block}
@@ -70,8 +68,6 @@ button.ghost:hover{color:var(--bad)}
 .acoes{display:flex;gap:2px;flex-wrap:wrap;margin-top:6px}
 .editRow{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:2px 0 6px}
 .editRow input{flex:1;min-width:150px;font-weight:700}
-
-/* editor de dias dentro do cartão */
 .editDias{display:grid;gap:6px;margin:8px 0 4px}
 .editSlot{border-top:1px solid var(--line);padding-top:6px}
 .editSlotNome{font:700 13.5px var(--f-title);text-transform:uppercase;letter-spacing:.4px;color:var(--mute);margin-bottom:4px}
@@ -80,7 +76,6 @@ button.ghost:hover{color:var(--bad)}
 .chkSem input{margin:0;accent-color:var(--acc)}
 .chkSem:has(input:checked){background:var(--acc-soft);border-color:var(--acc);color:var(--ink);font-weight:600}
 
-/* modelo */
 details.modelo summary{cursor:pointer;font:700 22px var(--f-title);list-style:none}
 details.modelo summary::-webkit-details-marker{display:none}
 details.modelo summary::before{content:"▸ ";color:var(--acc)}
@@ -94,7 +89,6 @@ details.modelo[open] summary::before{content:"▾ "}
 .semana .trio{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
 .semana select{min-height:34px;padding:4px 6px;width:100%;font-size:14px;text-transform:uppercase}
 
-/* gerar */
 .cfg{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;align-items:end;margin-bottom:12px}
 .cfg label{display:flex;flex-direction:column;gap:4px;font-size:14px;color:var(--mute)}
 .cfg label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--ink);min-height:40px}
@@ -127,7 +121,6 @@ table.escala td.tipo{text-transform:uppercase}
 .linhaCont span b{text-transform:uppercase;font-family:var(--f-title);font-size:15px}
 .grupoBloco{margin-bottom:26px}
 
-/* barra de salvar */
 #saveBar{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(140%);display:flex;gap:12px;align-items:center;background:var(--warn);color:#fff;padding:10px 14px;border-radius:10px;font-weight:600;font-size:15px;box-shadow:0 6px 18px rgba(0,0,0,.3);transition:transform .25s;z-index:8;max-width:94vw}
 #saveBar.on{transform:translateX(-50%) translateY(0)}
 #saveBar button{min-height:36px;padding:6px 16px}
@@ -151,7 +144,7 @@ table.escala td.tipo{text-transform:uppercase}
 <div class="wrap">
   <header class="no-print">
     <h1>Escalas dos Irmãos e das Irmãs</h1>
-    <p class="sub"><b>Duas escalas separadas:</b> aba <b>Irmãos</b> e aba <b>Irmãs</b>, cada uma com sua lista e seu modelo de dias fixos. Ao gerar, saem as duas tabelas do mês. <b>Clique no nome</b> de qualquer pessoa na lista para editar o nome e marcar os dias/semanas em que ela serve.</p>
+    <p class="sub"><b>Duas escalas separadas:</b> aba <b>Irmãos</b> e aba <b>Irmãs</b>. <b>Clique no nome</b> de qualquer pessoa para editar o nome e marcar os dias/semanas em que ela serve. Tudo que você muda aqui recalcula a escala na hora.</p>
   </header>
 
   <section class="card no-print">
@@ -246,7 +239,7 @@ const SLOTS=[
   {k:'0|CULTO',dow:0,tipo:'CULTO',nome:'Domingo: Culto'}
 ];
 const GS={M:'Irmãos',F:'Irmãs'};
-const REF=new Date(2026,7,31); // segunda-feira da semana 1 do ciclo (03/09/2026)
+const REF=new Date(2026,7,31);
 const $=s=>document.querySelector(s);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pad=n=>String(n).padStart(2,'0');
@@ -260,7 +253,6 @@ const cp=o=>JSON.parse(JSON.stringify(o));
 
 function defaults(){
   const nomes={vilas:'Vilas',paulinho:'Paulinho',saulo:'Saulo',nelson:'Nelson',vanderlei:'Vanderlei',edimilson:'Edimilson',rubens:'Rubens',marcos:'Marcos',santo:'Santo',iago:'Iago'};
-  // Marcos foi movido do Domingo: RJM para o Domingo: Culto (à noite), no lugar de Paulinho.
   const A1={'4|CULTO':['vilas','paulinho','saulo'],'6|CULTO':['nelson','paulinho','vanderlei'],'0|RJM':['vanderlei','paulinho','edimilson'],'0|CULTO':['rubens','marcos','nelson']};
   const B1={'4|CULTO':['vilas',null,'saulo'],'6|CULTO':['marcos',null,'santo'],'0|RJM':[null,null,'iago'],'0|CULTO':['iago',null,'santo']};
   const A2=cp(A1),B2=cp(B1);
@@ -383,7 +375,6 @@ function renderLista(){
     const eh=editId===p.id;
     if(eh){
       const diasHtml = SLOTS.map(sl=>{
-        const ids=(w, k)=>(G.cycle[w][k]||[]);
         return '<div class="editSlot">'
           +'<div class="editSlotNome">'+esc(sl.nome)+'</div>'
           +'<div class="editSemanas">'
@@ -434,7 +425,9 @@ function addPessoas(){
     G.people.push({id:uid(),nome:nome});n++;
   });
   G.people.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
-  inp.value='';markDirty();renderAll();
+  inp.value='';markDirty();
+  regerar();
+  renderAll();
   toast(n?n+' cadastrado(s) em '+GS[g]+'. Clique no nome para escolher os dias.'+(dup?' '+dup+' nome(s) já existia(m).':''):'Esse nome já está cadastrado em '+GS[g]+'.');
 }
 function aplicarDiasNoCiclo(g, id, marcados){
@@ -461,13 +454,16 @@ function salvarEdit(g,id,v){
   if(!nome){toast('Digite um nome.');return;}
   if(S.groups[g].people.some(x=>x.id!==id&&x.nome.toLowerCase()===nome.toLowerCase())){toast('Já existe alguém com esse nome em '+GS[g]+'.');return;}
   p.nome=nome;
-  // aplica os dias marcados no editor do cartão
   const marcados=new Set();
   document.querySelectorAll('#lista input[type=checkbox][data-dia]').forEach(cb=>{
     if(cb.checked)marcados.add(cb.dataset.dia+'|'+cb.dataset.sem);
   });
   aplicarDiasNoCiclo(g,id,marcados);
-  editId=null;markDirty();renderAll();
+  // limpa edições manuais antigas dessa pessoa — agora vale o modelo atualizado
+  limparOverridesDe(id);
+  editId=null;markDirty();
+  regerar();
+  renderAll();
   toast(nome+' atualizado(a).');
 }
 function remover(g,id){
@@ -477,7 +473,10 @@ function remover(g,id){
   const e=S.escala[g];if(e)e.forEach(ev=>ev.irmaos=(ev.irmaos||[]).map(x=>x===id?null:x));
   limparOverridesDe(id);
   if(editId===id)editId=null;
-  markDirty();renderAll();toast(p.nome+' foi removido(a) da escala.');
+  markDirty();
+  regerar();
+  renderAll();
+  toast(p.nome+' foi removido(a) da escala.');
 }
 function mover(g,id,para){
   const G=S.groups[g],P=S.groups[para],p=G.people.find(x=>x.id===id);if(!p)return;
@@ -486,7 +485,10 @@ function mover(g,id,para){
   const e=S.escala[g];if(e)e.forEach(ev=>ev.irmaos=(ev.irmaos||[]).map(x=>x===id?null:x));
   limparOverridesDe(id);
   P.people.push(p);P.people.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
-  markDirty();renderAll();toast(p.nome+' agora está na aba '+GS[para]+'.');
+  markDirty();
+  regerar();
+  renderAll();
+  toast(p.nome+' agora está na aba '+GS[para]+'.');
 }
 function criarPessoa(g){
   const nome=capNome((prompt('Nome da pessoa nova (entrará em '+GS[g]+'):')||'').trim());
@@ -533,6 +535,14 @@ function montar(g){
     .sort((a,b)=>a.data.localeCompare(b.data)||RANK[a.tipo]-RANK[b.tipo]);
   lista.forEach(e=>{for(let j=0;j<e.irmaos.length;j++){const k=ovKey(g,e.data,e.tipo,j);if(Object.prototype.hasOwnProperty.call(S.manual,k))e.irmaos[j]=S.manual[k];}});
   return lista;
+}
+/* Se a escala já foi gerada alguma vez, recalcula na hora — para que
+   qualquer edição no modelo/pessoas se reflita imediatamente. */
+function temEscalaGerada(){return !!(S.escala&&(S.escala.M||S.escala.F));}
+function regerar(){
+  if(!temEscalaGerada())return false;
+  S.escala={M:montar('M'),F:montar('F')};
+  return true;
 }
 function gerar(){
   S.escala={M:montar('M'),F:montar('F')};
@@ -676,10 +686,20 @@ document.addEventListener('click',ev=>{
     const g=b.dataset.g,e=S.escala[g]&&S.escala[g][Number(b.dataset.i)];if(!e)return;
     S.cfg.excluir.push(g+'|'+e.data+'|'+e.tipo);
     S.escala[g].splice(Number(b.dataset.i),1);
-    markDirty();renderChips();renderResultado();
+    markDirty();renderChips();
+    regerar();renderResultado();
   }
-  else if(act==='rmExtra'){S.cfg.extras.splice(Number(b.dataset.i),1);markDirty();renderChips();}
-  else if(act==='rmExcl'){S.cfg.excluir.splice(Number(b.dataset.i),1);markDirty();renderChips();toast('Restaurado. Clique em Gerar escala para atualizar.');}
+  else if(act==='rmExtra'){
+    S.cfg.extras.splice(Number(b.dataset.i),1);
+    markDirty();renderChips();
+    regerar();renderResultado();
+  }
+  else if(act==='rmExcl'){
+    S.cfg.excluir.splice(Number(b.dataset.i),1);
+    markDirty();renderChips();
+    regerar();renderResultado();
+    toast('Restaurado.');
+  }
 });
 document.addEventListener('keydown',ev=>{
   if(ev.key==='Enter'&&ev.target.classList&&ev.target.classList.contains('nome')){
@@ -694,11 +714,14 @@ document.addEventListener('change',ev=>{
     if(t.value==='__new'){
       const nb=criarPessoa(g);
       if(!nb){renderModelo();return;}
-      G.cycle[w][k][p]=nb.id;markDirty();renderAll();
+      G.cycle[w][k][p]=nb.id;markDirty();
+      regerar();renderAll();
       toast(nb.nome+' cadastrado(a) e já colocado(a) na vaga.');
       return;
     }
-    G.cycle[w][k][p]=t.value||null;markDirty();renderLista();return;
+    G.cycle[w][k][p]=t.value||null;markDirty();
+    regerar();renderLista();renderResultado();
+    return;
   }
   if(t.dataset.g&&t.dataset.i!==undefined&&t.closest('#folha')&&S.escala){
     const g=t.dataset.g,e=S.escala[g][Number(t.dataset.i)];if(!e)return;
@@ -719,14 +742,16 @@ document.addEventListener('change',ev=>{
  $('#novo').addEventListener('keydown',e=>{if(e.key==='Enter')addPessoas();});
  $('#btnSalvar').addEventListener('click',()=>{forceSave();toast('✓ Salvo no navegador.');});
  $('#btnSalvar2').addEventListener('click',()=>{forceSave();toast('✓ Salvo no navegador.');});
- $('#mes').addEventListener('change',e=>{S.cfg.mes=Number(e.target.value);markDirty();});
- $('#ano').addEventListener('change',e=>{const v=Number(e.target.value);if(v>=2024&&v<=2100){S.cfg.ano=v;markDirty();}});
- $('#inicio').addEventListener('change',e=>{S.cfg.inicio=e.target.value;markDirty();});
- $('#ensaio').addEventListener('change',e=>{S.cfg.ensaio=e.target.checked;markDirty();});
+ $('#mes').addEventListener('change',e=>{S.cfg.mes=Number(e.target.value);markDirty();regerar();renderResultado();});
+ $('#ano').addEventListener('change',e=>{const v=Number(e.target.value);if(v>=2024&&v<=2100){S.cfg.ano=v;markDirty();regerar();renderResultado();}});
+ $('#inicio').addEventListener('change',e=>{S.cfg.inicio=e.target.value;markDirty();regerar();renderResultado();});
+ $('#ensaio').addEventListener('change',e=>{S.cfg.ensaio=e.target.checked;markDirty();regerar();renderResultado();});
  $('#btnExtra').addEventListener('click',()=>{
   const d=$('#exData').value;if(!d){toast('Escolha a data do evento extra.');return;}
   S.cfg.extras.push({data:d,tipo:$('#exTipo').value,g:$('#exGrupo').value});
-  markDirty();renderChips();toast('Extra adicionado. Clique em Gerar escala.');
+  markDirty();renderChips();
+  regerar();renderResultado();
+  toast('Extra adicionado.');
 });
  $('#btnGerar').addEventListener('click',gerar);
  $('#btnCopiar').addEventListener('click',copiar);
