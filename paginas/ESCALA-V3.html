@@ -63,12 +63,22 @@ button.ghost:hover{color:var(--bad)}
 /* lista */
 #lista{list-style:none;margin:14px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px}
 #lista li{border:1px solid var(--line);border-radius:8px;padding:10px 12px}
-#lista .nome{font:700 18px var(--f-title);text-transform:uppercase;letter-spacing:.3px}
+#lista .nome{font:700 18px var(--f-title);text-transform:uppercase;letter-spacing:.3px;cursor:pointer;display:inline-block}
+#lista .nome:hover{color:var(--acc)}
 #lista .uso{font-size:13.5px;color:var(--mute);margin-top:2px}
 #lista .uso b{color:var(--ink);font-weight:600}
 .acoes{display:flex;gap:2px;flex-wrap:wrap;margin-top:6px}
 .editRow{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:2px 0 6px}
 .editRow input{flex:1;min-width:150px;font-weight:700}
+
+/* editor de dias dentro do cartão */
+.editDias{display:grid;gap:6px;margin:8px 0 4px}
+.editSlot{border-top:1px solid var(--line);padding-top:6px}
+.editSlotNome{font:700 13.5px var(--f-title);text-transform:uppercase;letter-spacing:.4px;color:var(--mute);margin-bottom:4px}
+.editSemanas{display:flex;gap:6px;flex-wrap:wrap}
+.chkSem{display:inline-flex;align-items:center;gap:5px;font-size:13.5px;cursor:pointer;min-height:32px;padding:3px 9px;border:1px solid var(--line);border-radius:6px;background:var(--card);user-select:none}
+.chkSem input{margin:0;accent-color:var(--acc)}
+.chkSem:has(input:checked){background:var(--acc-soft);border-color:var(--acc);color:var(--ink);font-weight:600}
 
 /* modelo */
 details.modelo summary{cursor:pointer;font:700 22px var(--f-title);list-style:none}
@@ -141,7 +151,7 @@ table.escala td.tipo{text-transform:uppercase}
 <div class="wrap">
   <header class="no-print">
     <h1>Escalas dos Irmãos e das Irmãs</h1>
-    <p class="sub"><b>Duas escalas separadas:</b> aba <b>Irmãos</b> e aba <b>Irmãs</b>, cada uma com sua lista e seu modelo de dias fixos. Ao gerar, saem as duas tabelas do mês. Qualquer edição pode ser salva com o botão <b>💾 Salvar</b> — e também salva sozinha por segurança.</p>
+    <p class="sub"><b>Duas escalas separadas:</b> aba <b>Irmãos</b> e aba <b>Irmãs</b>, cada uma com sua lista e seu modelo de dias fixos. Ao gerar, saem as duas tabelas do mês. <b>Clique no nome</b> de qualquer pessoa na lista para editar o nome e marcar os dias/semanas em que ela serve.</p>
   </header>
 
   <section class="card no-print">
@@ -299,7 +309,7 @@ function load(){
 }
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 let S=load();
-stripWilliam(S); // garante: William fora mesmo em dados já salvos
+stripWilliam(S);
 let aba='M',editId=null;
 
 /* ---------- salvar / sujo ---------- */
@@ -315,7 +325,7 @@ function updateSaveUI(){
 function markDirty(){
   dirty=true;updateSaveUI();
   clearTimeout(saveT);
-  saveT=setTimeout(forceSave,1000); // segurança: salva sozinho logo depois
+  saveT=setTimeout(forceSave,1000);
 }
 function forceSave(){
   clearTimeout(saveT);saveT=null;
@@ -366,19 +376,41 @@ function renderLista(){
   const g=aba,G=S.groups[g];
   $('#titAba').textContent=g==='M'?'Irmãos cadastrados':'Irmãs cadastradas';
   $('#novo').placeholder=(g==='M'?'Nome do irmão':'Nome da irmã')+' (para vários, separe por vírgula)';
-  $('#hintAba').innerHTML='Cadastrou? Coloque nos dias no <b>modelo abaixo</b> para entrar na escala. <b>Remover</b> tira a pessoa da lista, do modelo e da escala de uma vez.';
+  $('#hintAba').innerHTML='Cadastrou? <b>Clique no nome</b> para editar o nome e marcar em quais dias/semanas a pessoa serve. <b>Remover</b> tira a pessoa da lista, do modelo e da escala de uma vez.';
   const ul=$('#lista');
   if(!G.people.length){ul.innerHTML='<li>Ninguém cadastrado nesta aba ainda. Digite um nome acima.</li>';return;}
   ul.innerHTML=G.people.map(p=>{
     const eh=editId===p.id;
-    const corpo=eh
-      ?'<div class="editRow"><input type="text" id="editNome" value="'+esc(p.nome)+'" aria-label="Novo nome"><button class="pri" data-act="saveEdit" data-id="'+p.id+'">Salvar</button><button class="ghost" data-act="cancelEdit">Cancelar</button></div>'
-      :'<div class="nome">'+esc(p.nome)+'</div>';
-    const acoes=eh?'':'<div class="acoes">'
-      +'<button class="ghost" data-act="edit" data-id="'+p.id+'">Renomear</button>'
+    if(eh){
+      const diasHtml = SLOTS.map(sl=>{
+        const ids=(w, k)=>(G.cycle[w][k]||[]);
+        return '<div class="editSlot">'
+          +'<div class="editSlotNome">'+esc(sl.nome)+'</div>'
+          +'<div class="editSemanas">'
+          + [0,1,2,3].map(w=>{
+              const on = (G.cycle[w][sl.k]||[]).indexOf(p.id) >= 0;
+              return '<label class="chkSem"><input type="checkbox" data-dia="'+sl.k+'" data-sem="'+w+'"'+(on?' checked':'')+'> Sem '+(w+1)+'</label>';
+            }).join('')
+          +'</div></div>';
+      }).join('');
+      return '<li>'
+        +'<div class="editRow"><input type="text" id="editNome" value="'+esc(p.nome)+'" aria-label="Nome"></div>'
+        +'<div class="editDias">'+diasHtml+'</div>'
+        +'<div class="acoes">'
+        +'<button class="pri" data-act="saveEdit" data-id="'+p.id+'">Salvar</button>'
+        +'<button class="ghost" data-act="cancelEdit">Cancelar</button>'
+        +'</div>'
+        +'</li>';
+    }
+    return '<li>'
+      +'<div class="nome" data-act="edit" data-id="'+p.id+'" role="button" tabindex="0" title="Clique para editar">'+esc(p.nome)+'</div>'
+      +'<div class="uso">'+usoTexto(g,p.id)+'</div>'
+      +'<div class="acoes">'
+      +'<button class="ghost" data-act="edit" data-id="'+p.id+'">Editar</button>'
       +'<button class="ghost" data-act="mv" data-id="'+p.id+'" data-to="'+(g==='M'?'F':'M')+'">'+(g==='M'?'→ Irmãs':'→ Irmãos')+'</button>'
-      +'<button class="ghost" data-act="rm" data-id="'+p.id+'" aria-label="Remover '+esc(p.nome)+'">Remover</button></div>';
-    return '<li>'+corpo+'<div class="uso">'+usoTexto(g,p.id)+'</div>'+acoes+'</li>';
+      +'<button class="ghost" data-act="rm" data-id="'+p.id+'" aria-label="Remover '+esc(p.nome)+'">Remover</button>'
+      +'</div>'
+      +'</li>';
   }).join('');
   if(editId){
     const i=$('#editNome');
@@ -403,14 +435,40 @@ function addPessoas(){
   });
   G.people.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
   inp.value='';markDirty();renderAll();
-  toast(n?n+' cadastrado(s) em '+GS[g]+'. Agora coloque nos dias no modelo abaixo.'+(dup?' '+dup+' nome(s) já existia(m).':''):'Esse nome já está cadastrado em '+GS[g]+'.');
+  toast(n?n+' cadastrado(s) em '+GS[g]+'. Clique no nome para escolher os dias.'+(dup?' '+dup+' nome(s) já existia(m).':''):'Esse nome já está cadastrado em '+GS[g]+'.');
+}
+function aplicarDiasNoCiclo(g, id, marcados){
+  const G=S.groups[g];
+  SLOTS.forEach(sl=>{
+    for(let w=0;w<4;w++){
+      if(!G.cycle[w][sl.k])G.cycle[w][sl.k]=[null,null,null];
+      const arr=G.cycle[w][sl.k];
+      const deveEstar=marcados.has(sl.k+'|'+w);
+      const pos=arr.indexOf(id);
+      if(deveEstar && pos<0){
+        let livre=arr.indexOf(null);
+        if(livre<0)livre=arr.length;
+        arr[livre]=id;
+      } else if(!deveEstar && pos>=0){
+        arr[pos]=null;
+      }
+    }
+  });
 }
 function salvarEdit(g,id,v){
   const p=S.groups[g].people.find(x=>x.id===id);if(!p)return;
   const nome=capNome((v||'').trim());
   if(!nome){toast('Digite um nome.');return;}
   if(S.groups[g].people.some(x=>x.id!==id&&x.nome.toLowerCase()===nome.toLowerCase())){toast('Já existe alguém com esse nome em '+GS[g]+'.');return;}
-  p.nome=nome;editId=null;markDirty();renderAll();toast('Nome atualizado para '+nome+'.');
+  p.nome=nome;
+  // aplica os dias marcados no editor do cartão
+  const marcados=new Set();
+  document.querySelectorAll('#lista input[type=checkbox][data-dia]').forEach(cb=>{
+    if(cb.checked)marcados.add(cb.dataset.dia+'|'+cb.dataset.sem);
+  });
+  aplicarDiasNoCiclo(g,id,marcados);
+  editId=null;markDirty();renderAll();
+  toast(nome+' atualizado(a).');
 }
 function remover(g,id){
   const G=S.groups[g],p=G.people.find(x=>x.id===id);if(!p)return;
@@ -428,7 +486,7 @@ function mover(g,id,para){
   const e=S.escala[g];if(e)e.forEach(ev=>ev.irmaos=(ev.irmaos||[]).map(x=>x===id?null:x));
   limparOverridesDe(id);
   P.people.push(p);P.people.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
-  markDirty();renderAll();toast(p.nome+' agora está na aba '+GS[para]+'. Coloque nos dias no modelo dela.');
+  markDirty();renderAll();toast(p.nome+' agora está na aba '+GS[para]+'.');
 }
 function criarPessoa(g){
   const nome=capNome((prompt('Nome da pessoa nova (entrará em '+GS[g]+'):')||'').trim());
@@ -473,7 +531,6 @@ function montar(g){
   const vistos={};
   const lista=ev.filter(e=>{const k=e.data+'|'+e.tipo;if(vistos[k]||S.cfg.excluir.indexOf(g+'|'+k)>=0)return false;vistos[k]=1;return true;})
     .sort((a,b)=>a.data.localeCompare(b.data)||RANK[a.tipo]-RANK[b.tipo]);
-  // reaplica edições manuais salvas (sobrevivem ao "Gerar escala")
   lista.forEach(e=>{for(let j=0;j<e.irmaos.length;j++){const k=ovKey(g,e.data,e.tipo,j);if(Object.prototype.hasOwnProperty.call(S.manual,k))e.irmaos[j]=S.manual[k];}});
   return lista;
 }
@@ -624,6 +681,11 @@ document.addEventListener('click',ev=>{
   else if(act==='rmExtra'){S.cfg.extras.splice(Number(b.dataset.i),1);markDirty();renderChips();}
   else if(act==='rmExcl'){S.cfg.excluir.splice(Number(b.dataset.i),1);markDirty();renderChips();toast('Restaurado. Clique em Gerar escala para atualizar.');}
 });
+document.addEventListener('keydown',ev=>{
+  if(ev.key==='Enter'&&ev.target.classList&&ev.target.classList.contains('nome')){
+    ev.preventDefault();editId=ev.target.dataset.id;renderLista();
+  }
+});
 document.addEventListener('change',ev=>{
   const t=ev.target;
   if(t.dataset.g&&t.dataset.w!==undefined){
@@ -649,7 +711,7 @@ document.addEventListener('change',ev=>{
       return;
     }
     e.irmaos[j]=t.value||null;
-    S.manual[ovKey(g,e.data,e.tipo,j)]=e.irmaos[j]; // grava a edição para sobreviver ao "Gerar escala"
+    S.manual[ovKey(g,e.data,e.tipo,j)]=e.irmaos[j];
     markDirty();renderResultado();return;
   }
 });
@@ -676,7 +738,7 @@ document.addEventListener('change',ev=>{
 });
 
 renderCfg();renderAll();
-forceSave(); // grava já no primeiro abrir (inclusive a exclusão do William)
+forceSave();
 if(_mig)toast('Dados antigos migrados. William foi excluído — as vagas dele ficaram abertas (—).');
 })();
 </script>
