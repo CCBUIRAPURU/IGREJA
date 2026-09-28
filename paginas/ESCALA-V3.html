@@ -63,7 +63,8 @@ button.ghost:hover{color:var(--bad)}
 /* lista */
 #lista{list-style:none;margin:14px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px}
 #lista li{border:1px solid var(--line);border-radius:8px;padding:10px 12px}
-#lista .nome{font:700 18px var(--f-title);text-transform:uppercase;letter-spacing:.3px}
+#lista .nome{font:700 18px var(--f-title);text-transform:uppercase;letter-spacing:.3px;cursor:pointer}
+#lista .nome:hover{color:var(--acc)}
 #lista .uso{font-size:13.5px;color:var(--mute);margin-top:2px}
 #lista .uso b{color:var(--ink);font-weight:600}
 .acoes{display:flex;gap:2px;flex-wrap:wrap;margin-top:6px}
@@ -136,13 +137,12 @@ table.escala td.tipo{text-transform:uppercase}
   .grupoBloco{break-inside:avoid-page;margin-bottom:30px}
 }
 </style>
-<base target="_blank">
 </head>
 <body>
 <div class="wrap">
   <header class="no-print">
     <h1>Escalas dos Irmãos e das Irmãs</h1>
-    <p class="sub"><b>Duas escalas separadas:</b> aba <b>Irmãos</b> e aba <b>Irmãs</b>, cada uma com sua lista e seu modelo de dias fixos. Ao gerar, saem as duas tabelas do mês. Qualquer edição pode ser salva com o botão <b>💾 Salvar</b> — e também salva sozinha por segurança.</p>
+    <p class="sub">Cada grupo é responsável pela sua escala: selecione a aba <b>Irmãos</b> para gerenciar e visualizar a escala dos irmãos, ou <b>Irmãs</b> para a escala das irmãs. Qualquer edição é salva automaticamente e pode ser gravada pelo botão <b>💾 Salvar</b>.</p>
   </header>
 
   <section class="card no-print">
@@ -165,7 +165,7 @@ table.escala td.tipo{text-transform:uppercase}
   </section>
 
   <section class="card" aria-labelledby="t-gerar">
-    <h2 id="t-gerar" class="no-print">Gerar as duas escalas do mês</h2>
+    <h2 id="t-gerar" class="no-print">Escala do mês</h2>
     <div class="cfg no-print">
       <label>Mês
         <select id="mes"></select>
@@ -189,11 +189,6 @@ table.escala td.tipo{text-transform:uppercase}
       <div class="row">
         <input type="date" id="exData" aria-label="Data do evento extra">
         <select id="exTipo" aria-label="Tipo do evento extra"><option>CULTO</option><option>RJM</option><option>ENSAIO</option></select>
-        <select id="exGrupo" aria-label="Grupo do evento extra">
-          <option value="M">Irmãos</option>
-          <option value="F">Irmãs</option>
-          <option value="A">Irmãos + Irmãs</option>
-        </select>
         <button id="btnExtra">Adicionar evento extra</button>
       </div>
       <div class="chips" id="chipsExtra"></div>
@@ -204,7 +199,7 @@ table.escala td.tipo{text-transform:uppercase}
       <button class="pri" id="btnGerar">Gerar escala</button>
       <button id="btnSalvar" class="ok">💾 Salvar</button>
       <span id="saveStatus"></span>
-      <button id="btnCopiar">Copiar texto</button>
+      <button id="btnCopiar">Copiar texto da escala</button>
       <button id="btnCsv">Baixar CSV</button>
       <button id="btnPrint">Imprimir / PDF</button>
     </div>
@@ -212,7 +207,7 @@ table.escala td.tipo{text-transform:uppercase}
     <div class="avisos no-print" id="avisos"></div>
     <div class="tabwrap" id="folha"></div>
     <div class="contagem no-print" id="contagem"></div>
-    <p class="row no-print" style="margin-top:22px"><button class="ghost" id="btnReset">Restaurar dados originais (setembro/2026, sem William)</button></p>
+    <p class="row no-print" style="margin-top:22px"><button class="ghost" id="btnReset">Restaurar dados originais (Outubro/2026 com Márcio à noite)</button></p>
   </section>
 </div>
 
@@ -237,12 +232,13 @@ const SLOTS=[
   {k:'0|CULTO',dow:0,tipo:'CULTO',nome:'Domingo: Culto'}
 ];
 const GS={M:'Irmãos',F:'Irmãs'};
-const REF=new Date(2026,7,31); // segunda-feira da semana 1 do ciclo (03/09/2026)
+// Base de referência sincronizada às 12:00
+const REF=new Date(2026,7,31,12,0,0);
 const $=s=>document.querySelector(s);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pad=n=>String(n).padStart(2,'0');
 const iso=(y,m,d)=>y+'-'+pad(m)+'-'+pad(d);
-const parse=s=>{const p=s.split('-').map(Number);return new Date(p[0],p[1]-1,p[2]);};
+const parse=s=>{const p=s.split('-').map(Number);return new Date(p[0],p[1]-1,p[2],12,0,0);};
 const br=s=>{const p=s.split('-');return p[2]+'/'+p[1]+'/'+p[0];};
 const mod=(a,n)=>((a%n)+n)%n;
 const uid=()=>Math.random().toString(36).slice(2,9);
@@ -250,17 +246,30 @@ const capNome=s=>String(s).replace(/\S+/g,w=>w.charAt(0).toUpperCase()+w.slice(1
 const cp=o=>JSON.parse(JSON.stringify(o));
 
 function defaults(){
-  const nomes={vilas:'Vilas',paulinho:'Paulinho',saulo:'Saulo',nelson:'Nelson',vanderlei:'Vanderlei',edimilson:'Edimilson',rubens:'Rubens',marcos:'Marcos',santo:'Santo',iago:'Iago',marcio:'Marcio Porteiro'};
-  const A1={'4|CULTO':['vilas','paulinho','saulo'],'6|CULTO':['nelson','paulinho','vanderlei'],'0|RJM':['vanderlei','paulinho','edimilson'],'0|CULTO':['rubens','paulinho','marcio']};
-  const B1={'4|CULTO':['vilas',null,'saulo'],'6|CULTO':['marcos',null,'santo'],'0|RJM':['marcos',null,'iago'],'0|CULTO':['iago','marcio','santo']};
-  const A2=cp(A1),B2=cp(B1);
-  const h=new Date();let mes=h.getMonth()+2,ano=h.getFullYear();if(mes>12){mes=1;ano++;}
+  const nomes={
+    vilas:'Vilas',paulinho:'Paulinho',saulo:'Saulo',nelson:'Nelson',
+    vanderlei:'Vanderlei',edimilson:'Edimilson',rubens:'Rubens',
+    marcos:'Marcos',santo:'Santo',iago:'Iago',marcio:'Marcio'
+  };
+  // Marcio entra nos Domingos à noite (0|CULTO)
+  const A1={'4|CULTO':['vilas','paulinho','saulo'],'6|CULTO':['nelson','paulinho','vanderlei'],'0|RJM':['vanderlei','paulinho','edimilson'],'0|CULTO':['rubens','marcio','nelson']};
+  const B1={'4|CULTO':['vilas','paulinho','saulo'],'6|CULTO':['marcos','paulinho','santo'],'0|RJM':['marcos','paulinho','iago'],'0|CULTO':['iago','marcio','santo']};
+  const A2={'4|CULTO':['vilas','paulinho','saulo'],'6|CULTO':['rubens','paulinho','edimilson'],'0|RJM':['vanderlei','paulinho','edimilson'],'0|CULTO':['rubens','marcio','nelson']};
+  const B2={'4|CULTO':['vilas','paulinho','saulo'],'6|CULTO':['marcos','paulinho','santo'],'0|RJM':['marcos','paulinho','iago'],'0|CULTO':['iago','marcio','santo']};
   return {
     groups:{
       M:{people:Object.keys(nomes).map(id=>({id:id,nome:nomes[id]})),cycle:[A1,B1,A2,B2]},
-      F:{people:[],cycle:[{},{},{},{}]}
+      F:{
+        people:[{id:'maria',nome:'Maria'},{id:'ruth',nome:'Ruth'},{id:'ester',nome:'Ester'},{id:'noemi',nome:'Noemi'}],
+        cycle:[
+          {'4|CULTO':['maria',null,null],'6|CULTO':['ruth',null,null],'0|RJM':['ester',null,null],'0|CULTO':['noemi',null,null]},
+          {'4|CULTO':['maria',null,null],'6|CULTO':['ruth',null,null],'0|RJM':['ester',null,null],'0|CULTO':['noemi',null,null]},
+          {'4|CULTO':['maria',null,null],'6|CULTO':['ruth',null,null],'0|RJM':['ester',null,null],'0|CULTO':['noemi',null,null]},
+          {'4|CULTO':['maria',null,null],'6|CULTO':['ruth',null,null],'0|RJM':['ester',null,null],'0|CULTO':['noemi',null,null]}
+        ]
+      }
     },
-    cfg:{mes:mes,ano:ano,inicio:'auto',ensaio:true,extras:[],excluir:[]},
+    cfg:{mes:10,ano:2026,inicio:'0',ensaio:true,extras:[],excluir:[]},
     manual:{},
     escala:{M:null,F:null}
   };
@@ -275,47 +284,44 @@ function stripWilliam(s){
     const e=s.escala[g];if(e)e.forEach(ev=>ev.irmaos=(ev.irmaos||[]).map(x=>ids.indexOf(x)>=0?null:x));
   });
 }
-function migrarOld(o){
-  const s=defaults();
-  if(Array.isArray(o.brothers))s.groups.M.people=o.brothers;
-  if(Array.isArray(o.cycle)&&o.cycle.length===4)s.groups.M.cycle=o.cycle;
-  if(o.cfg){
-    if(o.cfg.mes)s.cfg.mes=o.cfg.mes;
-    if(o.cfg.ano)s.cfg.ano=o.cfg.ano;
-    if(o.cfg.inicio!==undefined)s.cfg.inicio=o.cfg.inicio;
-    if(o.cfg.ensaio!==undefined)s.cfg.ensaio=!!o.cfg.ensaio;
-    if(Array.isArray(o.cfg.extras))s.cfg.extras=o.cfg.extras.map(x=>({data:x.data,tipo:x.tipo,g:'M'}));
-    if(Array.isArray(o.cfg.excluir))s.cfg.excluir=o.cfg.excluir.map(k=>'M|'+k);
+function migrarOuGarantirMarcio(s){
+  if(s.groups&&s.groups.M){
+    const temMarcio=s.groups.M.people.some(p=>p.nome.toLowerCase().includes('marcio'));
+    if(!temMarcio){s.groups.M.people.push({id:'marcio',nome:'Marcio'});}
+    s.groups.M.cycle.forEach(w=>{
+      if(w['0|CULTO']&&!w['0|CULTO'].includes('marcio')){
+        if(w['0|CULTO'][1]===null||w['0|CULTO'][1]==='paulinho'||w['0|CULTO'][1]==='')w['0|CULTO'][1]='marcio';
+      }
+    });
   }
-  if(Array.isArray(o.escala))s.escala.M=o.escala;
   stripWilliam(s);
   return s;
 }
-let _mig=false;
 function load(){
-  try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.groups&&s.cfg){if(!s.manual)s.manual={};return s;}}catch(e){}
-  try{const o=JSON.parse(localStorage.getItem(KEY_OLD));if(o&&o.brothers){_mig=true;return migrarOld(o);}}catch(e){}
+  try{
+    const raw=localStorage.getItem(KEY);
+    if(raw){const s=JSON.parse(raw);if(s&&s.groups&&s.cfg){if(!s.manual)s.manual={};return migrarOuGarantirMarcio(s);}}
+  }catch(e){}
   return defaults();
 }
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 let S=load();
-stripWilliam(S); // garante: William fora mesmo em dados já salvos
 let aba='M',editId=null;
 
 /* ---------- salvar / sujo ---------- */
 let dirty=false,lastSaved='',saveT=null;
 function horaAgora(){const h=new Date();return pad(h.getHours())+':'+pad(h.getMinutes());}
 function updateSaveUI(){
-  const b=$('#btnSalvar');
+  const b=$('#btnSalvar');if(!b)return;
   if(dirty){b.textContent='💾 Salvar alterações';b.classList.add('ok');}
   else{b.textContent='✓ Salvo';b.classList.remove('ok');}
-  $('#saveStatus').textContent=lastSaved?('Salvo no navegador às '+lastSaved):'';
-  $('#saveBar').classList.toggle('on',dirty);
+  const st=$('#saveStatus');if(st)st.textContent=lastSaved?('Salvo no navegador às '+lastSaved):'';
+  const sb=$('#saveBar');if(sb)sb.classList.toggle('on',dirty);
 }
 function markDirty(){
   dirty=true;updateSaveUI();
   clearTimeout(saveT);
-  saveT=setTimeout(forceSave,1000); // segurança: salva sozinho logo depois
+  saveT=setTimeout(forceSave,1000);
 }
 function forceSave(){
   clearTimeout(saveT);saveT=null;
@@ -324,7 +330,7 @@ function forceSave(){
 window.addEventListener('beforeunload',()=>{if(dirty)save();});
 
 let tt;
-function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),3200);}
+function toast(m){const t=$('#toast');if(!t)return;t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),3200);}
 
 const nomeDe=(g,id)=>{const b=S.groups[g].people.find(x=>x.id===id);return b?b.nome:'';};
 const up=(g,id)=>nomeDe(g,id).toUpperCase();
@@ -333,12 +339,12 @@ function limparOverridesDe(id){Object.keys(S.manual).forEach(k=>{if(S.manual[k]=
 /* ---------- ciclo ---------- */
 function idxBase(d){
   const dw=(d.getDay()+6)%7;
-  const seg=new Date(d.getFullYear(),d.getMonth(),d.getDate()-dw);
-  return Math.round((seg-REF)/(7*864e5));
+  const seg=new Date(d.getFullYear(),d.getMonth(),d.getDate()-dw,12,0,0);
+  return Math.round((seg.getTime()-REF.getTime())/(7*864e5));
 }
 function calcShift(){
   const ini=S.cfg.inicio;if(ini==='auto')return 0;
-  const first=new Date(S.cfg.ano,S.cfg.mes-1,1);
+  const first=new Date(S.cfg.ano,S.cfg.mes-1,1,12,0,0);
   return mod(Number(ini)-mod(idxBase(first),4),4);
 }
 function habituais(g){
@@ -357,25 +363,30 @@ function usoTexto(g,id){
   return partes.length?partes.join('<br>'):'Sem dias no modelo';
 }
 function renderTabs(){
-  $('#btnTabM').classList.toggle('on',aba==='M');
-  $('#btnTabF').classList.toggle('on',aba==='F');
-  $('#cntM').textContent='('+S.groups.M.people.length+')';
-  $('#cntF').textContent='('+S.groups.F.people.length+')';
+  const bm=$('#btnTabM'),bf=$('#btnTabF');
+  if(bm)bm.classList.toggle('on',aba==='M');
+  if(bf)bf.classList.toggle('on',aba==='F');
+  const cm=$('#cntM'),cf=$('#cntF');
+  if(cm)cm.textContent='('+S.groups.M.people.length+')';
+  if(cf)cf.textContent='('+S.groups.F.people.length+')';
+  const tgerar=$('#t-gerar');if(tgerar)tgerar.textContent='Escala dos '+GS[aba]+' do mês';
+  const btnCopiar=$('#btnCopiar');if(btnCopiar)btnCopiar.textContent='Copiar texto dos '+GS[aba];
 }
 function renderLista(){
   const g=aba,G=S.groups[g];
-  $('#titAba').textContent=g==='M'?'Irmãos cadastrados':'Irmãs cadastradas';
-  $('#novo').placeholder=(g==='M'?'Nome do irmão':'Nome da irmã')+' (para vários, separe por vírgula)';
-  $('#hintAba').innerHTML='Cadastrou? Coloque nos dias no <b>modelo abaixo</b> para entrar na escala. <b>Remover</b> tira a pessoa da lista, do modelo e da escala de uma vez.';
+  const tit=$('#titAba');if(tit)tit.textContent=g==='M'?'Irmãos cadastrados':'Irmãs cadastradas';
+  const novoInp=$('#novo');if(novoInp)novoInp.placeholder=(g==='M'?'Nome do irmão':'Nome da irmã')+' (para vários, separe por vírgula)';
+  const hnt=$('#hintAba');if(hnt)hnt.innerHTML='Cadastrou? Coloque nos dias no <b>modelo abaixo</b> para entrar na escala. Clique no nome para editar/renomear.';
   const ul=$('#lista');
+  if(!ul)return;
   if(!G.people.length){ul.innerHTML='<li>Ninguém cadastrado nesta aba ainda. Digite um nome acima.</li>';return;}
   ul.innerHTML=G.people.map(p=>{
     const eh=editId===p.id;
     const corpo=eh
       ?'<div class="editRow"><input type="text" id="editNome" value="'+esc(p.nome)+'" aria-label="Novo nome"><button class="pri" data-act="saveEdit" data-id="'+p.id+'">Salvar</button><button class="ghost" data-act="cancelEdit">Cancelar</button></div>'
-      :'<div class="nome">'+esc(p.nome)+'</div>';
+      :'<div class="nome" data-act="edit" data-id="'+p.id+'" title="Clique para editar">'+esc(p.nome)+(p.nome.toLowerCase()==='marcio'?' <span style="font-size:12px;color:var(--warn);background:var(--warn-bg);padding:1px 6px;border-radius:4px;">Domingos à noite</span>':'')+'</div>';
     const acoes=eh?'':'<div class="acoes">'
-      +'<button class="ghost" data-act="edit" data-id="'+p.id+'">Renomear</button>'
+      +'<button class="ghost" data-act="edit" data-id="'+p.id+'">Editar</button>'
       +'<button class="ghost" data-act="mv" data-id="'+p.id+'" data-to="'+(g==='M'?'F':'M')+'">'+(g==='M'?'→ Irmãs':'→ Irmãos')+'</button>'
       +'<button class="ghost" data-act="rm" data-id="'+p.id+'" aria-label="Remover '+esc(p.nome)+'">Remover</button></div>';
     return '<li>'+corpo+'<div class="uso">'+usoTexto(g,p.id)+'</div>'+acoes+'</li>';
@@ -392,7 +403,7 @@ function renderLista(){
   }
 }
 function addPessoas(){
-  const g=aba,inp=$('#novo');
+  const g=aba,inp=$('#novo');if(!inp)return;
   const nomes=inp.value.split(/[,;\n]/).map(s=>s.trim()).filter(Boolean);
   if(!nomes.length){toast('Digite pelo menos um nome.');return;}
   const G=S.groups[g];let n=0,dup=0;
@@ -403,7 +414,7 @@ function addPessoas(){
   });
   G.people.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
   inp.value='';markDirty();renderAll();
-  toast(n?n+' cadastrado(s) em '+GS[g]+'. Agora coloque nos dias no modelo abaixo.'+(dup?' '+dup+' nome(s) já existia(m).':''):'Esse nome já está cadastrado em '+GS[g]+'.');
+  toast(n?n+' cadastrado(s) em '+GS[g]+'.':dup+' nome(s) já existia(m).');
 }
 function salvarEdit(g,id,v){
   const p=S.groups[g].people.find(x=>x.id===id);if(!p)return;
@@ -428,7 +439,7 @@ function mover(g,id,para){
   const e=S.escala[g];if(e)e.forEach(ev=>ev.irmaos=(ev.irmaos||[]).map(x=>x===id?null:x));
   limparOverridesDe(id);
   P.people.push(p);P.people.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
-  markDirty();renderAll();toast(p.nome+' agora está na aba '+GS[para]+'. Coloque nos dias no modelo dela.');
+  markDirty();renderAll();toast(p.nome+' transferido(a) para '+GS[para]+'.');
 }
 function criarPessoa(g){
   const nome=capNome((prompt('Nome da pessoa nova (entrará em '+GS[g]+'):')||'').trim());
@@ -445,8 +456,9 @@ function opts(g,sel){
   return '<option value="">—</option>'+S.groups[g].people.map(p=>'<option value="'+p.id+'"'+(p.id===sel?' selected':'')+'>'+esc(p.nome)+'</option>').join('')+'<option value="__new">＋ Nova pessoa…</option>';
 }
 function renderModelo(){
-  $('#titModelo').textContent='Modelo da escala '+(aba==='M'?'dos irmãos':'das irmãs')+' (dias fixos, 4 semanas)';
-  $('#semanas').innerHTML=S.groups[aba].cycle.map((w,i)=>
+  const tm=$('#titModelo');if(tm)tm.textContent='Modelo da escala '+(aba==='M'?'dos irmãos':'das irmãs')+' (dias fixos, 4 semanas)';
+  const sem=$('#semanas');if(!sem)return;
+  sem.innerHTML=S.groups[aba].cycle.map((w,i)=>
     '<div class="semana'+(aba==='F'?' fem':'')+'"><h3>Semana '+(i+1)+'</h3>'+SLOTS.map(sl=>{
       const ids=w[sl.k]||[null,null,null];
       return '<div class="lin"><span>'+sl.nome+'</span><div class="trio">'+[0,1,2].map(p=>'<select data-g="'+aba+'" data-w="'+i+'" data-k="'+sl.k+'" data-p="'+p+'">'+opts(aba,ids[p])+'</select>').join('')+'</div></div>';
@@ -459,7 +471,7 @@ function ovKey(g,data,tipo,j){return g+'|'+data+'|'+tipo+'|'+j;}
 function montar(g){
   const G=S.groups[g],mes=S.cfg.mes,ano=S.cfg.ano,ult=new Date(ano,mes,0).getDate(),sh=calcShift(),ev=[];
   for(let d=1;d<=ult;d++){
-    const dt=new Date(ano,mes-1,d),w=mod(idxBase(dt)+sh,4);
+    const dt=new Date(ano,mes-1,d,12,0,0),w=mod(idxBase(dt)+sh,4);
     SLOTS.forEach(sl=>{
       if(sl.dow!==dt.getDay())return;
       ev.push({data:iso(ano,mes,d),tipo:sl.tipo,irmaos:(G.cycle[w][sl.k]||[null,null,null]).slice()});
@@ -473,141 +485,147 @@ function montar(g){
   const vistos={};
   const lista=ev.filter(e=>{const k=e.data+'|'+e.tipo;if(vistos[k]||S.cfg.excluir.indexOf(g+'|'+k)>=0)return false;vistos[k]=1;return true;})
     .sort((a,b)=>a.data.localeCompare(b.data)||RANK[a.tipo]-RANK[b.tipo]);
-  // reaplica edições manuais salvas (sobrevivem ao "Gerar escala")
   lista.forEach(e=>{for(let j=0;j<e.irmaos.length;j++){const k=ovKey(g,e.data,e.tipo,j);if(Object.prototype.hasOwnProperty.call(S.manual,k))e.irmaos[j]=S.manual[k];}});
   return lista;
 }
 function gerar(){
-  S.escala={M:montar('M'),F:montar('F')};
+  S.escala[aba]=montar(aba);
   markDirty();renderChips();renderResultado();
-  toast('Escalas de '+MESES[S.cfg.mes-1]+' '+S.cfg.ano+' geradas. Suas edições manuais foram mantidas.');
+  toast('Escala dos '+GS[aba]+' gerada com sucesso.');
 }
 
 /* ---------- resultado ---------- */
 function slotKey(e){const dow=parse(e.data).getDay();return dow+'|'+(e.tipo==='ENSAIO'?'CULTO':e.tipo);}
-function segundaKey(data){const d=parse(data);const dw=(d.getDay()+6)%7;const s=new Date(d.getFullYear(),d.getMonth(),d.getDate()-dw);return iso(s.getFullYear(),s.getMonth()+1,s.getDate());}
+function segundaKey(data){const d=parse(data);const dw=(d.getDay()+6)%7;const s=new Date(d.getFullYear(),d.getMonth(),d.getDate()-dw,12,0,0);return iso(s.getFullYear(),s.getMonth()+1,s.getDate());}
 
+// Visualização individual: Cada grupo vê exclusivamente a sua escala
 function renderResultado(){
   const folha=$('#folha'),av=$('#avisos'),ct=$('#contagem');
-  const gerada=S.escala&&((S.escala.M&&S.escala.M.length)||(S.escala.F&&S.escala.F.length));
-  if(!gerada){
-    folha.innerHTML='<div class="vazio no-print">Escolha o mês e clique em <b>Gerar escala</b>.</div>';
+  if(!folha||!av||!ct)return;
+  const g=aba;
+  const G=S.groups[g];
+  const lista=S.escala[g]||[];
+  if(!lista.length&&!G.people.length){
+    folha.innerHTML='<div class="vazio">Nenhum(a) '+(g==='F'?'irmã':'irmão')+' cadastrado(a). Cadastre acima.</div>';
     av.innerHTML='';ct.innerHTML='';return;
   }
-  const avisos=[];let html='',htmlC='';
-  ['M','F'].forEach(g=>{
-    const G=S.groups[g],lista=S.escala[g]||[];
-    html+='<div class="grupoBloco">';
-    if(!G.people.length){
-      html+='<div class="vazio">Nenhuma '+(g==='F'?'irmã':'irmão')+' cadastrada(o). Use a aba "'+GS[g]+'".</div>';
-    }else if(!lista.length){
-      html+='<div class="vazio">Sem eventos de '+GS[g].toLowerCase()+' neste mês.</div>';
-    }else{
-      const hab=habituais(g),valid=SLOTS.map(s=>s.k);
-      const N=Math.max.apply(null,lista.map(e=>e.irmaos.length).concat([3]));
-      html+='<table class="escala"><thead><tr><th class="titulo" colspan="'+(N+3)+'">ESCALA DOS '+GS[g].toUpperCase()+' · '+MESES[S.cfg.mes-1].toUpperCase()+' '+S.cfg.ano+'</th><th class="no-print titulo" style="width:1%"></th></tr>'
-        +'<tr><th>Data</th><th>Dia</th><th>Culto / RJM</th><th colspan="'+N+'">Nomes</th><th class="no-print"></th></tr></thead><tbody>';
-      let semana=null;
-      lista.forEach((e,i)=>{
-        const sk=segundaKey(e.data);
-        if(semana!==null&&sk!==semana)html+='<tr class="esp"><td colspan="'+(N+4)+'"></td></tr>';
-        semana=sk;
-        const chave=slotKey(e),checar=valid.indexOf(chave)>=0;
-        const dup={};e.irmaos.forEach(x=>{if(x)dup[x]=(dup[x]||0)+1;});
-        let vagas=0;
-        html+='<tr><td>'+br(e.data)+'</td><td>'+DIAS[parse(e.data).getDay()]+'</td><td class="tipo">'+e.tipo+'</td>';
-        for(let j=0;j<N;j++){
-          const id=e.irmaos[j]||null;let cls='';
-          if(!id)vagas++;
-          else if(dup[id]>1){cls='dup';avisos.push(['b',GS[g]+': '+up(g,id)+' aparece duas vezes em '+br(e.data)+' ('+e.tipo+').']);}
-          else if(checar&&hab[id]&&!hab[id].has(chave)){cls='fora';avisos.push(['w',GS[g]+': '+up(g,id)+' está fora do dia habitual em '+br(e.data)+' ('+e.tipo+').']);}
-          html+='<td><select class="'+cls+'" data-g="'+g+'" data-i="'+i+'" data-j="'+j+'" aria-label="'+GS[g]+' em '+br(e.data)+' '+e.tipo+'">'+opts(g,id)+'</select></td>';
-        }
-        if(vagas)avisos.push(['b',GS[g]+': vaga em aberto em '+br(e.data)+' ('+e.tipo+').']);
-        html+='<td class="no-print"><button class="ghost" data-act="del" data-g="'+g+'" data-i="'+i+'" aria-label="Remover evento">✕</button></td></tr>';
-      });
-      html+='</tbody></table>';
-      const cont={};
-      lista.forEach(e=>e.irmaos.forEach(x=>{if(x)cont[x]=(cont[x]||0)+1;}));
-      const chips=Object.keys(cont).sort((a,b)=>cont[b]-cont[a]||nomeDe(g,a).localeCompare(nomeDe(g,b))).map(id=>'<span><b>'+esc(nomeDe(g,id))+'</b> '+cont[id]+'x</span>').join('');
-      htmlC+='<div class="linhaCont"><b>'+GS[g]+':</b>'+(chips||'<span>sem nomes ainda</span>')+'</div>';
-    }
-    html+='</div>';
-  });
+  const avisos=[];
+  let html='<div class="grupoBloco">';
+  if(!lista.length){
+    html+='<div class="vazio">Sem eventos gerados para os '+GS[g].toLowerCase()+'. Clique em <b>Gerar escala</b>.</div>';
+  }else{
+    const hab=habituais(g),valid=SLOTS.map(s=>s.k);
+    const N=Math.max.apply(null,lista.map(e=>e.irmaos.length).concat([3]));
+    html+='<table class="escala"><thead><tr><th class="titulo" colspan="'+(N+3)+'">ESCALA DOS '+GS[g].toUpperCase()+' · '+MESES[S.cfg.mes-1].toUpperCase()+' '+S.cfg.ano+'</th><th class="no-print titulo" style="width:1%"></th></tr>'
+      +'<tr><th>Data</th><th>Dia</th><th>Culto / RJM</th><th colspan="'+N+'">Nomes</th><th class="no-print"></th></tr></thead><tbody>';
+    let semana=null;
+    lista.forEach((e,i)=>{
+      const sk=segundaKey(e.data);
+      if(semana!==null&&sk!==semana)html+='<tr class="esp"><td colspan="'+(N+4)+'"></td></tr>';
+      semana=sk;
+      const chave=slotKey(e),checar=valid.indexOf(chave)>=0;
+      const dup={};e.irmaos.forEach(x=>{if(x)dup[x]=(dup[x]||0)+1;});
+      let vagas=0;
+      html+='<tr><td>'+br(e.data)+'</td><td>'+DIAS[parse(e.data).getDay()]+'</td><td class="tipo">'+e.tipo+'</td>';
+      for(let j=0;j<N;j++){
+        const id=e.irmaos[j]||null;let cls='';
+        if(!id)vagas++;
+        else if(dup[id]>1){cls='dup';avisos.push(['b',GS[g]+': '+up(g,id)+' aparece duas vezes em '+br(e.data)+' ('+e.tipo+').']);}
+        else if(checar&&hab[id]&&!hab[id].has(chave)){cls='fora';avisos.push(['w',GS[g]+': '+up(g,id)+' está fora do dia habitual em '+br(e.data)+' ('+e.tipo+').']);}
+        html+='<td><select class="'+cls+'" data-g="'+g+'" data-i="'+i+'" data-j="'+j+'" aria-label="'+GS[g]+' em '+br(e.data)+' '+e.tipo+'">'+opts(g,id)+'</select></td>';
+      }
+      if(vagas)avisos.push(['b',GS[g]+': vaga em aberto em '+br(e.data)+' ('+e.tipo+').']);
+      html+='<td class="no-print"><button class="ghost" data-act="del" data-g="'+g+'" data-i="'+i+'" aria-label="Remover evento">✕</button></td></tr>';
+    });
+    html+='</tbody></table>';
+    const cont={};
+    lista.forEach(e=>e.irmaos.forEach(x=>{if(x)cont[x]=(cont[x]||0)+1;}));
+    const chips=Object.keys(cont).sort((a,b)=>cont[b]-cont[a]||nomeDe(g,a).localeCompare(nomeDe(g,b))).map(id=>'<span><b>'+esc(nomeDe(g,id))+'</b> '+cont[id]+'x</span>').join('');
+    ct.innerHTML='<div class="linhaCont"><b>'+GS[g]+':</b>'+(chips||'<span>sem nomes ainda</span>')+'</div>';
+  }
+  html+='</div>';
   folha.innerHTML=html;
   av.innerHTML=avisos.slice(0,14).map(a=>'<div class="aviso '+a[0]+'">'+esc(a[1])+'</div>').join('')+(avisos.length>14?'<div class="aviso w">E mais '+(avisos.length-14)+' aviso(s).</div>':'');
-  ct.innerHTML=htmlC;
 }
 
 /* ---------- extras / excluídos ---------- */
 function renderChips(){
-  $('#chipsExtra').innerHTML=S.cfg.extras.map((x,i)=>{
-    const gl=x.g==='A'?'Irmãos + Irmãs':GS[x.g];
-    return '<span class="chip">Extra: '+br(x.data)+' '+x.tipo+' · '+gl+'<button data-act="rmExtra" data-i="'+i+'" aria-label="Remover extra">✕</button></span>';
-  }).join('');
-  $('#chipsExcl').innerHTML=S.cfg.excluir.map((k,i)=>{
-    const p=k.split('|');
-    return '<span class="chip">Removido: '+br(p[1])+' '+p[2]+' ('+GS[p[0]]+')<button data-act="rmExcl" data-i="'+i+'" aria-label="Restaurar">Restaurar</button></span>';
-  }).join('');
+  const ce=$('#chipsExtra'),cx=$('#chipsExcl');
+  if(ce){
+    const extrasAba=S.cfg.extras.filter(x=>x.g===aba||x.g==='A');
+    ce.innerHTML=extrasAba.map(x=>{
+      const realIdx=S.cfg.extras.indexOf(x);
+      return '<span class="chip">Extra: '+br(x.data)+' '+x.tipo+'<button data-act="rmExtra" data-i="'+realIdx+'" aria-label="Remover extra">✕</button></span>';
+    }).join('');
+  }
+  if(cx){
+    const exclAba=S.cfg.excluir.filter(k=>k.startsWith(aba+'|'));
+    cx.innerHTML=exclAba.map(k=>{
+      const realIdx=S.cfg.excluir.indexOf(k);
+      const p=k.split('|');
+      return '<span class="chip">Removido: '+br(p[1])+' '+p[2]+'<button data-act="rmExcl" data-i="'+realIdx+'" aria-label="Restaurar">Restaurar</button></span>';
+    }).join('');
+  }
 }
 
 /* ---------- exportar ---------- */
 function textoEscala(){
-  if(!S.escala)return '';
-  let out='';
-  ['M','F'].forEach(g=>{
-    const lista=S.escala[g]||[];
-    if(!S.groups[g].people.length||!lista.length)return;
-    out+=(out?'\n':'')+'== ESCALA DOS '+GS[g].toUpperCase()+' ==\n';
-    let sem=null;
-    lista.forEach(e=>{
-      const sk=segundaKey(e.data);
-      if(sem!==null&&sk!==sem)out+='\n';
-      sem=sk;
-      out+=DIAS[parse(e.data).getDay()]+' '+br(e.data).slice(0,5)+' - '+e.tipo+': '+e.irmaos.map(x=>x?up(g,x):'(vago)').join(', ')+'\n';
-    });
+  const g=aba;
+  const lista=S.escala[g]||[];
+  if(!S.groups[g].people.length||!lista.length)return '';
+  let out='== ESCALA DOS '+GS[g].toUpperCase()+' · '+MESES[S.cfg.mes-1].toUpperCase()+' '+S.cfg.ano+' ==\n\n';
+  let sem=null;
+  lista.forEach(e=>{
+    const sk=segundaKey(e.data);
+    if(sem!==null&&sk!==sem)out+='\n';
+    sem=sk;
+    out+=DIAS[parse(e.data).getDay()]+' '+br(e.data).slice(0,5)+' - '+e.tipo+': '+e.irmaos.map(x=>x?up(g,x):'(vago)').join(', ')+'\n';
   });
   return out;
 }
 function copiar(){
-  const t=textoEscala();if(!t){toast('Gere a escala primeiro.');return;}
+  const t=textoEscala();if(!t){toast('Gere a escala dos '+GS[aba].toLowerCase()+' primeiro.');return;}
   const fb=()=>{const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');toast('Texto copiado.');}catch(e){toast('Não foi possível copiar.');}a.remove();};
   if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(()=>toast('Texto copiado.'),fb);}else fb();
 }
 function baixarCsv(){
-  if(!S.escala){toast('Gere a escala primeiro.');return;}
+  const g=aba;
+  const lista=S.escala[g]||[];
+  if(!lista.length){toast('Gere a escala dos '+GS[aba].toLowerCase()+' primeiro.');return;}
   let NG=3;
-  ['M','F'].forEach(g=>{(S.escala[g]||[]).forEach(e=>{if(e.irmaos.length>NG)NG=e.irmaos.length;});});
+  lista.forEach(e=>{if(e.irmaos.length>NG)NG=e.irmaos.length;});
   const head=['Grupo','Data','Dia','Culto/RJM'];for(let j=1;j<=NG;j++)head.push('Nome '+j);
   const linhas=[head.join(';')];
-  ['M','F'].forEach(g=>{
-    if(!S.groups[g].people.length)return;
-    (S.escala[g]||[]).forEach(e=>{
-      const r=[GS[g].toUpperCase(),br(e.data),DIAS[parse(e.data).getDay()],e.tipo];
-      for(let j=0;j<NG;j++)r.push(e.irmaos[j]?up(g,e.irmaos[j]):'');
-      linhas.push(r.join(';'));
-    });
+  lista.forEach(e=>{
+    const r=[GS[g].toUpperCase(),br(e.data),DIAS[parse(e.data).getDay()],e.tipo];
+    for(let j=0;j<NG;j++)r.push(e.irmaos[j]?up(g,e.irmaos[j]):'');
+    linhas.push(r.join(';'));
   });
-  if(linhas.length===1){toast('Nada para exportar.');return;}
   try{
     const blob=new Blob(['\ufeff'+linhas.join('\r\n')],{type:'text/csv;charset=utf-8'});
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-    a.download='escalas-'+S.cfg.ano+'-'+pad(S.cfg.mes)+'.csv';document.body.appendChild(a);a.click();a.remove();
-  }catch(e){toast('Download indisponível aqui. Use "Copiar texto".');}
+    a.download='escala-'+GS[g].toLowerCase()+'-'+S.cfg.ano+'-'+pad(S.cfg.mes)+'.csv';document.body.appendChild(a);a.click();a.remove();
+  }catch(e){toast('Download indisponível.');}
 }
 
 /* ---------- init / eventos ---------- */
 function renderCfg(){
-  $('#mes').innerHTML=MESES.map((m,i)=>'<option value="'+(i+1)+'"'+(i+1===S.cfg.mes?' selected':'')+'>'+m+'</option>').join('');
-  $('#ano').value=S.cfg.ano;
-  $('#inicio').value=String(S.cfg.inicio);
-  $('#ensaio').checked=!!S.cfg.ensaio;
+  const mesEl=$('#mes'),anoEl=$('#ano'),iniEl=$('#inicio'),ensEl=$('#ensaio');
+  if(mesEl)mesEl.innerHTML=MESES.map((m,i)=>'<option value="'+(i+1)+'"'+(i+1===S.cfg.mes?' selected':'')+'>'+m+'</option>').join('');
+  if(anoEl)anoEl.value=S.cfg.ano;
+  if(iniEl)iniEl.value=String(S.cfg.inicio);
+  if(ensEl)ensEl.checked=!!S.cfg.ensaio;
 }
 function renderAll(){renderTabs();renderLista();renderModelo();renderChips();renderResultado();}
 
 document.addEventListener('click',ev=>{
   const tb=ev.target.closest('.tabbtn');
-  if(tb){aba=tb.dataset.tab;editId=null;renderTabs();renderLista();renderModelo();return;}
+  if(tb){
+    aba=tb.dataset.tab;
+    editId=null;
+    renderTabs();renderLista();renderModelo();renderChips();renderResultado();
+    return;
+  }
   const b=ev.target.closest('[data-act]');if(!b)return;
   const act=b.dataset.act,id=b.dataset.id;
   if(act==='rm')remover(aba,id);
@@ -621,9 +639,18 @@ document.addEventListener('click',ev=>{
     S.escala[g].splice(Number(b.dataset.i),1);
     markDirty();renderChips();renderResultado();
   }
-  else if(act==='rmExtra'){S.cfg.extras.splice(Number(b.dataset.i),1);markDirty();renderChips();}
-  else if(act==='rmExcl'){S.cfg.excluir.splice(Number(b.dataset.i),1);markDirty();renderChips();toast('Restaurado. Clique em Gerar escala para atualizar.');}
+  else if(act==='rmExtra'){
+    const realIdx=Number(b.dataset.i);
+    S.cfg.extras.splice(realIdx,1);
+    markDirty();renderChips();
+  }
+  else if(act==='rmExcl'){
+    const realIdx=Number(b.dataset.i);
+    S.cfg.excluir.splice(realIdx,1);
+    markDirty();renderChips();toast('Restaurado. Clique em Gerar escala para atualizar.');
+  }
 });
+
 document.addEventListener('change',ev=>{
   const t=ev.target;
   if(t.dataset.g&&t.dataset.w!==undefined){
@@ -633,7 +660,7 @@ document.addEventListener('change',ev=>{
       const nb=criarPessoa(g);
       if(!nb){renderModelo();return;}
       G.cycle[w][k][p]=nb.id;markDirty();renderAll();
-      toast(nb.nome+' cadastrado(a) e já colocado(a) na vaga.');
+      toast(nb.nome+' cadastrado(a) e adicionado(a).');
       return;
     }
     G.cycle[w][k][p]=t.value||null;markDirty();renderLista();return;
@@ -645,39 +672,43 @@ document.addEventListener('change',ev=>{
       const nb=criarPessoa(g);
       if(!nb){renderResultado();return;}
       e.irmaos[j]=nb.id;S.manual[ovKey(g,e.data,e.tipo,j)]=nb.id;markDirty();renderAll();
-      toast(nb.nome+' cadastrado(a) e já colocado(a) na vaga.');
+      toast(nb.nome+' cadastrado(a) e adicionado(a).');
       return;
     }
     e.irmaos[j]=t.value||null;
-    S.manual[ovKey(g,e.data,e.tipo,j)]=e.irmaos[j]; // grava a edição para sobreviver ao "Gerar escala"
+    S.manual[ovKey(g,e.data,e.tipo,j)]=e.irmaos[j];
     markDirty();renderResultado();return;
   }
 });
- $('#btnAdd').addEventListener('click',addPessoas);
- $('#novo').addEventListener('keydown',e=>{if(e.key==='Enter')addPessoas();});
- $('#btnSalvar').addEventListener('click',()=>{forceSave();toast('✓ Salvo no navegador.');});
- $('#btnSalvar2').addEventListener('click',()=>{forceSave();toast('✓ Salvo no navegador.');});
- $('#mes').addEventListener('change',e=>{S.cfg.mes=Number(e.target.value);markDirty();});
- $('#ano').addEventListener('change',e=>{const v=Number(e.target.value);if(v>=2024&&v<=2100){S.cfg.ano=v;markDirty();}});
- $('#inicio').addEventListener('change',e=>{S.cfg.inicio=e.target.value;markDirty();});
- $('#ensaio').addEventListener('change',e=>{S.cfg.ensaio=e.target.checked;markDirty();});
- $('#btnExtra').addEventListener('click',()=>{
+
+$('#btnAdd').addEventListener('click',addPessoas);
+$('#novo').addEventListener('keydown',e=>{if(e.key==='Enter')addPessoas();});
+$('#btnSalvar').addEventListener('click',()=>{forceSave();toast('✓ Salvo no navegador.');});
+$('#btnSalvar2').addEventListener('click',()=>{forceSave();toast('✓ Salvo no navegador.');});
+$('#mes').addEventListener('change',e=>{S.cfg.mes=Number(e.target.value);markDirty();});
+$('#ano').addEventListener('change',e=>{const v=Number(e.target.value);if(v>=2024&&v<=2100){S.cfg.ano=v;markDirty();}});
+$('#inicio').addEventListener('change',e=>{S.cfg.inicio=e.target.value;markDirty();});
+$('#ensaio').addEventListener('change',e=>{S.cfg.ensaio=e.target.checked;markDirty();});
+$('#btnExtra').addEventListener('click',()=>{
   const d=$('#exData').value;if(!d){toast('Escolha a data do evento extra.');return;}
-  S.cfg.extras.push({data:d,tipo:$('#exTipo').value,g:$('#exGrupo').value});
+  S.cfg.extras.push({data:d,tipo:$('#exTipo').value,g:aba});
   markDirty();renderChips();toast('Extra adicionado. Clique em Gerar escala.');
 });
- $('#btnGerar').addEventListener('click',gerar);
- $('#btnCopiar').addEventListener('click',copiar);
- $('#btnCsv').addEventListener('click',baixarCsv);
- $('#btnPrint').addEventListener('click',()=>{if(!S.escala){toast('Gere a escala primeiro.');return;}window.print();});
- $('#btnReset').addEventListener('click',()=>{
-  if(!confirm('Voltar aos dados originais (setembro/2026, sem William) e apagar as mudanças?'))return;
+$('#btnGerar').addEventListener('click',gerar);
+$('#btnCopiar').addEventListener('click',copiar);
+$('#btnCsv').addEventListener('click',baixarCsv);
+$('#btnPrint').addEventListener('click',()=>{if(!S.escala[aba]){toast('Gere a escala primeiro.');return;}window.print();});
+$('#btnReset').addEventListener('click',()=>{
+  if(!confirm('Restaurar escala padrão com Márcio aos domingos à noite?'))return;
   S=defaults();aba='M';editId=null;forceSave();renderCfg();renderAll();toast('Dados originais restaurados.');
 });
 
-renderCfg();renderAll();
-forceSave(); // grava já no primeiro abrir (inclusive a exclusão do William)
-if(_mig)toast('Dados antigos migrados. William foi excluído — as vagas dele ficaram abertas (—).');
+renderCfg();
+if(!S.escala||!S.escala.M||!S.escala.M.length){
+  S.escala={M:montar('M'),F:montar('F')};
+}
+renderAll();
+forceSave();
 })();
 </script>
 </body>
