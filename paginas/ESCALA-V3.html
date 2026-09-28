@@ -1,683 +1,781 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Escalas dos Irmãos e das Irmãs</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Escala dos Irmãos</title>
 <style>
 :root{
-  --bg:#eef1f4; --card:#ffffff; --ink:#1b2733; --mute:#5d6b79; --line:#c9d1d9;
-  --acc:#1d5a86; --acc-ink:#ffffff; --acc-soft:#dcebf5;
-  --fem:#93407c; --fem-ink:#ffffff; --fem-soft:#f7e3f2;
-  --warn:#8a5a00; --warn-bg:#fff2cf; --bad:#a3271f; --bad-bg:#fde3e0;
-  --ok:#2e7d32; --ok-ink:#ffffff;
-  --head:#1b2733; --head-ink:#ffffff;
-  --f-title:"Archivo Narrow","Arial Narrow",Arial,sans-serif;
-  --f-body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-  box-sizing:border-box;
-  padding-top:env(safe-area-inset-top,0px);
-  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#f1f4f9; --card:#ffffff; --text:#1e293b; --muted:#64748b;
+  --primary:#2563eb; --primary-dark:#1d4ed8; --danger:#dc2626;
+  --border:#e2e8f0;
+  --shadow:0 1px 3px rgba(15,23,42,.08), 0 4px 14px rgba(15,23,42,.06);
+  --radius:14px;
 }
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#12181e; --card:#1b232b; --ink:#e6ebf0; --mute:#97a5b3; --line:#34424f;
-    --acc:#6fb1de; --acc-ink:#0d1a24; --acc-soft:#1f3546;
-    --fem:#c77fb2; --fem-ink:#1c0f18; --fem-soft:#3d2739;
-    --warn:#f0c46a; --warn-bg:#3a2f14; --bad:#ff9d94; --bad-bg:#40201d;
-    --ok:#66bb6a; --ok-ink:#0c1a0e;
-    --head:#0c1116; --head-ink:#e6ebf0;
-  }
+*{margin:0;padding:0;box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{font-family:'Segoe UI',system-ui,-apple-system,Roboto,'Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh}
+body.modal-open{overflow:hidden}
+button{font-family:inherit;cursor:pointer}
+input{font-family:inherit}
+:focus-visible{outline:3px solid #93c5fd;outline-offset:1px}
+
+/* ============ CABEÇALHO ============ */
+.app-header{background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 60%,#3b82f6 100%);color:#fff;padding:18px 20px;box-shadow:0 2px 12px rgba(30,58,138,.35)}
+.header-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:14px}
+.logo{width:52px;height:52px;border-radius:14px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;font-size:28px;border:1px solid rgba(255,255,255,.25);flex-shrink:0}
+.brand h1{font-size:22px;font-weight:700;letter-spacing:.2px}
+.subtitle{font-size:13px;opacity:.88}
+.header-actions{display:flex;gap:10px;flex-wrap:wrap}
+
+/* ============ BOTÕES ============ */
+.btn{border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:all .15s ease}
+.btn:active{transform:scale(.97)}
+.btn-white{background:#fff;color:var(--primary-dark);box-shadow:0 2px 6px rgba(0,0,0,.18)}
+.btn-white:hover{background:#e8efff;transform:translateY(-1px)}
+.btn-light{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.35)}
+.btn-light:hover{background:rgba(255,255,255,.26)}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dark);transform:translateY(-1px)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-danger:hover{background:#b91c1c}
+.btn-ghost-gray{background:#f1f5f9;color:#475569;border:1px solid var(--border)}
+.btn-ghost-gray:hover{background:#e2e8f0}
+.btn-danger-ghost{background:#fef2f2;color:var(--danger);border:1px solid #fecaca}
+.btn-danger-ghost:hover{background:#fee2e2}
+.btn-cancel{background:#f1f5f9;color:#475569}
+.btn-cancel:hover{background:#e2e8f0}
+.btn-lg{padding:13px 22px;font-size:15px;border-radius:12px}
+
+/* ============ CONTAINER / ESTATÍSTICAS ============ */
+.container{max-width:1200px;margin:0 auto;padding:0 20px}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:22px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;box-shadow:var(--shadow)}
+.stat-num{font-size:28px;font-weight:800;color:var(--primary-dark)}
+.stat-num.small{font-size:18px;line-height:1.5}
+.stat-label{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+
+/* ============ ABAS ============ */
+.tabs{display:flex;gap:6px;margin:18px auto 0;background:#fff;border:1px solid var(--border);padding:6px;border-radius:12px;width:fit-content;box-shadow:var(--shadow)}
+.tab{border:none;background:transparent;padding:9px 18px;border-radius:8px;font-size:14px;font-weight:600;color:var(--muted);transition:all .15s;white-space:nowrap}
+.tab:hover{color:var(--primary)}
+.tab.active{background:var(--primary);color:#fff;box-shadow:0 2px 8px rgba(37,99,235,.35)}
+
+/* ============ ESCALA SEMANAL ============ */
+.week-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:12px;margin-top:18px}
+.day-card{background:var(--card);border:1px solid var(--border);border-top:4px solid var(--primary);border-radius:12px;box-shadow:var(--shadow);padding:12px;display:flex;flex-direction:column;min-height:190px}
+.day-card.d0{border-top-color:#ef4444}
+.day-card.d1{border-top-color:#3b82f6}
+.day-card.d2{border-top-color:#10b981}
+.day-card.d3{border-top-color:#f59e0b}
+.day-card.d4{border-top-color:#8b5cf6}
+.day-card.d5{border-top-color:#06b6d4}
+.day-card.d6{border-top-color:#ec4899}
+.day-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:6px}
+.day-head h3{font-size:13.5px;font-weight:700}
+.day-count{background:#eef2ff;color:var(--primary-dark);font-size:12px;font-weight:800;border-radius:999px;padding:2px 9px;min-width:24px;text-align:center}
+.day-count.count-zero{background:#fef2f2;color:var(--danger)}
+.week-list{list-style:none;display:flex;flex-direction:column;gap:8px;flex:1}
+.week-item{background:#f8fafc;border:1px solid var(--border);border-radius:9px;padding:8px 10px}
+.week-name{display:block;font-size:13px;font-weight:600}
+.week-funcao{display:block;font-size:11.5px;color:var(--muted);margin-top:2px}
+.week-item-empty{border:1px dashed #fecaca;background:#fffafa;color:#f87171;text-align:center;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;min-height:46px;border-radius:9px}
+.day-add{margin-top:10px;border:1px dashed #cbd5e1;background:transparent;color:var(--muted);border-radius:9px;padding:7px;font-size:12px;font-weight:600;width:100%;transition:all .15s}
+.day-add:hover{border-color:var(--primary);color:var(--primary);background:#eff6ff}
+
+/* ============ CALENDÁRIO MENSAL ============ */
+.cal-toolbar{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:18px;flex-wrap:wrap}
+.cal-title{font-size:18px;font-weight:800;min-width:210px;text-align:center}
+.calendar-card{background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);margin-top:14px;padding:14px}
+.cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px}
+.cal-weekdays div{text-align:center;font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;padding:6px 2px;letter-spacing:.5px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-cell{border:1px solid var(--border);border-radius:9px;min-height:88px;padding:6px;display:flex;flex-direction:column;gap:4px;background:#fff}
+.cal-cell.cal-blank{background:transparent;border-color:transparent}
+.cal-daynum{font-size:12.5px;font-weight:800;color:#475569}
+.cal-today{background:#eff6ff;border-color:var(--primary);box-shadow:inset 0 0 0 1.5px var(--primary)}
+.cal-today .cal-daynum{color:var(--primary-dark)}
+.cal-chips{display:flex;flex-direction:column;gap:3px;overflow:hidden}
+.cal-chip{background:#eef2ff;color:#1e40af;font-size:10.5px;font-weight:600;padding:2px 6px;border-radius:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cal-nobody{color:#fca5a5;font-size:11px;font-weight:600}
+.cal-note{margin-top:12px;font-size:13px;color:var(--muted);text-align:center}
+
+/* ============ LISTA DE IRMÃOS ============ */
+.list-toolbar{display:flex;gap:10px;margin-top:18px}
+.list-toolbar input{flex:1;border:1px solid var(--border);border-radius:10px;padding:11px 14px;font-size:14px;background:#fff;min-width:0}
+.list-toolbar input:focus{outline:2px solid #bfdbfe;border-color:var(--primary)}
+.brother-list{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.brother-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow);cursor:pointer;transition:all .15s}
+.brother-card:hover{border-color:#bfdbfe;transform:translateY(-1px);box-shadow:0 4px 16px rgba(37,99,235,.12)}
+.avatar{width:46px;height:46px;border-radius:50%;color:#fff;font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.brother-info{flex:1;min-width:0}
+.brother-name{font-size:15px;font-weight:700}
+.brother-meta{display:flex;gap:14px;font-size:12.5px;color:var(--muted);margin-top:2px;flex-wrap:wrap}
+.badges{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
+.badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px}
+.badge.d0{background:#fee2e2;color:#b91c1c}
+.badge.d1{background:#dbeafe;color:#1d4ed8}
+.badge.d2{background:#d1fae5;color:#047857}
+.badge.d3{background:#fef3c7;color:#b45309}
+.badge.d4{background:#ede9fe;color:#6d28d9}
+.badge.d5{background:#cffafe;color:#0e7490}
+.badge.d6{background:#fce7f3;color:#be185d}
+.brother-actions{display:flex;gap:8px}
+.icon-btn{width:38px;height:38px;border-radius:10px;border:1px solid var(--border);background:#fff;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.icon-btn:hover{transform:translateY(-1px)}
+.icon-btn.edit:hover{background:#eff6ff;border-color:var(--primary)}
+.icon-btn.del:hover{background:#fef2f2;border-color:var(--danger)}
+.no-results{text-align:center;color:var(--muted);padding:30px;background:#fff;border:1px dashed var(--border);border-radius:12px}
+
+/* ============ ESTADO VAZIO ============ */
+.empty-state{background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);text-align:center;padding:56px 24px;margin-top:18px}
+.empty-emoji{font-size:54px;margin-bottom:12px}
+.empty-state h2{font-size:20px;margin-bottom:8px}
+.empty-state p{color:var(--muted);max-width:540px;margin:0 auto 22px}
+.empty-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+
+/* ============ ZONA DE PERIGO ============ */
+.danger-zone{margin:26px 0 10px;background:#fff7f7;border:1px solid #fecaca;border-radius:12px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.danger-zone strong{color:#b91c1c}
+.danger-zone p{font-size:13px;color:var(--muted)}
+
+/* ============ MODAIS ============ */
+.modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;padding:20px;z-index:100}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:560px;max-height:92vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:pop .18s ease}
+.modal-sm{max-width:440px}
+@keyframes pop{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border);gap:10px}
+.modal-head h2{font-size:18px}
+.modal-body{padding:20px 22px}
+.modal-foot{display:flex;justify-content:flex-end;gap:10px;padding:16px 22px;border-top:1px solid var(--border);background:#f8fafc;border-radius:0 0 16px 16px;flex-wrap:wrap}
+.modal-msg{font-size:14.5px;color:#475569;line-height:1.6}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:13px;font-weight:700;margin-bottom:6px;color:#334155}
+.form-group input{width:100%;border:1px solid var(--border);border-radius:10px;padding:11px 13px;font-size:14px}
+.form-group input:focus{outline:2px solid #bfdbfe;border-color:var(--primary)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.days-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.day-chip{border:1.5px solid var(--border);background:#f8fafc;border-radius:10px;padding:10px 6px;font-size:13px;font-weight:600;color:#475569;transition:all .12s;text-align:center}
+.day-chip:hover{border-color:#94a3b8}
+.day-chip.selected{background:var(--primary);border-color:var(--primary);color:#fff;box-shadow:0 2px 8px rgba(37,99,235,.35)}
+.hint{font-size:12px;color:var(--muted);margin-top:8px}
+.form-error{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;padding:10px 12px;border-radius:9px;font-size:13px;margin-bottom:4px}
+
+/* ============ TOASTS / RODAPÉ ============ */
+.toasts{position:fixed;bottom:22px;right:22px;display:flex;flex-direction:column;gap:10px;z-index:200;max-width:min(92vw,400px)}
+.toast{background:#fff;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.18);padding:13px 16px;display:flex;gap:10px;align-items:flex-start;font-size:14px;border-left:4px solid #16a34a;animation:slideIn .25s ease}
+.toast-error{border-left-color:var(--danger)}
+.toast.out{opacity:0;transform:translateX(24px);transition:all .35s ease}
+@keyframes slideIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
+.app-footer{max-width:1200px;margin:26px auto 40px;padding:0 20px;font-size:13px;color:var(--muted);text-align:center}
+.print-only{display:none}
+.print-info{text-align:center;color:#475569;font-size:12px;margin-top:10px}
+
+/* ============ RESPONSIVO ============ */
+@media (max-width:820px){
+  .stats-row{grid-template-columns:1fr 1fr}
+  .header-inner{flex-direction:column;align-items:flex-start}
+  .header-actions{width:100%}
+  .header-actions .btn{flex:1}
 }
-*{box-sizing:border-box}
-html{height:100%}
-body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font:16px/1.45 var(--f-body)}
-.wrap{max-width:1040px;margin:0 auto;padding:20px 16px 60px}
-h1{font:700 34px/1.1 var(--f-title);margin:0 0 4px;letter-spacing:.2px}
-h2{font:700 22px/1.2 var(--f-title);margin:0 0 12px}
-.sub{color:var(--mute);margin:0 0 18px;max-width:75ch}
-section.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:18px}
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-input[type=text],input[type=date],input[type=number],select{
-  font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:6px;padding:8px 10px;min-height:40px}
-input[type=text]{flex:1;min-width:200px}
-button{font:600 15px var(--f-body);cursor:pointer;border-radius:6px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 14px;min-height:40px}
-button:hover{border-color:var(--acc)}
-button.pri{background:var(--acc);color:var(--acc-ink);border-color:var(--acc)}
-button.ok{background:var(--ok);color:var(--ok-ink);border-color:var(--ok)}
-button.ok:not(:disabled){animation:pulsa 1.6s infinite}
-@keyframes pulsa{0%,100%{box-shadow:0 0 0 0 rgba(46,125,50,.45)}50%{box-shadow:0 0 0 7px rgba(46,125,50,0)}}
-button.ghost{border-color:transparent;color:var(--mute);padding:4px 10px;min-height:32px}
-button.ghost:hover{color:var(--bad)}
-:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
-.hint{color:var(--mute);font-size:14px;margin:6px 0 0}
+@media (max-width:560px){
+  .stats-row{grid-template-columns:1fr}
+  .form-row{grid-template-columns:1fr}
+  .days-grid{grid-template-columns:repeat(2,1fr)}
+  .cal-cell{min-height:64px}
+  .cal-title{min-width:130px;font-size:16px}
+  .tabs{width:100%}
+  .tab{flex:1;padding:9px 8px}
+  .brother-card{flex-wrap:wrap}
+  .brother-actions{width:100%;justify-content:flex-end}
+}
 
-/* abas */
-.tabs{display:flex;gap:8px;margin:0 0 14px;flex-wrap:wrap}
-.tabbtn{font:700 19px var(--f-title);letter-spacing:.4px;padding:10px 22px;border-radius:8px;min-height:44px}
-.tabbtn .n{font-size:14px;font-weight:600;opacity:.75;margin-left:6px}
-.tabbtn.on{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
-.tabbtn.on.fem{background:var(--fem);border-color:var(--fem);color:var(--fem-ink)}
-
-/* lista */
-#lista{list-style:none;margin:14px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px}
-#lista li{border:1px solid var(--line);border-radius:8px;padding:10px 12px}
-#lista .nome{font:700 18px var(--f-title);text-transform:uppercase;letter-spacing:.3px}
-#lista .uso{font-size:13.5px;color:var(--mute);margin-top:2px}
-#lista .uso b{color:var(--ink);font-weight:600}
-.acoes{display:flex;gap:2px;flex-wrap:wrap;margin-top:6px}
-.editRow{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:2px 0 6px}
-.editRow input{flex:1;min-width:150px;font-weight:700}
-
-/* modelo */
-details.modelo summary{cursor:pointer;font:700 22px var(--f-title);list-style:none}
-details.modelo summary::-webkit-details-marker{display:none}
-details.modelo summary::before{content:"▸ ";color:var(--acc)}
-details.modelo[open] summary::before{content:"▾ "}
-.semanas{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-top:12px}
-.semana{border:1px solid var(--line);border-radius:8px;overflow:hidden}
-.semana h3{margin:0;padding:8px 12px;background:var(--acc-soft);font:700 17px var(--f-title)}
-.semana.fem h3{background:var(--fem-soft)}
-.semana .lin{display:grid;grid-template-columns:96px 1fr;gap:6px;align-items:center;padding:8px 10px;border-top:1px solid var(--line)}
-.semana .lin span{font-size:14px;color:var(--mute)}
-.semana .trio{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
-.semana select{min-height:34px;padding:4px 6px;width:100%;font-size:14px;text-transform:uppercase}
-
-/* gerar */
-.cfg{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;align-items:end;margin-bottom:12px}
-.cfg label{display:flex;flex-direction:column;gap:4px;font-size:14px;color:var(--mute)}
-.cfg label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--ink);min-height:40px}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.chip{display:inline-flex;align-items:center;gap:4px;background:var(--acc-soft);border-radius:999px;padding:2px 4px 2px 10px;font-size:13.5px}
-.chip button{border:0;background:transparent;min-height:24px;padding:0 6px;color:var(--mute)}
-.chip button:hover{color:var(--bad)}
-.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 12px;align-items:center}
-#saveStatus{font-size:13.5px;color:var(--mute)}
-.avisos{display:grid;gap:6px;margin:0 0 12px}
-.aviso{padding:8px 12px;border-radius:8px;font-size:14.5px}
-.aviso.w{background:var(--warn-bg);color:var(--warn)}
-.aviso.b{background:var(--bad-bg);color:var(--bad)}
-.tabwrap{overflow-x:auto}
-table.escala{border-collapse:collapse;width:100%;min-width:640px;background:var(--card);border:2px solid var(--head)}
-table.escala th,table.escala td{border:1px solid var(--head);padding:4px 6px;text-align:center;font:500 17px var(--f-title)}
-table.escala th.titulo{font-size:28px;font-weight:700;padding:8px;text-transform:uppercase;background:var(--card)}
-table.escala thead th{font-weight:700;font-size:20px}
-table.escala tr.esp td{border:0;height:12px;padding:0;background:transparent}
-table.escala tbody tr:not(.esp) td:first-child{white-space:nowrap}
-table.escala select{width:100%;border:0;background:transparent;text-align:center;text-align-last:center;font:500 17px var(--f-title);text-transform:uppercase;padding:2px;min-height:30px;border-radius:0}
-table.escala select.fora{background:var(--warn-bg);color:var(--warn)}
-table.escala select.dup{background:var(--bad-bg);color:var(--bad)}
-table.escala td.tipo{text-transform:uppercase}
-.vazio{padding:24px;text-align:center;color:var(--mute);border:1px dashed var(--line);border-radius:8px}
-.contagem{margin-top:10px;display:grid;gap:6px}
-.linhaCont{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.linhaCont>b{font-family:var(--f-title);font-size:16px;text-transform:uppercase;margin-right:4px}
-.linhaCont span{border:1px solid var(--line);border-radius:6px;padding:3px 10px;font-size:14px}
-.linhaCont span b{text-transform:uppercase;font-family:var(--f-title);font-size:15px}
-.grupoBloco{margin-bottom:26px}
-
-/* barra de salvar */
-#saveBar{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(140%);display:flex;gap:12px;align-items:center;background:var(--warn);color:#fff;padding:10px 14px;border-radius:10px;font-weight:600;font-size:15px;box-shadow:0 6px 18px rgba(0,0,0,.3);transition:transform .25s;z-index:8;max-width:94vw}
-#saveBar.on{transform:translateX(-50%) translateY(0)}
-#saveBar button{min-height:36px;padding:6px 16px}
-#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(80px + env(safe-area-inset-bottom,0px));background:var(--head);color:var(--head-ink);padding:10px 16px;border-radius:8px;font-size:15px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;z-index:9}
-#toast.on{opacity:1}
-
+/* ============ IMPRESSÃO ============ */
 @media print{
-  :root{--bg:#fff;--card:#fff;--ink:#000;--head:#000}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
   body{background:#fff}
   .no-print{display:none!important}
-  #saveBar{display:none!important}
-  .wrap{padding:0;max-width:none}
-  section.card{border:0;padding:0;margin:0}
-  table.escala{min-width:0;border:2px solid #000}
-  table.escala select{appearance:none;-webkit-appearance:none;color:#000;background:transparent!important}
-  .grupoBloco{break-inside:avoid-page;margin-bottom:30px}
+  .print-only{display:block}
+  .container{max-width:100%;padding:0}
+  .week-grid{grid-template-columns:repeat(4,1fr);gap:8px}
+  .day-card{box-shadow:none;min-height:auto;break-inside:avoid}
+  .cal-cell{break-inside:avoid;min-height:72px}
+  .app-header{box-shadow:none}
+  .empty-state{display:none}
 }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header class="no-print">
-    <h1>Escalas dos Irmãos e das Irmãs</h1>
-    <p class="sub"><b>Duas escalas separadas:</b> aba <b>Irmãos</b> e aba <b>Irmãs</b>, cada uma com sua lista e seu modelo de dias fixos. Ao gerar, saem as duas tabelas do mês. Qualquer edição pode ser salva com o botão <b>💾 Salvar</b> — e também salva sozinha por segurança.</p>
-  </header>
 
-  <section class="card no-print">
-    <div class="tabs">
-      <button class="tabbtn on" id="btnTabM" data-tab="M">Irmãos <span class="n" id="cntM"></span></button>
-      <button class="tabbtn fem" id="btnTabF" data-tab="F">Irmãs <span class="n" id="cntF"></span></button>
-    </div>
-    <h2 id="titAba">Irmãos cadastrados</h2>
-    <div class="row">
-      <input type="text" id="novo" placeholder="Nome do irmão (para vários, separe por vírgula)">
-      <button class="pri" id="btnAdd">Cadastrar</button>
-    </div>
-    <p class="hint" id="hintAba"></p>
-    <ul id="lista"></ul>
-    <details class="modelo" id="detModelo">
-      <summary id="titModelo">Modelo da escala dos irmãos (dias fixos)</summary>
-      <p class="hint">Sem tranca — edite quando quiser. “—” deixa a vaga aberta (aparece como aviso na escala). Use <b>💾 Salvar</b> para gravar, ou deixe que salva sozinho.</p>
-      <div class="semanas" id="semanas"></div>
-    </details>
-  </section>
-
-  <section class="card" aria-labelledby="t-gerar">
-    <h2 id="t-gerar" class="no-print">Gerar as duas escalas do mês</h2>
-    <div class="cfg no-print">
-      <label>Mês
-        <select id="mes"></select>
-      </label>
-      <label>Ano
-        <input type="number" id="ano" min="2024" max="2100">
-      </label>
-      <label>Ciclo na 1ª semana do mês
-        <select id="inicio">
-          <option value="auto">Automático (continua de setembro)</option>
-          <option value="0">Semana 1</option>
-          <option value="1">Semana 2</option>
-          <option value="2">Semana 3</option>
-          <option value="3">Semana 4</option>
-        </select>
-      </label>
-      <label class="chk"><input type="checkbox" id="ensaio"> Ensaio no 2º sábado (mesma equipe do culto)</label>
-    </div>
-
-    <div class="no-print">
-      <div class="row">
-        <input type="date" id="exData" aria-label="Data do evento extra">
-        <select id="exTipo" aria-label="Tipo do evento extra"><option>CULTO</option><option>RJM</option><option>ENSAIO</option></select>
-        <select id="exGrupo" aria-label="Grupo do evento extra">
-          <option value="M">Irmãos</option>
-          <option value="F">Irmãs</option>
-          <option value="A">Irmãos + Irmãs</option>
-        </select>
-        <button id="btnExtra">Adicionar evento extra</button>
+<header class="app-header">
+  <div class="header-inner">
+    <div class="brand">
+      <div class="logo">📅</div>
+      <div>
+        <h1>Escala dos Irmãos</h1>
+        <p class="subtitle">Cadastre os irmãos, marque os dias de trabalho e a escala se monta sozinha</p>
       </div>
-      <div class="chips" id="chipsExtra"></div>
-      <div class="chips" id="chipsExcl"></div>
     </div>
-
-    <div class="toolbar no-print">
-      <button class="pri" id="btnGerar">Gerar escala</button>
-      <button id="btnSalvar" class="ok">💾 Salvar</button>
-      <span id="saveStatus"></span>
-      <button id="btnCopiar">Copiar texto</button>
-      <button id="btnCsv">Baixar CSV</button>
-      <button id="btnPrint">Imprimir / PDF</button>
+    <div class="header-actions no-print">
+      <button class="btn btn-light" onclick="backup()">💾 Backup</button>
+      <button class="btn btn-light" onclick="document.getElementById('restoreInput').click()">📂 Restaurar</button>
+      <button class="btn btn-light" onclick="printEscala()">🖨️ Imprimir</button>
+      <button class="btn btn-white" onclick="openModal()">＋ Novo Irmão</button>
     </div>
+  </div>
+</header>
+<input type="file" id="restoreInput" accept=".json,application/json" hidden>
 
-    <div class="avisos no-print" id="avisos"></div>
-    <div class="tabwrap" id="folha"></div>
-    <div class="contagem no-print" id="contagem"></div>
-    <p class="row no-print" style="margin-top:22px"><button class="ghost" id="btnReset">Restaurar dados originais (setembro/2026, sem William)</button></p>
+<div class="container">
+  <div class="stats-row no-print">
+    <div class="stat-card">
+      <div class="stat-num" id="statIrmaos">0</div>
+      <div class="stat-label">Irmãos cadastrados</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="statDesignacoes">0</div>
+      <div class="stat-label">Designações na semana</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num small" id="statVazios">—</div>
+      <div class="stat-label">Dias sem ninguém escalado</div>
+    </div>
+  </div>
+
+  <nav class="tabs no-print">
+    <button class="tab active" data-tab="week">🗓️ Escala da Semana</button>
+    <button class="tab" data-tab="calendar">📆 Calendário do Mês</button>
+    <button class="tab" data-tab="brothers">👥 Irmãos Cadastrados</button>
+  </nav>
+
+  <p id="printInfo" class="print-only print-info"></p>
+
+  <section id="tab-week">
+    <div id="weekGrid" class="week-grid"></div>
+    <div id="weekEmpty" class="empty-state no-print" hidden>
+      <div class="empty-emoji">🗓️</div>
+      <h2>Sua escala está vazia</h2>
+      <p>Cadastre os irmãos e marque os dias da semana em que cada um vai trabalhar. A escala da semana aparece aqui automaticamente e fica salva no seu navegador.</p>
+      <div class="empty-actions">
+        <button class="btn btn-primary btn-lg" onclick="openModal()">＋ Cadastrar primeiro irmão</button>
+        <button class="btn btn-ghost-gray btn-lg" onclick="loadSample()">Ver com dados de exemplo</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-calendar" hidden>
+    <div class="cal-toolbar no-print">
+      <button type="button" class="btn btn-ghost-gray" onclick="calPrev()" title="Mês anterior">◀</button>
+      <div class="cal-title" id="calTitle">—</div>
+      <button type="button" class="btn btn-ghost-gray" onclick="calNext()" title="Próximo mês">▶</button>
+      <button type="button" class="btn btn-ghost-gray" onclick="calToday()">📍 Hoje</button>
+    </div>
+    <div class="calendar-card">
+      <div class="cal-weekdays">
+        <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+    <p class="cal-note no-print">O calendário mostra automaticamente em cada data os irmãos escalados para aquele dia da semana — com a quantidade certa de dias de cada mês, inclusive fevereiro em ano bissexto.</p>
+  </section>
+
+  <section id="tab-brothers" hidden>
+    <div class="list-toolbar no-print">
+      <input id="searchInput" type="search" placeholder="🔎 Buscar irmão pelo nome...">
+      <button class="btn btn-primary" onclick="openModal()">＋ Novo Irmão</button>
+    </div>
+    <div id="brotherList" class="brother-list"></div>
+    <div id="brothersEmpty" class="empty-state no-print" hidden>
+      <div class="empty-emoji">👥</div>
+      <h2>Nenhum irmão cadastrado</h2>
+      <p>Clique no botão abaixo para cadastrar o primeiro irmão e escolher os dias da semana em que ele vai trabalhar. Depois você pode editar tudo quando quiser.</p>
+      <div class="empty-actions">
+        <button class="btn btn-primary btn-lg" onclick="openModal()">＋ Cadastrar primeiro irmão</button>
+      </div>
+    </div>
+    <div id="dangerZone" class="danger-zone no-print" hidden>
+      <div>
+        <strong>⚠️ Zona de perigo</strong>
+        <p>Apagar todos os irmãos cadastrados de uma vez. Faça um backup antes se quiser guardar os dados.</p>
+      </div>
+      <button class="btn btn-danger-ghost" onclick="askClearAll()">🗑️ Apagar todos</button>
+    </div>
   </section>
 </div>
 
-<div id="saveBar" role="status">
-  <span>Alterações não salvas</span>
-  <button class="pri" id="btnSalvar2">Salvar agora</button>
+<footer class="app-footer no-print">💾 As alterações são salvas automaticamente neste navegador. Use <b>💾 Backup</b> para guardar uma cópia de segurança e <b>📂 Restaurar</b> para recuperá-la em outro computador.</footer>
+
+<!-- ===== MODAL: CADASTRAR / EDITAR IRMÃO ===== -->
+<div class="modal-overlay" id="brotherModal" hidden role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="modalTitle">Novo Irmão</h2>
+      <button type="button" class="icon-btn" onclick="closeModal()" title="Fechar">✕</button>
+    </div>
+    <form id="brotherForm" novalidate>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="fNome">Nome do irmão *</label>
+          <input id="fNome" type="text" maxlength="80" placeholder="Ex.: João da Silva" autocomplete="off">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fTelefone">Telefone (opcional)</label>
+            <input id="fTelefone" type="text" maxlength="20" placeholder="(11) 99999-9999" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="fFuncao">Função / Atribuição (opcional)</label>
+            <input id="fFuncao" type="text" maxlength="60" placeholder="Ex.: Som, Limpeza, Recepção..." autocomplete="off">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Dias da semana que o irmão vai trabalhar *</label>
+          <div class="days-grid" id="daysGrid"></div>
+          <p class="hint">Clique nos dias para marcar ou desmarcar. Depois você pode editar tudo quando quiser.</p>
+        </div>
+        <p id="formError" class="form-error" hidden></p>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn btn-cancel" onclick="closeModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primary">💾 Salvar Irmão</button>
+      </div>
+    </form>
+  </div>
 </div>
-<div id="toast" role="status"></div>
+
+<!-- ===== MODAL: CONFIRMAÇÃO ===== -->
+<div class="modal-overlay" id="confirmModal" hidden role="dialog" aria-modal="true">
+  <div class="modal modal-sm">
+    <div class="modal-head">
+      <h2 id="confirmTitle">Confirmar</h2>
+      <button type="button" class="icon-btn" onclick="cancelConfirm()" title="Fechar">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="confirmMsg" class="modal-msg"></p>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn btn-cancel" onclick="cancelConfirm()">Cancelar</button>
+      <button type="button" class="btn btn-danger" id="confirmOk" onclick="doConfirm()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toasts" class="toasts no-print"></div>
 
 <script>
-(function(){
 'use strict';
-const KEY='escalas-v3';
-const KEY_OLD='escala-irmaos-v2';
-const DIAS=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
-const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-const RANK={ENSAIO:0,RJM:1,CULTO:2};
-const SLOTS=[
-  {k:'4|CULTO',dow:4,tipo:'CULTO',nome:'Quinta: Culto'},
-  {k:'6|CULTO',dow:6,tipo:'CULTO',nome:'Sábado: Culto'},
-  {k:'0|RJM',dow:0,tipo:'RJM',nome:'Domingo: RJM'},
-  {k:'0|CULTO',dow:0,tipo:'CULTO',nome:'Domingo: Culto'}
+/* ============================== DADOS E CONSTANTES ============================== */
+const DAYS = [
+  { i: 0, full: 'Domingo',       short: 'Dom' },
+  { i: 1, full: 'Segunda-feira', short: 'Seg' },
+  { i: 2, full: 'Terça-feira',   short: 'Ter' },
+  { i: 3, full: 'Quarta-feira',  short: 'Qua' },
+  { i: 4, full: 'Quinta-feira',  short: 'Qui' },
+  { i: 5, full: 'Sexta-feira',   short: 'Sex' },
+  { i: 6, full: 'Sábado',        short: 'Sáb' }
 ];
-const GS={M:'Irmãos',F:'Irmãs'};
-const REF=new Date(2026,7,31); // segunda-feira da semana 1 do ciclo (03/09/2026)
-const $=s=>document.querySelector(s);
-const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const pad=n=>String(n).padStart(2,'0');
-const iso=(y,m,d)=>y+'-'+pad(m)+'-'+pad(d);
-const parse=s=>{const p=s.split('-').map(Number);return new Date(p[0],p[1]-1,p[2]);};
-const br=s=>{const p=s.split('-');return p[2]+'/'+p[1]+'/'+p[0];};
-const mod=(a,n)=>((a%n)+n)%n;
-const uid=()=>Math.random().toString(36).slice(2,9);
-const capNome=s=>String(s).replace(/\S+/g,w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase());
-const cp=o=>JSON.parse(JSON.stringify(o));
+const MONTH_NAMES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const STORE_KEY = 'escala-irmaos-v1';
+const AVATAR_COLORS = ['#2563eb','#7c3aed','#db2777','#ea580c','#16a34a','#0891b2','#ca8a04','#4f46e5'];
 
-function defaults(){
-  const nomes={vilas:'Vilas',paulinho:'Paulinho',saulo:'Saulo',nelson:'Nelson',vanderlei:'Vanderlei',edimilson:'Edimilson',rubens:'Rubens',marcos:'Marcos',santo:'Santo',iago:'Iago'};
-  const A1={'4|CULTO':['vilas','paulinho','saulo'],'6|CULTO':['nelson','paulinho','vanderlei'],'0|RJM':['vanderlei','paulinho','edimilson'],'0|CULTO':['rubens','paulinho','nelson']};
-  const B1={'4|CULTO':['vilas',null,'saulo'],'6|CULTO':['marcos',null,'santo'],'0|RJM':['marcos',null,'iago'],'0|CULTO':['iago',null,'santo']};
-  const A2=cp(A1),B2=cp(B1);
-  const h=new Date();let mes=h.getMonth()+2,ano=h.getFullYear();if(mes>12){mes=1;ano++;}
-  return {
-    groups:{
-      M:{people:Object.keys(nomes).map(id=>({id:id,nome:nomes[id]})),cycle:[A1,B1,A2,B2]},
-      F:{people:[],cycle:[{},{},{},{}]}
-    },
-    cfg:{mes:mes,ano:ano,inicio:'auto',ensaio:true,extras:[],excluir:[]},
-    manual:{},
-    escala:{M:null,F:null}
+let state = { brothers: [] };
+let editingId = null;
+let pendingDeleteId = null;
+let pendingClearAll = false;
+let pendingRestoreData = null;
+let calYear = null;
+let calMonth = null;
+
+const $  = (sel) => document.querySelector(sel);
+const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+function escapeHtml(str){
+  return String(str ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function uid(){
+  return 'id-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+}
+
+/* ============================== ARMAZENAMENTO ============================== */
+function storageAvailable(){
+  try { localStorage.setItem('__t','1'); localStorage.removeItem('__t'); return true; }
+  catch(e){ return false; }
+}
+function loadState(){
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    if (parsed && Array.isArray(parsed.brothers)) state = parsed;
+  } catch(e){ console.warn('Falha ao carregar dados salvos:', e); }
+}
+function saveState(){
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+  catch(e){ showToast('Não foi possível salvar os dados neste navegador.', 'error'); }
+}
+
+/* ============================== AUXILIARES ============================== */
+function getSortedBrothers(){
+  return [...state.brothers].sort((a,b) => String(a.name).localeCompare(String(b.name), 'pt-BR'));
+}
+function brothersOfDay(day){
+  return getSortedBrothers().filter(b => Array.isArray(b.dias) && b.dias.includes(day));
+}
+function initials(name){
+  const parts = String(name).trim().split(/\s+/);
+  const first = parts[0] ? parts[0][0] : '?';
+  const last  = parts.length > 1 ? parts[parts.length - 1][0] : '';
+  return (first + last).toUpperCase();
+}
+function avatarColor(name){
+  let h = 0;
+  for (const ch of String(name)) h = (h * 31 + ch.charCodeAt(0)) % 9973;
+  return AVATAR_COLORS[h % AVATAR_COLORS.length];
+}
+
+/* ============================== RENDERIZAÇÃO ============================== */
+function renderWeek(){
+  const grid = $('#weekGrid');
+  grid.innerHTML = DAYS.map(d => {
+    const list = brothersOfDay(d.i);
+    const items = list.length
+      ? list.map(b => `
+          <li class="week-item">
+            <span class="week-name">${escapeHtml(b.name)}</span>
+            ${b.funcao ? `<span class="week-funcao">${escapeHtml(b.funcao)}</span>` : ''}
+          </li>`).join('')
+      : '<li class="week-item-empty">Ninguém escalado</li>';
+    return `
+      <article class="day-card d${d.i}">
+        <header class="day-head">
+          <h3>${d.full}</h3>
+          <span class="day-count ${list.length ? '' : 'count-zero'}">${list.length}</span>
+        </header>
+        <ul class="week-list">${items}</ul>
+        <button type="button" class="day-add no-print" title="Adicionar irmão neste dia" onclick="openModal(null, ${d.i})">＋ escalar neste dia</button>
+      </article>`;
+  }).join('');
+}
+
+function renderBrothers(){
+  const term = ($('#searchInput').value || '').trim().toLowerCase();
+  const all  = getSortedBrothers();
+  const list = all.filter(b => !term || String(b.name).toLowerCase().includes(term));
+  const box  = $('#brotherList');
+
+  if (!all.length){
+    box.innerHTML = '';
+  } else if (!list.length){
+    box.innerHTML = `<div class="no-results">Nenhum irmão encontrado para “${escapeHtml(term)}”.</div>`;
+  } else {
+    box.innerHTML = list.map(b => `
+      <div class="brother-card" onclick="openModal('${b.id}')" title="Clique para editar">
+        <div class="avatar" style="background:${avatarColor(b.name)}">${escapeHtml(initials(b.name))}</div>
+        <div class="brother-info">
+          <div class="brother-name">${escapeHtml(b.name)}</div>
+          <div class="brother-meta">
+            ${b.telefone ? `<span>📞 ${escapeHtml(b.telefone)}</span>` : ''}
+            ${b.funcao ? `<span>🛠️ ${escapeHtml(b.funcao)}</span>` : ''}
+          </div>
+          <div class="badges">
+            ${DAYS.filter(d => (b.dias || []).includes(d.i)).map(d => `<span class="badge d${d.i}">${d.short}</span>`).join('')}
+          </div>
+        </div>
+        <div class="brother-actions no-print">
+          <button type="button" class="icon-btn edit" title="Editar irmão" onclick="event.stopPropagation();openModal('${b.id}')">✏️</button>
+          <button type="button" class="icon-btn del" title="Excluir irmão" onclick="event.stopPropagation();askDelete('${b.id}')">🗑️</button>
+        </div>
+      </div>`).join('');
+  }
+
+  const has = all.length > 0;
+  $('#brothersEmpty').hidden = has;
+  $('#weekEmpty').hidden = has;
+  $('#weekGrid').style.display = has ? '' : 'none';
+  $('#dangerZone').hidden = !has;
+}
+
+function renderStats(){
+  const total = state.brothers.length;
+  const totalDesign = state.brothers.reduce((s,b) => s + ((b.dias && b.dias.length) || 0), 0);
+  const vazios = DAYS.filter(d => brothersOfDay(d.i).length === 0).map(d => d.short);
+  $('#statIrmaos').textContent = total;
+  $('#statDesignacoes').textContent = totalDesign;
+  $('#statVazios').textContent = vazios.length ? vazios.join(', ') : 'Nenhum 🎉';
+}
+
+/* ============================== CALENDÁRIO MENSAL ============================== */
+// Quantidade correta de dias de cada mês: o mecanismo de datas resolve fevereiro
+// automaticamente — 28 dias; 29 em anos bissextos (divisíveis por 4, exceto
+// séculos não divisíveis por 400: 2000 é bissexto, 1900 não é)
+function daysInMonth(year, month){ // month: 0 = Janeiro ... 11 = Dezembro
+  return new Date(year, month + 1, 0).getDate();
+}
+function isLeapYear(year){
+  return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+}
+function initCalendar(){
+  const n = new Date();
+  calYear = n.getFullYear();
+  calMonth = n.getMonth();
+}
+function shortName(name){
+  const p = String(name).trim().split(/\s+/);
+  return p.length > 1 ? p[0] + ' ' + p[p.length - 1][0] + '.' : p[0];
+}
+function renderCalendar(){
+  if (calYear === null) initCalendar();
+  $('#calTitle').textContent = MONTH_NAMES[calMonth] + ' de ' + calYear;
+  const firstDow = new Date(calYear, calMonth, 1).getDay(); // 0 = domingo
+  const total = daysInMonth(calYear, calMonth);
+  const hoje = new Date();
+  const mesmoMes = hoje.getFullYear() === calYear && hoje.getMonth() === calMonth;
+  const diaHoje = hoje.getDate();
+  let cells = '';
+  for (let i = 0; i < firstDow; i++) cells += '<div class="cal-cell cal-blank"></div>';
+  for (let d = 1; d <= total; d++){
+    const dow = new Date(calYear, calMonth, d).getDay();
+    const list = brothersOfDay(dow);
+    const chips = list.length
+      ? list.map(b => `<span class="cal-chip" title="${escapeHtml(b.name)}">${escapeHtml(shortName(b.name))}</span>`).join('')
+      : '<span class="cal-nobody">vago</span>';
+    cells += `<div class="cal-cell ${mesmoMes && d === diaHoje ? 'cal-today' : ''}">
+      <span class="cal-daynum">${d}</span>
+      <div class="cal-chips">${chips}</div>
+    </div>`;
+  }
+  $('#calGrid').innerHTML = cells;
+}
+function calPrev(){ if (calYear === null) initCalendar(); calMonth--; if (calMonth < 0){ calMonth = 11; calYear--; } renderCalendar(); }
+function calNext(){ if (calYear === null) initCalendar(); calMonth++; if (calMonth > 11){ calMonth = 0; calYear++; } renderCalendar(); }
+function calToday(){ initCalendar(); renderCalendar(); }
+
+function renderAll(){ renderWeek(); renderCalendar(); renderBrothers(); renderStats(); }
+
+/* ============================== MODAL: CADASTRAR / EDITAR ============================== */
+function buildDayChips(selected){
+  return DAYS.map(d => `
+    <button type="button" class="day-chip ${selected.includes(d.i) ? 'selected' : ''}" data-day="${d.i}" aria-pressed="${selected.includes(d.i)}" onclick="toggleDayChip(this)">${d.full.replace('-feira','')}</button>`).join('');
+}
+function toggleDayChip(el){
+  el.classList.toggle('selected');
+  el.setAttribute('aria-pressed', el.classList.contains('selected') ? 'true' : 'false');
+}
+function selectedDays(){
+  return $$('#daysGrid .day-chip.selected').map(el => Number(el.dataset.day)).sort((a,b) => a - b);
+}
+function openModal(id = null, presetDay = null){
+  editingId = id;
+  const b = id ? state.brothers.find(x => x.id === id) : null;
+  $('#modalTitle').textContent = b ? 'Editar Irmão' : 'Novo Irmão';
+  $('#fNome').value     = b ? b.name : '';
+  $('#fTelefone').value = (b && b.telefone) ? b.telefone : '';
+  $('#fFuncao').value   = (b && b.funcao) ? b.funcao : '';
+  const pre = b ? (b.dias || []) : (presetDay === null ? [] : [presetDay]);
+  $('#daysGrid').innerHTML = buildDayChips(pre);
+  $('#formError').hidden = true;
+  $('#brotherModal').hidden = false;
+  document.body.classList.add('modal-open');
+  setTimeout(() => { try { $('#fNome').focus(); } catch(e){} }, 60);
+}
+function closeModal(){
+  $('#brotherModal').hidden = true;
+  document.body.classList.remove('modal-open');
+  editingId = null;
+}
+function showFormError(msg){
+  const el = $('#formError');
+  el.textContent = msg;
+  el.hidden = false;
+}
+function submitForm(e){
+  e.preventDefault();
+  const name = $('#fNome').value.trim();
+  const dias = selectedDays();
+  if (!name){ showFormError('Digite o nome do irmão.'); $('#fNome').focus(); return; }
+  if (!dias.length){ showFormError('Marque pelo menos um dia da semana em que ele vai trabalhar.'); return; }
+  const data = {
+    name: name,
+    telefone: $('#fTelefone').value.trim(),
+    funcao: $('#fFuncao').value.trim(),
+    dias: dias
   };
-}
-function stripWilliam(s){
-  ['M','F'].forEach(g=>{
-    const G=s.groups[g];if(!G)return;
-    const ids=G.people.filter(p=>p.nome.toLowerCase().trim()==='william').map(p=>p.id);
-    if(!ids.length)return;
-    G.people=G.people.filter(p=>ids.indexOf(p.id)<0);
-    G.cycle.forEach(w=>{for(const k in w)w[k]=(w[k]||[]).map(id=>ids.indexOf(id)>=0?null:id);});
-    const e=s.escala[g];if(e)e.forEach(ev=>ev.irmaos=(ev.irmaos||[]).map(x=>ids.indexOf(x)>=0?null:x));
-  });
-}
-function migrarOld(o){
-  const s=defaults();
-  if(Array.isArray(o.brothers))s.groups.M.people=o.brothers;
-  if(Array.isArray(o.cycle)&&o.cycle.length===4)s.groups.M.cycle=o.cycle;
-  if(o.cfg){
-    if(o.cfg.mes)s.cfg.mes=o.cfg.mes;
-    if(o.cfg.ano)s.cfg.ano=o.cfg.ano;
-    if(o.cfg.inicio!==undefined)s.cfg.inicio=o.cfg.inicio;
-    if(o.cfg.ensaio!==undefined)s.cfg.ensaio=!!o.cfg.ensaio;
-    if(Array.isArray(o.cfg.extras))s.cfg.extras=o.cfg.extras.map(x=>({data:x.data,tipo:x.tipo,g:'M'}));
-    if(Array.isArray(o.cfg.excluir))s.cfg.excluir=o.cfg.excluir.map(k=>'M|'+k);
+  if (editingId){
+    const b = state.brothers.find(x => x.id === editingId);
+    if (b) Object.assign(b, data);
+    showToast('Irmão atualizado com sucesso!', 'success');
+  } else {
+    state.brothers.push(Object.assign({ id: uid() }, data));
+    showToast('Irmão cadastrado com sucesso!', 'success');
   }
-  if(Array.isArray(o.escala))s.escala.M=o.escala;
-  stripWilliam(s);
-  return s;
-}
-let _mig=false;
-function load(){
-  try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.groups&&s.cfg){if(!s.manual)s.manual={};return s;}}catch(e){}
-  try{const o=JSON.parse(localStorage.getItem(KEY_OLD));if(o&&o.brothers){_mig=true;return migrarOld(o);}}catch(e){}
-  return defaults();
-}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
-let S=load();
-stripWilliam(S); // garante: William fora mesmo em dados já salvos
-let aba='M',editId=null;
-
-/* ---------- salvar / sujo ---------- */
-let dirty=false,lastSaved='',saveT=null;
-function horaAgora(){const h=new Date();return pad(h.getHours())+':'+pad(h.getMinutes());}
-function updateSaveUI(){
-  const b=$('#btnSalvar');
-  if(dirty){b.textContent='💾 Salvar alterações';b.classList.add('ok');}
-  else{b.textContent='✓ Salvo';b.classList.remove('ok');}
-  $('#saveStatus').textContent=lastSaved?('Salvo no navegador às '+lastSaved):'';
-  $('#saveBar').classList.toggle('on',dirty);
-}
-function markDirty(){
-  dirty=true;updateSaveUI();
-  clearTimeout(saveT);
-  saveT=setTimeout(forceSave,1000); // segurança: salva sozinho logo depois
-}
-function forceSave(){
-  clearTimeout(saveT);saveT=null;
-  save();dirty=false;lastSaved=horaAgora();updateSaveUI();
-}
-window.addEventListener('beforeunload',()=>{if(dirty)save();});
-
-let tt;
-function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),3200);}
-
-const nomeDe=(g,id)=>{const b=S.groups[g].people.find(x=>x.id===id);return b?b.nome:'';};
-const up=(g,id)=>nomeDe(g,id).toUpperCase();
-function limparOverridesDe(id){Object.keys(S.manual).forEach(k=>{if(S.manual[k]===id)delete S.manual[k];});}
-
-/* ---------- ciclo ---------- */
-function idxBase(d){
-  const dw=(d.getDay()+6)%7;
-  const seg=new Date(d.getFullYear(),d.getMonth(),d.getDate()-dw);
-  return Math.round((seg-REF)/(7*864e5));
-}
-function calcShift(){
-  const ini=S.cfg.inicio;if(ini==='auto')return 0;
-  const first=new Date(S.cfg.ano,S.cfg.mes-1,1);
-  return mod(Number(ini)-mod(idxBase(first),4),4);
-}
-function habituais(g){
-  const h={};S.groups[g].people.forEach(p=>h[p.id]=new Set());
-  S.groups[g].cycle.forEach(w=>{for(const k in w)(w[k]||[]).forEach(id=>{if(id&&h[id])h[id].add(k);});});
-  return h;
+  saveState();
+  renderAll();
+  closeModal();
 }
 
-/* ---------- pessoas ---------- */
-function usoTexto(g,id){
-  const partes=[];
-  SLOTS.forEach(sl=>{
-    const ws=[];S.groups[g].cycle.forEach((w,i)=>{if((w[sl.k]||[]).indexOf(id)>=0)ws.push(i+1);});
-    if(ws.length)partes.push('<b>'+sl.nome+'</b> '+(ws.length===4?'(todas as semanas)':'(sem. '+ws.join(', ')+')'));
-  });
-  return partes.length?partes.join('<br>'):'Sem dias no modelo';
+/* ============================== EXCLUSÃO / LIMPEZA / RESTAURAÇÃO ============================== */
+function openConfirm(title, msgHtml, okLabel){
+  $('#confirmTitle').textContent = title;
+  $('#confirmMsg').innerHTML = msgHtml;
+  $('#confirmOk').textContent = okLabel;
+  $('#confirmModal').hidden = false;
 }
-function renderTabs(){
-  $('#btnTabM').classList.toggle('on',aba==='M');
-  $('#btnTabF').classList.toggle('on',aba==='F');
-  $('#cntM').textContent='('+S.groups.M.people.length+')';
-  $('#cntF').textContent='('+S.groups.F.people.length+')';
+function askDelete(id){
+  const b = state.brothers.find(x => x.id === id);
+  if (!b) return;
+  pendingDeleteId = id;
+  openConfirm('Excluir irmão?', `Tem certeza de que deseja excluir <b>${escapeHtml(b.name)}</b> da escala? Esta ação não pode ser desfeita.`, 'Sim, excluir');
 }
-function renderLista(){
-  const g=aba,G=S.groups[g];
-  $('#titAba').textContent=g==='M'?'Irmãos cadastrados':'Irmãs cadastradas';
-  $('#novo').placeholder=(g==='M'?'Nome do irmão':'Nome da irmã')+' (para vários, separe por vírgula)';
-  $('#hintAba').innerHTML='Cadastrou? Coloque nos dias no <b>modelo abaixo</b> para entrar na escala. <b>Remover</b> tira a pessoa da lista, do modelo e da escala de uma vez.';
-  const ul=$('#lista');
-  if(!G.people.length){ul.innerHTML='<li>Ninguém cadastrado nesta aba ainda. Digite um nome acima.</li>';return;}
-  ul.innerHTML=G.people.map(p=>{
-    const eh=editId===p.id;
-    const corpo=eh
-      ?'<div class="editRow"><input type="text" id="editNome" value="'+esc(p.nome)+'" aria-label="Novo nome"><button class="pri" data-act="saveEdit" data-id="'+p.id+'">Salvar</button><button class="ghost" data-act="cancelEdit">Cancelar</button></div>'
-      :'<div class="nome">'+esc(p.nome)+'</div>';
-    const acoes=eh?'':'<div class="acoes">'
-      +'<button class="ghost" data-act="edit" data-id="'+p.id+'">Renomear</button>'
-      +'<button class="ghost" data-act="mv" data-id="'+p.id+'" data-to="'+(g==='M'?'F':'M')+'">'+(g==='M'?'→ Irmãs':'→ Irmãos')+'</button>'
-      +'<button class="ghost" data-act="rm" data-id="'+p.id+'" aria-label="Remover '+esc(p.nome)+'">Remover</button></div>';
-    return '<li>'+corpo+'<div class="uso">'+usoTexto(g,p.id)+'</div>'+acoes+'</li>';
-  }).join('');
-  if(editId){
-    const i=$('#editNome');
-    if(i){
-      i.focus();i.select();
-      i.addEventListener('keydown',ev=>{
-        if(ev.key==='Enter'){ev.preventDefault();salvarEdit(aba,editId,i.value);}
-        if(ev.key==='Escape'){editId=null;renderLista();}
-      });
+function askClearAll(){
+  if (!state.brothers.length) return;
+  pendingClearAll = true;
+  openConfirm('Apagar todos os irmãos?', `Você tem <b>${state.brothers.length}</b> irmão(s) cadastrado(s). Todos serão apagados. Esta ação não pode ser desfeita.`, 'Sim, apagar tudo');
+}
+function confirmRestore(parsed){
+  pendingRestoreData = {
+    brothers: parsed.brothers
+      .map(b => ({
+        id: b.id ? String(b.id) : uid(),
+        name: String(b.name),
+        telefone: b.telefone ? String(b.telefone) : '',
+        funcao: b.funcao ? String(b.funcao) : '',
+        dias: (Array.isArray(b.dias) ? b.dias : []).map(Number).filter(n => n >= 0 && n <= 6)
+      }))
+      .filter(b => b.name.trim())
+  };
+  if (!pendingRestoreData.brothers.length){
+    pendingRestoreData = null;
+    showToast('O arquivo não contém irmãos válidos.', 'error');
+    return;
+  }
+  openConfirm('Restaurar backup?', `O backup contém <b>${pendingRestoreData.brothers.length}</b> irmão(s). Os dados atuais serão substituídos. Deseja continuar?`, 'Sim, restaurar');
+}
+function doConfirm(){
+  if (pendingDeleteId){
+    const idx = state.brothers.findIndex(x => x.id === pendingDeleteId);
+    if (idx > -1){
+      const nome = state.brothers[idx].name;
+      state.brothers.splice(idx, 1);
+      saveState(); renderAll();
+      showToast(`<b>${escapeHtml(nome)}</b> foi removido da escala.`, 'success');
     }
+    pendingDeleteId = null;
+  } else if (pendingClearAll){
+    state.brothers = [];
+    pendingClearAll = false;
+    saveState(); renderAll();
+    showToast('Todos os irmãos foram apagados.', 'success');
+  } else if (pendingRestoreData){
+    state = pendingRestoreData;
+    pendingRestoreData = null;
+    saveState(); renderAll();
+    switchTab('week');
+    showToast(`Backup restaurado! ${state.brothers.length} irmão(s) carregado(s).`, 'success');
   }
+  $('#confirmModal').hidden = true;
 }
-function addPessoas(){
-  const g=aba,inp=$('#novo');
-  const nomes=inp.value.split(/[,;\n]/).map(s=>s.trim()).filter(Boolean);
-  if(!nomes.length){toast('Digite pelo menos um nome.');return;}
-  const G=S.groups[g];let n=0,dup=0;
-  nomes.forEach(raw=>{
-    const nome=capNome(raw);
-    if(G.people.some(p=>p.nome.toLowerCase()===nome.toLowerCase())){dup++;return;}
-    G.people.push({id:uid(),nome:nome});n++;
-  });
-  G.people.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
-  inp.value='';markDirty();renderAll();
-  toast(n?n+' cadastrado(s) em '+GS[g]+'. Agora coloque nos dias no modelo abaixo.'+(dup?' '+dup+' nome(s) já existia(m).':''):'Esse nome já está cadastrado em '+GS[g]+'.');
-}
-function salvarEdit(g,id,v){
-  const p=S.groups[g].people.find(x=>x.id===id);if(!p)return;
-  const nome=capNome((v||'').trim());
-  if(!nome){toast('Digite um nome.');return;}
-  if(S.groups[g].people.some(x=>x.id!==id&&x.nome.toLowerCase()===nome.toLowerCase())){toast('Já existe alguém com esse nome em '+GS[g]+'.');return;}
-  p.nome=nome;editId=null;markDirty();renderAll();toast('Nome atualizado para '+nome+'.');
-}
-function remover(g,id){
-  const G=S.groups[g],p=G.people.find(x=>x.id===id);if(!p)return;
-  G.people=G.people.filter(x=>x.id!==id);
-  G.cycle.forEach(w=>{for(const k in w)w[k]=(w[k]||[]).map(x=>x===id?null:x);});
-  const e=S.escala[g];if(e)e.forEach(ev=>ev.irmaos=(ev.irmaos||[]).map(x=>x===id?null:x));
-  limparOverridesDe(id);
-  if(editId===id)editId=null;
-  markDirty();renderAll();toast(p.nome+' foi removido(a) da escala.');
-}
-function mover(g,id,para){
-  const G=S.groups[g],P=S.groups[para],p=G.people.find(x=>x.id===id);if(!p)return;
-  G.people=G.people.filter(x=>x.id!==id);
-  G.cycle.forEach(w=>{for(const k in w)w[k]=(w[k]||[]).map(x=>x===id?null:x);});
-  const e=S.escala[g];if(e)e.forEach(ev=>ev.irmaos=(ev.irmaos||[]).map(x=>x===id?null:x));
-  limparOverridesDe(id);
-  P.people.push(p);P.people.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
-  markDirty();renderAll();toast(p.nome+' agora está na aba '+GS[para]+'. Coloque nos dias no modelo dela.');
-}
-function criarPessoa(g){
-  const nome=capNome((prompt('Nome da pessoa nova (entrará em '+GS[g]+'):')||'').trim());
-  if(!nome)return null;
-  const G=S.groups[g];
-  if(G.people.some(p=>p.nome.toLowerCase()===nome.toLowerCase())){toast(nome+' já está cadastrado(a) em '+GS[g]+'.');return null;}
-  const nb={id:uid(),nome:nome};
-  G.people.push(nb);G.people.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
-  return nb;
+function cancelConfirm(){
+  pendingDeleteId = null;
+  pendingClearAll = false;
+  pendingRestoreData = null;
+  $('#confirmModal').hidden = true;
 }
 
-/* ---------- modelo ---------- */
-function opts(g,sel){
-  return '<option value="">—</option>'+S.groups[g].people.map(p=>'<option value="'+p.id+'"'+(p.id===sel?' selected':'')+'>'+esc(p.nome)+'</option>').join('')+'<option value="__new">＋ Nova pessoa…</option>';
+/* ============================== BACKUP / RESTAURAR ============================== */
+function backup(){
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const d = new Date();
+  const iso = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  a.href = url;
+  a.download = 'escala-irmaos-backup-' + iso + '.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  showToast('Backup gerado com sucesso! Guarde o arquivo baixado.', 'success');
 }
-function renderModelo(){
-  $('#titModelo').textContent='Modelo da escala '+(aba==='M'?'dos irmãos':'das irmãs')+' (dias fixos, 4 semanas)';
-  $('#semanas').innerHTML=S.groups[aba].cycle.map((w,i)=>
-    '<div class="semana'+(aba==='F'?' fem':'')+'"><h3>Semana '+(i+1)+'</h3>'+SLOTS.map(sl=>{
-      const ids=w[sl.k]||[null,null,null];
-      return '<div class="lin"><span>'+sl.nome+'</span><div class="trio">'+[0,1,2].map(p=>'<select data-g="'+aba+'" data-w="'+i+'" data-k="'+sl.k+'" data-p="'+p+'">'+opts(aba,ids[p])+'</select>').join('')+'</div></div>';
-    }).join('')+'</div>'
-  ).join('');
-}
-
-/* ---------- geração ---------- */
-function ovKey(g,data,tipo,j){return g+'|'+data+'|'+tipo+'|'+j;}
-function montar(g){
-  const G=S.groups[g],mes=S.cfg.mes,ano=S.cfg.ano,ult=new Date(ano,mes,0).getDate(),sh=calcShift(),ev=[];
-  for(let d=1;d<=ult;d++){
-    const dt=new Date(ano,mes-1,d),w=mod(idxBase(dt)+sh,4);
-    SLOTS.forEach(sl=>{
-      if(sl.dow!==dt.getDay())return;
-      ev.push({data:iso(ano,mes,d),tipo:sl.tipo,irmaos:(G.cycle[w][sl.k]||[null,null,null]).slice()});
-    });
-    if(S.cfg.ensaio&&dt.getDay()===6&&d>=8&&d<=14){
-      ev.push({data:iso(ano,mes,d),tipo:'ENSAIO',irmaos:(G.cycle[w]['6|CULTO']||[null,null,null]).slice()});
+function onRestoreFile(e){
+  const file = e.target.files && e.target.files[0];
+  e.target.value = '';
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(reader.result);
+      if (!parsed || !Array.isArray(parsed.brothers)) throw new Error('formato inválido');
+      const valid = parsed.brothers.every(b => b && typeof b.name === 'string' && Array.isArray(b.dias));
+      if (!valid) throw new Error('dados inválidos');
+      confirmRestore(parsed);
+    } catch(err){
+      showToast('Arquivo inválido. Selecione um backup gerado por este programa.', 'error');
     }
-  }
-  const pre=ano+'-'+pad(mes);
-  S.cfg.extras.forEach(x=>{if(x.data.indexOf(pre)===0&&(x.g===g||x.g==='A'))ev.push({data:x.data,tipo:x.tipo,irmaos:[null,null,null]});});
-  const vistos={};
-  const lista=ev.filter(e=>{const k=e.data+'|'+e.tipo;if(vistos[k]||S.cfg.excluir.indexOf(g+'|'+k)>=0)return false;vistos[k]=1;return true;})
-    .sort((a,b)=>a.data.localeCompare(b.data)||RANK[a.tipo]-RANK[b.tipo]);
-  // reaplica edições manuais salvas (sobrevivem ao "Gerar escala")
-  lista.forEach(e=>{for(let j=0;j<e.irmaos.length;j++){const k=ovKey(g,e.data,e.tipo,j);if(Object.prototype.hasOwnProperty.call(S.manual,k))e.irmaos[j]=S.manual[k];}});
-  return lista;
-}
-function gerar(){
-  S.escala={M:montar('M'),F:montar('F')};
-  markDirty();renderChips();renderResultado();
-  toast('Escalas de '+MESES[S.cfg.mes-1]+' '+S.cfg.ano+' geradas. Suas edições manuais foram mantidas.');
+  };
+  reader.onerror = () => showToast('Não foi possível ler o arquivo.', 'error');
+  reader.readAsText(file);
 }
 
-/* ---------- resultado ---------- */
-function slotKey(e){const dow=parse(e.data).getDay();return dow+'|'+(e.tipo==='ENSAIO'?'CULTO':e.tipo);}
-function segundaKey(data){const d=parse(data);const dw=(d.getDay()+6)%7;const s=new Date(d.getFullYear(),d.getMonth(),d.getDate()-dw);return iso(s.getFullYear(),s.getMonth()+1,s.getDate());}
+/* ============================== DADOS DE EXEMPLO ============================== */
+function loadSample(){
+  state.brothers = [
+    { id: uid(), name: 'João Silva',       telefone: '', funcao: 'Som e microfone', dias: [1,3] },
+    { id: uid(), name: 'Carlos Pereira',   telefone: '', funcao: 'Limpeza',         dias: [6]   },
+    { id: uid(), name: 'Antônio de Souza', telefone: '', funcao: 'Recepção',        dias: [0,3] },
+    { id: uid(), name: 'Marcos Lima',      telefone: '', funcao: 'Estacionamento',  dias: [5]   }
+  ];
+  saveState(); renderAll();
+  showToast('Irmãos de exemplo carregados! Toque em qualquer um para editar.', 'success');
+}
 
-function renderResultado(){
-  const folha=$('#folha'),av=$('#avisos'),ct=$('#contagem');
-  const gerada=S.escala&&((S.escala.M&&S.escala.M.length)||(S.escala.F&&S.escala.F.length));
-  if(!gerada){
-    folha.innerHTML='<div class="vazio no-print">Escolha o mês e clique em <b>Gerar escala</b>.</div>';
-    av.innerHTML='';ct.innerHTML='';return;
-  }
-  const avisos=[];let html='',htmlC='';
-  ['M','F'].forEach(g=>{
-    const G=S.groups[g],lista=S.escala[g]||[];
-    html+='<div class="grupoBloco">';
-    if(!G.people.length){
-      html+='<div class="vazio">Nenhuma '+(g==='F'?'irmã':'irmão')+' cadastrada(o). Use a aba "'+GS[g]+'".</div>';
-    }else if(!lista.length){
-      html+='<div class="vazio">Sem eventos de '+GS[g].toLowerCase()+' neste mês.</div>';
-    }else{
-      const hab=habituais(g),valid=SLOTS.map(s=>s.k);
-      const N=Math.max.apply(null,lista.map(e=>e.irmaos.length).concat([3]));
-      html+='<table class="escala"><thead><tr><th class="titulo" colspan="'+(N+3)+'">ESCALA DOS '+GS[g].toUpperCase()+' · '+MESES[S.cfg.mes-1].toUpperCase()+' '+S.cfg.ano+'</th><th class="no-print titulo" style="width:1%"></th></tr>'
-        +'<tr><th>Data</th><th>Dia</th><th>Culto / RJM</th><th colspan="'+N+'">Nomes</th><th class="no-print"></th></tr></thead><tbody>';
-      let semana=null;
-      lista.forEach((e,i)=>{
-        const sk=segundaKey(e.data);
-        if(semana!==null&&sk!==semana)html+='<tr class="esp"><td colspan="'+(N+4)+'"></td></tr>';
-        semana=sk;
-        const chave=slotKey(e),checar=valid.indexOf(chave)>=0;
-        const dup={};e.irmaos.forEach(x=>{if(x)dup[x]=(dup[x]||0)+1;});
-        let vagas=0;
-        html+='<tr><td>'+br(e.data)+'</td><td>'+DIAS[parse(e.data).getDay()]+'</td><td class="tipo">'+e.tipo+'</td>';
-        for(let j=0;j<N;j++){
-          const id=e.irmaos[j]||null;let cls='';
-          if(!id)vagas++;
-          else if(dup[id]>1){cls='dup';avisos.push(['b',GS[g]+': '+up(g,id)+' aparece duas vezes em '+br(e.data)+' ('+e.tipo+').']);}
-          else if(checar&&hab[id]&&!hab[id].has(chave)){cls='fora';avisos.push(['w',GS[g]+': '+up(g,id)+' está fora do dia habitual em '+br(e.data)+' ('+e.tipo+').']);}
-          html+='<td><select class="'+cls+'" data-g="'+g+'" data-i="'+i+'" data-j="'+j+'" aria-label="'+GS[g]+' em '+br(e.data)+' '+e.tipo+'">'+opts(g,id)+'</select></td>';
-        }
-        if(vagas)avisos.push(['b',GS[g]+': vaga em aberto em '+br(e.data)+' ('+e.tipo+').']);
-        html+='<td class="no-print"><button class="ghost" data-act="del" data-g="'+g+'" data-i="'+i+'" aria-label="Remover evento">✕</button></td></tr>';
-      });
-      html+='</tbody></table>';
-      const cont={};
-      lista.forEach(e=>e.irmaos.forEach(x=>{if(x)cont[x]=(cont[x]||0)+1;}));
-      const chips=Object.keys(cont).sort((a,b)=>cont[b]-cont[a]||nomeDe(g,a).localeCompare(nomeDe(g,b))).map(id=>'<span><b>'+esc(nomeDe(g,id))+'</b> '+cont[id]+'x</span>').join('');
-      htmlC+='<div class="linhaCont"><b>'+GS[g]+':</b>'+(chips||'<span>sem nomes ainda</span>')+'</div>';
-    }
-    html+='</div>';
+/* ============================== ABAS / IMPRESSÃO / TOASTS ============================== */
+function switchTab(tab){
+  $$('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  $('#tab-week').hidden = tab !== 'week';
+  $('#tab-calendar').hidden = tab !== 'calendar';
+  $('#tab-brothers').hidden = tab !== 'brothers';
+}
+function updatePrintInfo(){
+  $('#printInfo').textContent = 'Escala dos Irmãos — impressa em ' + new Date().toLocaleString('pt-BR');
+}
+function printEscala(){
+  if (!state.brothers.length){ showToast('Cadastre irmãos antes de imprimir a escala.', 'error'); return; }
+  const active = $$('.tab').find(t => t.classList.contains('active'));
+  if (!active || active.dataset.tab === 'brothers') switchTab('week');
+  updatePrintInfo();
+  setTimeout(() => window.print(), 120);
+}
+function showToast(msg, type){
+  type = type || 'success';
+  const el = document.createElement('div');
+  el.className = 'toast toast-' + type;
+  el.innerHTML = '<span>' + (type === 'error' ? '⚠️' : '✅') + '</span><div>' + msg + '</div>';
+  $('#toasts').appendChild(el);
+  setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 350); }, 3800);
+}
+
+/* ============================== INICIALIZAÇÃO ============================== */
+function init(){
+  loadState();
+  initCalendar();
+  $('#brotherForm').addEventListener('submit', submitForm);
+  $('#searchInput').addEventListener('input', renderBrothers);
+  $('#restoreInput').addEventListener('change', onRestoreFile);
+  $$('.tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
+  $('#brotherModal').addEventListener('click', e => { if (e.target.id === 'brotherModal') closeModal(); });
+  $('#confirmModal').addEventListener('click', e => { if (e.target.id === 'confirmModal') cancelConfirm(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape'){ closeModal(); cancelConfirm(); }
   });
-  folha.innerHTML=html;
-  av.innerHTML=avisos.slice(0,14).map(a=>'<div class="aviso '+a[0]+'">'+esc(a[1])+'</div>').join('')+(avisos.length>14?'<div class="aviso w">E mais '+(avisos.length-14)+' aviso(s).</div>':'');
-  ct.innerHTML=htmlC;
-}
-
-/* ---------- extras / excluídos ---------- */
-function renderChips(){
-  $('#chipsExtra').innerHTML=S.cfg.extras.map((x,i)=>{
-    const gl=x.g==='A'?'Irmãos + Irmãs':GS[x.g];
-    return '<span class="chip">Extra: '+br(x.data)+' '+x.tipo+' · '+gl+'<button data-act="rmExtra" data-i="'+i+'" aria-label="Remover extra">✕</button></span>';
-  }).join('');
-  $('#chipsExcl').innerHTML=S.cfg.excluir.map((k,i)=>{
-    const p=k.split('|');
-    return '<span class="chip">Removido: '+br(p[1])+' '+p[2]+' ('+GS[p[0]]+')<button data-act="rmExcl" data-i="'+i+'" aria-label="Restaurar">Restaurar</button></span>';
-  }).join('');
-}
-
-/* ---------- exportar ---------- */
-function textoEscala(){
-  if(!S.escala)return '';
-  let out='';
-  ['M','F'].forEach(g=>{
-    const lista=S.escala[g]||[];
-    if(!S.groups[g].people.length||!lista.length)return;
-    out+=(out?'\n':'')+'== ESCALA DOS '+GS[g].toUpperCase()+' ==\n';
-    let sem=null;
-    lista.forEach(e=>{
-      const sk=segundaKey(e.data);
-      if(sem!==null&&sk!==sem)out+='\n';
-      sem=sk;
-      out+=DIAS[parse(e.data).getDay()]+' '+br(e.data).slice(0,5)+' - '+e.tipo+': '+e.irmaos.map(x=>x?up(g,x):'(vago)').join(', ')+'\n';
-    });
-  });
-  return out;
-}
-function copiar(){
-  const t=textoEscala();if(!t){toast('Gere a escala primeiro.');return;}
-  const fb=()=>{const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');toast('Texto copiado.');}catch(e){toast('Não foi possível copiar.');}a.remove();};
-  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(()=>toast('Texto copiado.'),fb);}else fb();
-}
-function baixarCsv(){
-  if(!S.escala){toast('Gere a escala primeiro.');return;}
-  let NG=3;
-  ['M','F'].forEach(g=>{(S.escala[g]||[]).forEach(e=>{if(e.irmaos.length>NG)NG=e.irmaos.length;});});
-  const head=['Grupo','Data','Dia','Culto/RJM'];for(let j=1;j<=NG;j++)head.push('Nome '+j);
-  const linhas=[head.join(';')];
-  ['M','F'].forEach(g=>{
-    if(!S.groups[g].people.length)return;
-    (S.escala[g]||[]).forEach(e=>{
-      const r=[GS[g].toUpperCase(),br(e.data),DIAS[parse(e.data).getDay()],e.tipo];
-      for(let j=0;j<NG;j++)r.push(e.irmaos[j]?up(g,e.irmaos[j]):'');
-      linhas.push(r.join(';'));
-    });
-  });
-  if(linhas.length===1){toast('Nada para exportar.');return;}
-  try{
-    const blob=new Blob(['\ufeff'+linhas.join('\r\n')],{type:'text/csv;charset=utf-8'});
-    const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-    a.download='escalas-'+S.cfg.ano+'-'+pad(S.cfg.mes)+'.csv';document.body.appendChild(a);a.click();a.remove();
-  }catch(e){toast('Download indisponível aqui. Use "Copiar texto".');}
-}
-
-/* ---------- init / eventos ---------- */
-function renderCfg(){
-  $('#mes').innerHTML=MESES.map((m,i)=>'<option value="'+(i+1)+'"'+(i+1===S.cfg.mes?' selected':'')+'>'+m+'</option>').join('');
-  $('#ano').value=S.cfg.ano;
-  $('#inicio').value=String(S.cfg.inicio);
-  $('#ensaio').checked=!!S.cfg.ensaio;
-}
-function renderAll(){renderTabs();renderLista();renderModelo();renderChips();renderResultado();}
-
-document.addEventListener('click',ev=>{
-  const tb=ev.target.closest('.tabbtn');
-  if(tb){aba=tb.dataset.tab;editId=null;renderTabs();renderLista();renderModelo();return;}
-  const b=ev.target.closest('[data-act]');if(!b)return;
-  const act=b.dataset.act,id=b.dataset.id;
-  if(act==='rm')remover(aba,id);
-  else if(act==='edit'){editId=id;renderLista();}
-  else if(act==='cancelEdit'){editId=null;renderLista();}
-  else if(act==='saveEdit'){const i=$('#editNome');salvarEdit(aba,id,i?i.value:'');}
-  else if(act==='mv')mover(aba,id,b.dataset.to);
-  else if(act==='del'){
-    const g=b.dataset.g,e=S.escala[g]&&S.escala[g][Number(b.dataset.i)];if(!e)return;
-    S.cfg.excluir.push(g+'|'+e.data+'|'+e.tipo);
-    S.escala[g].splice(Number(b.dataset.i),1);
-    markDirty();renderChips();renderResultado();
+  window.addEventListener('beforeprint', updatePrintInfo);
+  renderAll();
+  if (!storageAvailable()){
+    showToast('Este navegador está bloqueando o armazenamento local: os dados NÃO serão salvos ao fechar a página. Abra o arquivo no Chrome ou Edge para salvar automaticamente.', 'error');
   }
-  else if(act==='rmExtra'){S.cfg.extras.splice(Number(b.dataset.i),1);markDirty();renderChips();}
-  else if(act==='rmExcl'){S.cfg.excluir.splice(Number(b.dataset.i),1);markDirty();renderChips();toast('Restaurado. Clique em Gerar escala para atualizar.');}
-});
-document.addEventListener('change',ev=>{
-  const t=ev.target;
-  if(t.dataset.g&&t.dataset.w!==undefined){
-    const g=t.dataset.g,G=S.groups[g],k=t.dataset.k,w=Number(t.dataset.w),p=Number(t.dataset.p);
-    if(!G.cycle[w][k])G.cycle[w][k]=[null,null,null];
-    if(t.value==='__new'){
-      const nb=criarPessoa(g);
-      if(!nb){renderModelo();return;}
-      G.cycle[w][k][p]=nb.id;markDirty();renderAll();
-      toast(nb.nome+' cadastrado(a) e já colocado(a) na vaga.');
-      return;
-    }
-    G.cycle[w][k][p]=t.value||null;markDirty();renderLista();return;
-  }
-  if(t.dataset.g&&t.dataset.i!==undefined&&t.closest('#folha')&&S.escala){
-    const g=t.dataset.g,e=S.escala[g][Number(t.dataset.i)];if(!e)return;
-    const j=Number(t.dataset.j);
-    if(t.value==='__new'){
-      const nb=criarPessoa(g);
-      if(!nb){renderResultado();return;}
-      e.irmaos[j]=nb.id;S.manual[ovKey(g,e.data,e.tipo,j)]=nb.id;markDirty();renderAll();
-      toast(nb.nome+' cadastrado(a) e já colocado(a) na vaga.');
-      return;
-    }
-    e.irmaos[j]=t.value||null;
-    S.manual[ovKey(g,e.data,e.tipo,j)]=e.irmaos[j]; // grava a edição para sobreviver ao "Gerar escala"
-    markDirty();renderResultado();return;
-  }
-});
- $('#btnAdd').addEventListener('click',addPessoas);
- $('#novo').addEventListener('keydown',e=>{if(e.key==='Enter')addPessoas();});
- $('#btnSalvar').addEventListener('click',()=>{forceSave();toast('✓ Salvo no navegador.');});
- $('#btnSalvar2').addEventListener('click',()=>{forceSave();toast('✓ Salvo no navegador.');});
- $('#mes').addEventListener('change',e=>{S.cfg.mes=Number(e.target.value);markDirty();});
- $('#ano').addEventListener('change',e=>{const v=Number(e.target.value);if(v>=2024&&v<=2100){S.cfg.ano=v;markDirty();}});
- $('#inicio').addEventListener('change',e=>{S.cfg.inicio=e.target.value;markDirty();});
- $('#ensaio').addEventListener('change',e=>{S.cfg.ensaio=e.target.checked;markDirty();});
- $('#btnExtra').addEventListener('click',()=>{
-  const d=$('#exData').value;if(!d){toast('Escolha a data do evento extra.');return;}
-  S.cfg.extras.push({data:d,tipo:$('#exTipo').value,g:$('#exGrupo').value});
-  markDirty();renderChips();toast('Extra adicionado. Clique em Gerar escala.');
-});
- $('#btnGerar').addEventListener('click',gerar);
- $('#btnCopiar').addEventListener('click',copiar);
- $('#btnCsv').addEventListener('click',baixarCsv);
- $('#btnPrint').addEventListener('click',()=>{if(!S.escala){toast('Gere a escala primeiro.');return;}window.print();});
- $('#btnReset').addEventListener('click',()=>{
-  if(!confirm('Voltar aos dados originais (setembro/2026, sem William) e apagar as mudanças?'))return;
-  S=defaults();aba='M';editId=null;forceSave();renderCfg();renderAll();toast('Dados originais restaurados.');
-});
-
-renderCfg();renderAll();
-forceSave(); // grava já no primeiro abrir (inclusive a exclusão do William)
-if(_mig)toast('Dados antigos migrados. William foi excluído — as vagas dele ficaram abertas (—).');
-})();
+}
+init();
 </script>
 </body>
 </html>
