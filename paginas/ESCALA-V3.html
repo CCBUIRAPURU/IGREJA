@@ -144,7 +144,7 @@ table.escala td.tipo{text-transform:uppercase}
 <div class="wrap">
   <header class="no-print">
     <h1>Escalas dos Irmãos e das Irmãs</h1>
-    <p class="sub"><b>Duas escalas separadas:</b> aba <b>Irmãos</b> e aba <b>Irmãs</b>. <b>Clique no nome</b> de qualquer pessoa para editar o nome e marcar os dias/semanas em que ela serve. Tudo que você muda aqui recalcula a escala na hora.</p>
+    <p class="sub"><b>Duas escalas separadas:</b> aba <b>Irmãos</b> e aba <b>Irmãs</b>. <b>Clique no nome</b> de qualquer pessoa para editar o nome e marcar os dias/semanas em que ela serve. O ciclo funciona por blocos do mês: <b>1–7 = Semana 1</b>, <b>8–14 = Semana 2</b>, <b>15–21 = Semana 3</b>, <b>22–28 = Semana 4</b>, e os últimos dias voltam à Semana 1.</p>
   </header>
 
   <section class="card no-print">
@@ -177,7 +177,7 @@ table.escala td.tipo{text-transform:uppercase}
       </label>
       <label>Ciclo na 1ª semana do mês
         <select id="inicio">
-          <option value="auto">Automático (continua de setembro)</option>
+          <option value="auto">Automático (Semana 1 nos dias 1–7)</option>
           <option value="0">Semana 1</option>
           <option value="1">Semana 2</option>
           <option value="2">Semana 3</option>
@@ -239,7 +239,6 @@ const SLOTS=[
   {k:'0|CULTO',dow:0,tipo:'CULTO',nome:'Domingo: Culto'}
 ];
 const GS={M:'Irmãos',F:'Irmãs'};
-const REF=new Date(2026,7,31);
 const $=s=>document.querySelector(s);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pad=n=>String(n).padStart(2,'0');
@@ -332,16 +331,19 @@ const nomeDe=(g,id)=>{const b=S.groups[g].people.find(x=>x.id===id);return b?b.n
 const up=(g,id)=>nomeDe(g,id).toUpperCase();
 function limparOverridesDe(id){Object.keys(S.manual).forEach(k=>{if(S.manual[k]===id)delete S.manual[k];});}
 
-/* ---------- ciclo ---------- */
+/* ---------- ciclo (por blocos de dias do mês) ----------
+   Bloco 0: dias 1–7   → Semana 1
+   Bloco 1: dias 8–14  → Semana 2
+   Bloco 2: dias 15–21 → Semana 3
+   Bloco 3: dias 22–28 → Semana 4
+   Bloco 4: dias 29–31 → volta à Semana 1 (mod 4)
+------------------------------------------------------- */
 function idxBase(d){
-  const dw=(d.getDay()+6)%7;
-  const seg=new Date(d.getFullYear(),d.getMonth(),d.getDate()-dw);
-  return Math.round((seg-REF)/(7*864e5));
+  return Math.floor((d.getDate()-1)/7);
 }
 function calcShift(){
   const ini=S.cfg.inicio;if(ini==='auto')return 0;
-  const first=new Date(S.cfg.ano,S.cfg.mes-1,1);
-  return mod(Number(ini)-mod(idxBase(first),4),4);
+  return mod(Number(ini),4);
 }
 function habituais(g){
   const h={};S.groups[g].people.forEach(p=>h[p.id]=new Set());
@@ -459,7 +461,6 @@ function salvarEdit(g,id,v){
     if(cb.checked)marcados.add(cb.dataset.dia+'|'+cb.dataset.sem);
   });
   aplicarDiasNoCiclo(g,id,marcados);
-  // limpa edições manuais antigas dessa pessoa — agora vale o modelo atualizado
   limparOverridesDe(id);
   editId=null;markDirty();
   regerar();
@@ -536,8 +537,6 @@ function montar(g){
   lista.forEach(e=>{for(let j=0;j<e.irmaos.length;j++){const k=ovKey(g,e.data,e.tipo,j);if(Object.prototype.hasOwnProperty.call(S.manual,k))e.irmaos[j]=S.manual[k];}});
   return lista;
 }
-/* Se a escala já foi gerada alguma vez, recalcula na hora — para que
-   qualquer edição no modelo/pessoas se reflita imediatamente. */
 function temEscalaGerada(){return !!(S.escala&&(S.escala.M||S.escala.F));}
 function regerar(){
   if(!temEscalaGerada())return false;
@@ -552,7 +551,12 @@ function gerar(){
 
 /* ---------- resultado ---------- */
 function slotKey(e){const dow=parse(e.data).getDay();return dow+'|'+(e.tipo==='ENSAIO'?'CULTO':e.tipo);}
-function segundaKey(data){const d=parse(data);const dw=(d.getDay()+6)%7;const s=new Date(d.getFullYear(),d.getMonth(),d.getDate()-dw);return iso(s.getFullYear(),s.getMonth()+1,s.getDate());}
+/* Agrupamento visual: quebra entre blocos do mês (1–7, 8–14, 15–21, 22–28, 29–31). */
+function segundaKey(data){
+  const d=parse(data);
+  const bloco=Math.floor((d.getDate()-1)/7);
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-B'+bloco;
+}
 
 function renderResultado(){
   const folha=$('#folha'),av=$('#avisos'),ct=$('#contagem');
@@ -574,11 +578,11 @@ function renderResultado(){
       const N=Math.max.apply(null,lista.map(e=>e.irmaos.length).concat([3]));
       html+='<table class="escala"><thead><tr><th class="titulo" colspan="'+(N+3)+'">ESCALA DOS '+GS[g].toUpperCase()+' · '+MESES[S.cfg.mes-1].toUpperCase()+' '+S.cfg.ano+'</th><th class="no-print titulo" style="width:1%"></th></tr>'
         +'<tr><th>Data</th><th>Dia</th><th>Culto / RJM</th><th colspan="'+N+'">Nomes</th><th class="no-print"></th></tr></thead><tbody>';
-      let semana=null;
+      let bloco=null;
       lista.forEach((e,i)=>{
         const sk=segundaKey(e.data);
-        if(semana!==null&&sk!==semana)html+='<tr class="esp"><td colspan="'+(N+4)+'"></td></tr>';
-        semana=sk;
+        if(bloco!==null&&sk!==bloco)html+='<tr class="esp"><td colspan="'+(N+4)+'"></td></tr>';
+        bloco=sk;
         const chave=slotKey(e),checar=valid.indexOf(chave)>=0;
         const dup={};e.irmaos.forEach(x=>{if(x)dup[x]=(dup[x]||0)+1;});
         let vagas=0;
@@ -626,11 +630,11 @@ function textoEscala(){
     const lista=S.escala[g]||[];
     if(!S.groups[g].people.length||!lista.length)return;
     out+=(out?'\n':'')+'== ESCALA DOS '+GS[g].toUpperCase()+' ==\n';
-    let sem=null;
+    let bloco=null;
     lista.forEach(e=>{
       const sk=segundaKey(e.data);
-      if(sem!==null&&sk!==sem)out+='\n';
-      sem=sk;
+      if(bloco!==null&&sk!==bloco)out+='\n';
+      bloco=sk;
       out+=DIAS[parse(e.data).getDay()]+' '+br(e.data).slice(0,5)+' - '+e.tipo+': '+e.irmaos.map(x=>x?up(g,x):'(vago)').join(', ')+'\n';
     });
   });
