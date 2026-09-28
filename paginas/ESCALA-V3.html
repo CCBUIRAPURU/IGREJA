@@ -144,7 +144,7 @@ table.escala td.tipo{text-transform:uppercase}
 <div class="wrap">
   <header class="no-print">
     <h1>Escalas dos Irmãos e das Irmãs</h1>
-    <p class="sub"><b>Duas escalas separadas:</b> aba <b>Irmãos</b> e aba <b>Irmãs</b>. <b>Clique no nome</b> de qualquer pessoa para editar o nome e marcar os dias/semanas em que ela serve. O ciclo funciona por blocos do mês: <b>1–7 = Semana 1</b>, <b>8–14 = Semana 2</b>, <b>15–21 = Semana 3</b>, <b>22–28 = Semana 4</b>, e os últimos dias voltam à Semana 1.</p>
+    <p class="sub"><b>Duas escalas separadas:</b> aba <b>Irmãos</b> e aba <b>Irmãs</b>. Cada dia tem <b>exatamente 3 irmãos</b>. <b>Clique no nome</b> de qualquer pessoa para editar o nome e marcar os dias/semanas em que ela serve. Ciclo por blocos do mês: <b>1–7 = Sem. 1</b>, <b>8–14 = Sem. 2</b>, <b>15–21 = Sem. 3</b>, <b>22–28 = Sem. 4</b>, e os últimos dias voltam à Sem. 1.</p>
   </header>
 
   <section class="card no-print">
@@ -161,7 +161,7 @@ table.escala td.tipo{text-transform:uppercase}
     <ul id="lista"></ul>
     <details class="modelo" id="detModelo">
       <summary id="titModelo">Modelo da escala dos irmãos (dias fixos)</summary>
-      <p class="hint">Sem tranca — edite quando quiser. “—” deixa a vaga aberta (aparece como aviso na escala). Use <b>💾 Salvar</b> para gravar, ou deixe que salva sozinho.</p>
+      <p class="hint">Sem tranca — edite quando quiser. Cada vaga tem exatamente <b>3 posições</b>. “—” deixa a vaga aberta (aparece como aviso na escala). Use <b>💾 Salvar</b> para gravar, ou deixe que salva sozinho.</p>
       <div class="semanas" id="semanas"></div>
     </details>
   </section>
@@ -232,6 +232,8 @@ const KEY_OLD='escala-irmaos-v2';
 const DIAS=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
 const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const RANK={ENSAIO:0,RJM:1,CULTO:2};
+const N_POR_DIA = 3; // exatamente 3 irmãos por dia/slot
+
 const SLOTS=[
   {k:'4|CULTO',dow:4,tipo:'CULTO',nome:'Quinta: Culto'},
   {k:'6|CULTO',dow:6,tipo:'CULTO',nome:'Sábado: Culto'},
@@ -249,6 +251,25 @@ const mod=(a,n)=>((a%n)+n)%n;
 const uid=()=>Math.random().toString(36).slice(2,9);
 const capNome=s=>String(s).replace(/\S+/g,w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase());
 const cp=o=>JSON.parse(JSON.stringify(o));
+
+/* ---------- normalização: garante exatamente N_POR_DIA por slot ---------- */
+function normalizarTrio(arr){
+  const a=Array.isArray(arr)?arr.slice(0,N_POR_DIA):[];
+  while(a.length<N_POR_DIA)a.push(null);
+  return a;
+}
+function normalizarCiclo(g){
+  const G=S.groups[g];if(!G||!Array.isArray(G.cycle))return;
+  G.cycle.forEach(w=>{
+    SLOTS.forEach(sl=>{
+      w[sl.k]=normalizarTrio(w[sl.k]);
+    });
+    for(const k in w){
+      if(SLOTS.some(s=>s.k===k))continue;
+      w[k]=normalizarTrio(w[k]);
+    }
+  });
+}
 
 function defaults(){
   const nomes={vilas:'Vilas',paulinho:'Paulinho',saulo:'Saulo',nelson:'Nelson',vanderlei:'Vanderlei',edimilson:'Edimilson',rubens:'Rubens',marcos:'Marcos',santo:'Santo',iago:'Iago'};
@@ -301,6 +322,7 @@ function load(){
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 let S=load();
 stripWilliam(S);
+normalizarCiclo('M'); normalizarCiclo('F'); // garante exatamente 3 por slot em dados antigos
 let aba='M',editId=null;
 
 /* ---------- salvar / sujo ---------- */
@@ -331,13 +353,7 @@ const nomeDe=(g,id)=>{const b=S.groups[g].people.find(x=>x.id===id);return b?b.n
 const up=(g,id)=>nomeDe(g,id).toUpperCase();
 function limparOverridesDe(id){Object.keys(S.manual).forEach(k=>{if(S.manual[k]===id)delete S.manual[k];});}
 
-/* ---------- ciclo (por blocos de dias do mês) ----------
-   Bloco 0: dias 1–7   → Semana 1
-   Bloco 1: dias 8–14  → Semana 2
-   Bloco 2: dias 15–21 → Semana 3
-   Bloco 3: dias 22–28 → Semana 4
-   Bloco 4: dias 29–31 → volta à Semana 1 (mod 4)
-------------------------------------------------------- */
+/* ---------- ciclo (por blocos de dias do mês) ---------- */
 function idxBase(d){
   return Math.floor((d.getDate()-1)/7);
 }
@@ -370,7 +386,7 @@ function renderLista(){
   const g=aba,G=S.groups[g];
   $('#titAba').textContent=g==='M'?'Irmãos cadastrados':'Irmãs cadastradas';
   $('#novo').placeholder=(g==='M'?'Nome do irmão':'Nome da irmã')+' (para vários, separe por vírgula)';
-  $('#hintAba').innerHTML='Cadastrou? <b>Clique no nome</b> para editar o nome e marcar em quais dias/semanas a pessoa serve. <b>Remover</b> tira a pessoa da lista, do modelo e da escala de uma vez.';
+  $('#hintAba').innerHTML='Cadastrou? <b>Clique no nome</b> para editar o nome e marcar em quais dias/semanas a pessoa serve. Cada dia tem exatamente <b>3 posições</b>.';
   const ul=$('#lista');
   if(!G.people.length){ul.innerHTML='<li>Ninguém cadastrado nesta aba ainda. Digite um nome acima.</li>';return;}
   ul.innerHTML=G.people.map(p=>{
@@ -436,7 +452,7 @@ function aplicarDiasNoCiclo(g, id, marcados){
   const G=S.groups[g];
   SLOTS.forEach(sl=>{
     for(let w=0;w<4;w++){
-      if(!G.cycle[w][sl.k])G.cycle[w][sl.k]=[null,null,null];
+      G.cycle[w][sl.k]=normalizarTrio(G.cycle[w][sl.k]);
       const arr=G.cycle[w][sl.k];
       const deveEstar=marcados.has(sl.k+'|'+w);
       const pos=arr.indexOf(id);
@@ -470,8 +486,8 @@ function salvarEdit(g,id,v){
 function remover(g,id){
   const G=S.groups[g],p=G.people.find(x=>x.id===id);if(!p)return;
   G.people=G.people.filter(x=>x.id!==id);
-  G.cycle.forEach(w=>{for(const k in w)w[k]=(w[k]||[]).map(x=>x===id?null:x);});
-  const e=S.escala[g];if(e)e.forEach(ev=>ev.irmaos=(ev.irmaos||[]).map(x=>x===id?null:x));
+  G.cycle.forEach(w=>{for(const k in w)w[k]=normalizarTrio((w[k]||[]).map(x=>x===id?null:x));});
+  const e=S.escala[g];if(e)e.forEach(ev=>ev.irmaos=normalizarTrio((ev.irmaos||[]).map(x=>x===id?null:x)));
   limparOverridesDe(id);
   if(editId===id)editId=null;
   markDirty();
@@ -482,8 +498,8 @@ function remover(g,id){
 function mover(g,id,para){
   const G=S.groups[g],P=S.groups[para],p=G.people.find(x=>x.id===id);if(!p)return;
   G.people=G.people.filter(x=>x.id!==id);
-  G.cycle.forEach(w=>{for(const k in w)w[k]=(w[k]||[]).map(x=>x===id?null:x);});
-  const e=S.escala[g];if(e)e.forEach(ev=>ev.irmaos=(ev.irmaos||[]).map(x=>x===id?null:x));
+  G.cycle.forEach(w=>{for(const k in w)w[k]=normalizarTrio((w[k]||[]).map(x=>x===id?null:x));});
+  const e=S.escala[g];if(e)e.forEach(ev=>ev.irmaos=normalizarTrio((ev.irmaos||[]).map(x=>x===id?null:x)));
   limparOverridesDe(id);
   P.people.push(p);P.people.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
   markDirty();
@@ -509,7 +525,7 @@ function renderModelo(){
   $('#titModelo').textContent='Modelo da escala '+(aba==='M'?'dos irmãos':'das irmãs')+' (dias fixos, 4 semanas)';
   $('#semanas').innerHTML=S.groups[aba].cycle.map((w,i)=>
     '<div class="semana'+(aba==='F'?' fem':'')+'"><h3>Semana '+(i+1)+'</h3>'+SLOTS.map(sl=>{
-      const ids=w[sl.k]||[null,null,null];
+      const ids=normalizarTrio(w[sl.k]);
       return '<div class="lin"><span>'+sl.nome+'</span><div class="trio">'+[0,1,2].map(p=>'<select data-g="'+aba+'" data-w="'+i+'" data-k="'+sl.k+'" data-p="'+p+'">'+opts(aba,ids[p])+'</select>').join('')+'</div></div>';
     }).join('')+'</div>'
   ).join('');
@@ -523,18 +539,24 @@ function montar(g){
     const dt=new Date(ano,mes-1,d),w=mod(idxBase(dt)+sh,4);
     SLOTS.forEach(sl=>{
       if(sl.dow!==dt.getDay())return;
-      ev.push({data:iso(ano,mes,d),tipo:sl.tipo,irmaos:(G.cycle[w][sl.k]||[null,null,null]).slice()});
+      ev.push({data:iso(ano,mes,d),tipo:sl.tipo,irmaos:normalizarTrio(G.cycle[w][sl.k])});
     });
     if(S.cfg.ensaio&&dt.getDay()===6&&d>=8&&d<=14){
-      ev.push({data:iso(ano,mes,d),tipo:'ENSAIO',irmaos:(G.cycle[w]['6|CULTO']||[null,null,null]).slice()});
+      ev.push({data:iso(ano,mes,d),tipo:'ENSAIO',irmaos:normalizarTrio(G.cycle[w]['6|CULTO'])});
     }
   }
   const pre=ano+'-'+pad(mes);
-  S.cfg.extras.forEach(x=>{if(x.data.indexOf(pre)===0&&(x.g===g||x.g==='A'))ev.push({data:x.data,tipo:x.tipo,irmaos:[null,null,null]});});
+  S.cfg.extras.forEach(x=>{if(x.data.indexOf(pre)===0&&(x.g===g||x.g==='A'))ev.push({data:x.data,tipo:x.tipo,irmaos:normalizarTrio([])});});
   const vistos={};
   const lista=ev.filter(e=>{const k=e.data+'|'+e.tipo;if(vistos[k]||S.cfg.excluir.indexOf(g+'|'+k)>=0)return false;vistos[k]=1;return true;})
     .sort((a,b)=>a.data.localeCompare(b.data)||RANK[a.tipo]-RANK[b.tipo]);
-  lista.forEach(e=>{for(let j=0;j<e.irmaos.length;j++){const k=ovKey(g,e.data,e.tipo,j);if(Object.prototype.hasOwnProperty.call(S.manual,k))e.irmaos[j]=S.manual[k];}});
+  lista.forEach(e=>{
+    e.irmaos=normalizarTrio(e.irmaos);
+    for(let j=0;j<N_POR_DIA;j++){
+      const k=ovKey(g,e.data,e.tipo,j);
+      if(Object.prototype.hasOwnProperty.call(S.manual,k))e.irmaos[j]=S.manual[k];
+    }
+  });
   return lista;
 }
 function temEscalaGerada(){return !!(S.escala&&(S.escala.M||S.escala.F));}
@@ -546,12 +568,11 @@ function regerar(){
 function gerar(){
   S.escala={M:montar('M'),F:montar('F')};
   markDirty();renderChips();renderResultado();
-  toast('Escalas de '+MESES[S.cfg.mes-1]+' '+S.cfg.ano+' geradas. Suas edições manuais foram mantidas.');
+  toast('Escalas de '+MESES[S.cfg.mes-1]+' '+S.cfg.ano+' geradas (3 irmãos por dia).');
 }
 
 /* ---------- resultado ---------- */
 function slotKey(e){const dow=parse(e.data).getDay();return dow+'|'+(e.tipo==='ENSAIO'?'CULTO':e.tipo);}
-/* Agrupamento visual: quebra entre blocos do mês (1–7, 8–14, 15–21, 22–28, 29–31). */
 function segundaKey(data){
   const d=parse(data);
   const bloco=Math.floor((d.getDate()-1)/7);
@@ -575,11 +596,12 @@ function renderResultado(){
       html+='<div class="vazio">Sem eventos de '+GS[g].toLowerCase()+' neste mês.</div>';
     }else{
       const hab=habituais(g),valid=SLOTS.map(s=>s.k);
-      const N=Math.max.apply(null,lista.map(e=>e.irmaos.length).concat([3]));
+      const N=N_POR_DIA; // força exatamente 3 colunas de nomes
       html+='<table class="escala"><thead><tr><th class="titulo" colspan="'+(N+3)+'">ESCALA DOS '+GS[g].toUpperCase()+' · '+MESES[S.cfg.mes-1].toUpperCase()+' '+S.cfg.ano+'</th><th class="no-print titulo" style="width:1%"></th></tr>'
         +'<tr><th>Data</th><th>Dia</th><th>Culto / RJM</th><th colspan="'+N+'">Nomes</th><th class="no-print"></th></tr></thead><tbody>';
       let bloco=null;
       lista.forEach((e,i)=>{
+        e.irmaos=normalizarTrio(e.irmaos);
         const sk=segundaKey(e.data);
         if(bloco!==null&&sk!==bloco)html+='<tr class="esp"><td colspan="'+(N+4)+'"></td></tr>';
         bloco=sk;
@@ -635,7 +657,7 @@ function textoEscala(){
       const sk=segundaKey(e.data);
       if(bloco!==null&&sk!==bloco)out+='\n';
       bloco=sk;
-      out+=DIAS[parse(e.data).getDay()]+' '+br(e.data).slice(0,5)+' - '+e.tipo+': '+e.irmaos.map(x=>x?up(g,x):'(vago)').join(', ')+'\n';
+      out+=DIAS[parse(e.data).getDay()]+' '+br(e.data).slice(0,5)+' - '+e.tipo+': '+normalizarTrio(e.irmaos).map(x=>x?up(g,x):'(vago)').join(', ')+'\n';
     });
   });
   return out;
@@ -647,15 +669,15 @@ function copiar(){
 }
 function baixarCsv(){
   if(!S.escala){toast('Gere a escala primeiro.');return;}
-  let NG=3;
-  ['M','F'].forEach(g=>{(S.escala[g]||[]).forEach(e=>{if(e.irmaos.length>NG)NG=e.irmaos.length;});});
+  const NG=N_POR_DIA; // sempre 3
   const head=['Grupo','Data','Dia','Culto/RJM'];for(let j=1;j<=NG;j++)head.push('Nome '+j);
   const linhas=[head.join(';')];
   ['M','F'].forEach(g=>{
     if(!S.groups[g].people.length)return;
     (S.escala[g]||[]).forEach(e=>{
+      const trio=normalizarTrio(e.irmaos);
       const r=[GS[g].toUpperCase(),br(e.data),DIAS[parse(e.data).getDay()],e.tipo];
-      for(let j=0;j<NG;j++)r.push(e.irmaos[j]?up(g,e.irmaos[j]):'');
+      for(let j=0;j<NG;j++)r.push(trio[j]?up(g,trio[j]):'');
       linhas.push(r.join(';'));
     });
   });
@@ -714,7 +736,7 @@ document.addEventListener('change',ev=>{
   const t=ev.target;
   if(t.dataset.g&&t.dataset.w!==undefined){
     const g=t.dataset.g,G=S.groups[g],k=t.dataset.k,w=Number(t.dataset.w),p=Number(t.dataset.p);
-    if(!G.cycle[w][k])G.cycle[w][k]=[null,null,null];
+    G.cycle[w][k]=normalizarTrio(G.cycle[w][k]);
     if(t.value==='__new'){
       const nb=criarPessoa(g);
       if(!nb){renderModelo();return;}
@@ -730,6 +752,7 @@ document.addEventListener('change',ev=>{
   if(t.dataset.g&&t.dataset.i!==undefined&&t.closest('#folha')&&S.escala){
     const g=t.dataset.g,e=S.escala[g][Number(t.dataset.i)];if(!e)return;
     const j=Number(t.dataset.j);
+    e.irmaos=normalizarTrio(e.irmaos);
     if(t.value==='__new'){
       const nb=criarPessoa(g);
       if(!nb){renderResultado();return;}
@@ -763,7 +786,7 @@ document.addEventListener('change',ev=>{
  $('#btnPrint').addEventListener('click',()=>{if(!S.escala){toast('Gere a escala primeiro.');return;}window.print();});
  $('#btnReset').addEventListener('click',()=>{
   if(!confirm('Voltar aos dados originais (setembro/2026, sem William) e apagar as mudanças?'))return;
-  S=defaults();aba='M';editId=null;forceSave();renderCfg();renderAll();toast('Dados originais restaurados.');
+  S=defaults();normalizarCiclo('M');normalizarCiclo('F');aba='M';editId=null;forceSave();renderCfg();renderAll();toast('Dados originais restaurados.');
 });
 
 renderCfg();renderAll();
