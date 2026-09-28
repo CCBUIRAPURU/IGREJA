@@ -52,27 +52,25 @@ button.ghost{border-color:transparent;color:var(--mute);padding:4px 10px;min-hei
 button.ghost:hover{color:var(--bad)}
 :focus-visible{outline:3px solid var(--acc);outline-offset:2px}
 .hint{color:var(--mute);font-size:14px;margin:6px 0 0}
+
+/* abas */
 .tabs{display:flex;gap:8px;margin:0 0 14px;flex-wrap:wrap}
 .tabbtn{font:700 19px var(--f-title);letter-spacing:.4px;padding:10px 22px;border-radius:8px;min-height:44px}
 .tabbtn .n{font-size:14px;font-weight:600;opacity:.75;margin-left:6px}
 .tabbtn.on{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
 .tabbtn.on.fem{background:var(--fem);border-color:var(--fem);color:var(--fem-ink)}
+
+/* lista */
 #lista{list-style:none;margin:14px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px}
 #lista li{border:1px solid var(--line);border-radius:8px;padding:10px 12px}
-#lista .nome{font:700 18px var(--f-title);text-transform:uppercase;letter-spacing:.3px;cursor:pointer;display:inline-block}
-#lista .nome:hover{color:var(--acc)}
+#lista .nome{font:700 18px var(--f-title);text-transform:uppercase;letter-spacing:.3px}
 #lista .uso{font-size:13.5px;color:var(--mute);margin-top:2px}
 #lista .uso b{color:var(--ink);font-weight:600}
 .acoes{display:flex;gap:2px;flex-wrap:wrap;margin-top:6px}
 .editRow{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:2px 0 6px}
 .editRow input{flex:1;min-width:150px;font-weight:700}
-.editDias{display:grid;gap:6px;margin:8px 0 4px}
-.editSlot{border-top:1px solid var(--line);padding-top:6px}
-.editSlotNome{font:700 13.5px var(--f-title);text-transform:uppercase;letter-spacing:.4px;color:var(--mute);margin-bottom:4px}
-.editSemanas{display:flex;gap:6px;flex-wrap:wrap}
-.chkSem{display:inline-flex;align-items:center;gap:5px;font-size:13.5px;cursor:pointer;min-height:32px;padding:3px 9px;border:1px solid var(--line);border-radius:6px;background:var(--card);user-select:none}
-.chkSem input{margin:0;accent-color:var(--acc)}
-.chkSem:has(input:checked){background:var(--acc-soft);border-color:var(--acc);color:var(--ink);font-weight:600}
+
+/* modelo */
 details.modelo summary{cursor:pointer;font:700 22px var(--f-title);list-style:none}
 details.modelo summary::-webkit-details-marker{display:none}
 details.modelo summary::before{content:"▸ ";color:var(--acc)}
@@ -85,6 +83,8 @@ details.modelo[open] summary::before{content:"▾ "}
 .semana .lin span{font-size:14px;color:var(--mute)}
 .semana .trio{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
 .semana select{min-height:34px;padding:4px 6px;width:100%;font-size:14px;text-transform:uppercase}
+
+/* gerar */
 .cfg{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;align-items:end;margin-bottom:12px}
 .cfg label{display:flex;flex-direction:column;gap:4px;font-size:14px;color:var(--mute)}
 .cfg label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--ink);min-height:40px}
@@ -116,11 +116,14 @@ table.escala td.tipo{text-transform:uppercase}
 .linhaCont span{border:1px solid var(--line);border-radius:6px;padding:3px 10px;font-size:14px}
 .linhaCont span b{text-transform:uppercase;font-family:var(--f-title);font-size:15px}
 .grupoBloco{margin-bottom:26px}
+
+/* barra de salvar */
 #saveBar{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(140%);display:flex;gap:12px;align-items:center;background:var(--warn);color:#fff;padding:10px 14px;border-radius:10px;font-weight:600;font-size:15px;box-shadow:0 6px 18px rgba(0,0,0,.3);transition:transform .25s;z-index:8;max-width:94vw}
 #saveBar.on{transform:translateX(-50%) translateY(0)}
 #saveBar button{min-height:36px;padding:6px 16px}
 #toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(80px + env(safe-area-inset-bottom,0px));background:var(--head);color:var(--head-ink);padding:10px 16px;border-radius:8px;font-size:15px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;z-index:9}
 #toast.on{opacity:1}
+
 @media print{
   :root{--bg:#fff;--card:#fff;--ink:#000;--head:#000}
   body{background:#fff}
@@ -133,13 +136,13 @@ table.escala td.tipo{text-transform:uppercase}
   .grupoBloco{break-inside:avoid-page;margin-bottom:30px}
 }
 </style>
+<base target="_blank">
 </head>
 <body>
 <div class="wrap">
   <header class="no-print">
     <h1>Escalas dos Irmãos e das Irmãs</h1>
-    <p class="sub"><b>Duas escalas separadas:</b> aba <b>Irmãos</b> e aba <b>Irmãs</b>. Cada dia tem <b>3 irmãos</b>. <b>Clique no nome</b> para editar o nome e marcar os dias/semanas.<br>
-    <b>Distribuição automática:</b> <b>1 nome</b> = todas as ocorrências; <b>2 nomes</b> = revezam; <b>3 nomes</b> = servem juntos.</p>
+    <p class="sub"><b>Duas escalas separadas:</b> aba <b>Irmãos</b> e aba <b>Irmãs</b>, cada uma com sua lista e seu modelo de dias fixos. Ao gerar, saem as duas tabelas do mês. Qualquer edição pode ser salva com o botão <b>💾 Salvar</b> — e também salva sozinha por segurança.</p>
   </header>
 
   <section class="card no-print">
@@ -156,7 +159,7 @@ table.escala td.tipo{text-transform:uppercase}
     <ul id="lista"></ul>
     <details class="modelo" id="detModelo">
       <summary id="titModelo">Modelo da escala dos irmãos (dias fixos)</summary>
-      <p class="hint">Cada vaga tem <b>até 3 posições</b>. <b>1 nome</b> = todas as ocorrências; <b>2</b> = revezam; <b>3</b> = juntos. “—” deixa a posição vazia.</p>
+      <p class="hint">Sem tranca — edite quando quiser. “—” deixa a vaga aberta (aparece como aviso na escala). Use <b>💾 Salvar</b> para gravar, ou deixe que salva sozinho.</p>
       <div class="semanas" id="semanas"></div>
     </details>
   </section>
@@ -164,11 +167,15 @@ table.escala td.tipo{text-transform:uppercase}
   <section class="card" aria-labelledby="t-gerar">
     <h2 id="t-gerar" class="no-print">Gerar as duas escalas do mês</h2>
     <div class="cfg no-print">
-      <label>Mês<select id="mes"></select></label>
-      <label>Ano<input type="number" id="ano" min="2024" max="2100"></label>
+      <label>Mês
+        <select id="mes"></select>
+      </label>
+      <label>Ano
+        <input type="number" id="ano" min="2024" max="2100">
+      </label>
       <label>Ciclo na 1ª semana do mês
         <select id="inicio">
-          <option value="auto">Automático (Semana 1 nos dias 1–7)</option>
+          <option value="auto">Automático (continua de setembro)</option>
           <option value="0">Semana 1</option>
           <option value="1">Semana 2</option>
           <option value="2">Semana 3</option>
@@ -177,32 +184,42 @@ table.escala td.tipo{text-transform:uppercase}
       </label>
       <label class="chk"><input type="checkbox" id="ensaio"> Ensaio no 2º sábado (mesma equipe do culto)</label>
     </div>
+
     <div class="no-print">
       <div class="row">
         <input type="date" id="exData" aria-label="Data do evento extra">
-        <select id="exTipo"><option>CULTO</option><option>RJM</option><option>ENSAIO</option></select>
-        <select id="exGrupo"><option value="M">Irmãos</option><option value="F">Irmãs</option><option value="A">Irmãos + Irmãs</option></select>
+        <select id="exTipo" aria-label="Tipo do evento extra"><option>CULTO</option><option>RJM</option><option>ENSAIO</option></select>
+        <select id="exGrupo" aria-label="Grupo do evento extra">
+          <option value="M">Irmãos</option>
+          <option value="F">Irmãs</option>
+          <option value="A">Irmãos + Irmãs</option>
+        </select>
         <button id="btnExtra">Adicionar evento extra</button>
       </div>
       <div class="chips" id="chipsExtra"></div>
       <div class="chips" id="chipsExcl"></div>
     </div>
+
     <div class="toolbar no-print">
       <button class="pri" id="btnGerar">Gerar escala</button>
-      <button id="btnLimpar" title="Remove as edições feitas diretamente na tabela e regera do modelo">🧹 Limpar edições da tabela</button>
       <button id="btnSalvar" class="ok">💾 Salvar</button>
       <span id="saveStatus"></span>
       <button id="btnCopiar">Copiar texto</button>
       <button id="btnCsv">Baixar CSV</button>
       <button id="btnPrint">Imprimir / PDF</button>
     </div>
+
     <div class="avisos no-print" id="avisos"></div>
     <div class="tabwrap" id="folha"></div>
     <div class="contagem no-print" id="contagem"></div>
-    <p class="row no-print" style="margin-top:22px"><button class="ghost" id="btnReset">Restaurar dados originais</button></p>
+    <p class="row no-print" style="margin-top:22px"><button class="ghost" id="btnReset">Restaurar dados originais (setembro/2026, sem William)</button></p>
   </section>
 </div>
-<div id="saveBar" role="status"><span>Alterações não salvas</span><button class="pri" id="btnSalvar2">Salvar agora</button></div>
+
+<div id="saveBar" role="status">
+  <span>Alterações não salvas</span>
+  <button class="pri" id="btnSalvar2">Salvar agora</button>
+</div>
 <div id="toast" role="status"></div>
 
 <script>
@@ -213,7 +230,6 @@ const KEY_OLD='escala-irmaos-v2';
 const DIAS=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
 const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const RANK={ENSAIO:0,RJM:1,CULTO:2};
-const N_POR_DIA=3;
 const SLOTS=[
   {k:'4|CULTO',dow:4,tipo:'CULTO',nome:'Quinta: Culto'},
   {k:'6|CULTO',dow:6,tipo:'CULTO',nome:'Sábado: Culto'},
@@ -221,6 +237,7 @@ const SLOTS=[
   {k:'0|CULTO',dow:0,tipo:'CULTO',nome:'Domingo: Culto'}
 ];
 const GS={M:'Irmãos',F:'Irmãs'};
+const REF=new Date(2026,7,31); // segunda-feira da semana 1 do ciclo (03/09/2026)
 const $=s=>document.querySelector(s);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pad=n=>String(n).padStart(2,'0');
@@ -232,32 +249,10 @@ const uid=()=>Math.random().toString(36).slice(2,9);
 const capNome=s=>String(s).replace(/\S+/g,w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase());
 const cp=o=>JSON.parse(JSON.stringify(o));
 
-function normalizarTrio(arr){
-  const a=Array.isArray(arr)?arr.slice(0,N_POR_DIA):[];
-  while(a.length<N_POR_DIA)a.push(null);
-  return a;
-}
-function normalizarCiclo(g){
-  const G=S.groups[g];if(!G||!Array.isArray(G.cycle))return;
-  G.cycle.forEach(w=>{
-    SLOTS.forEach(sl=>{w[sl.k]=normalizarTrio(w[sl.k]);});
-    for(const k in w){if(SLOTS.some(s=>s.k===k))continue;w[k]=normalizarTrio(w[k]);}
-  });
-}
-function assinaturaPool(pool){return (pool||[]).filter(x=>x).join('|');}
-function distribuirTrio(pool, rotacao){
-  const nomes=(pool||[]).filter(x=>x);
-  if(!nomes.length)return [null,null,null];
-  const n=nomes.length;
-  const out=[];
-  for(let i=0;i<N_POR_DIA;i++)out.push(nomes[(rotacao+i)%n]);
-  return out;
-}
-
 function defaults(){
-  const nomes={vilas:'Vilas',paulinho:'Paulinho',saulo:'Saulo',nelson:'Nelson',vanderlei:'Vanderlei',edimilson:'Edimilson',rubens:'Rubens',marcos:'Marcos',santo:'Santo',iago:'Iago'};
-  const A1={'4|CULTO':['vilas','paulinho','saulo'],'6|CULTO':['nelson','paulinho','vanderlei'],'0|RJM':['vanderlei','paulinho','edimilson'],'0|CULTO':['rubens','marcos','nelson']};
-  const B1={'4|CULTO':['vilas',null,'saulo'],'6|CULTO':['marcos',null,'santo'],'0|RJM':['vanderlei',null,'iago'],'0|CULTO':['iago',null,'santo']};
+  const nomes={vilas:'Vilas',paulinho:'Paulinho',saulo:'Saulo',nelson:'Nelson',vanderlei:'Vanderlei',edimilson:'Edimilson',rubens:'Rubens',marcos:'Marcos',santo:'Santo',iago:'Iago',marcio:'Marcio Porteiro'};
+  const A1={'4|CULTO':['vilas','paulinho','saulo'],'6|CULTO':['nelson','paulinho','vanderlei'],'0|RJM':['vanderlei','paulinho','edimilson'],'0|CULTO':['rubens','paulinho','marcio']};
+  const B1={'4|CULTO':['vilas',null,'saulo'],'6|CULTO':['marcos',null,'santo'],'0|RJM':['marcos',null,'iago'],'0|CULTO':['iago','marcio','santo']};
   const A2=cp(A1),B2=cp(B1);
   const h=new Date();let mes=h.getMonth()+2,ano=h.getFullYear();if(mes>12){mes=1;ano++;}
   return {
@@ -304,10 +299,10 @@ function load(){
 }
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 let S=load();
-stripWilliam(S);
-normalizarCiclo('M');normalizarCiclo('F');
+stripWilliam(S); // garante: William fora mesmo em dados já salvos
 let aba='M',editId=null;
 
+/* ---------- salvar / sujo ---------- */
 let dirty=false,lastSaved='',saveT=null;
 function horaAgora(){const h=new Date();return pad(h.getHours())+':'+pad(h.getMinutes());}
 function updateSaveUI(){
@@ -317,8 +312,15 @@ function updateSaveUI(){
   $('#saveStatus').textContent=lastSaved?('Salvo no navegador às '+lastSaved):'';
   $('#saveBar').classList.toggle('on',dirty);
 }
-function markDirty(){dirty=true;updateSaveUI();clearTimeout(saveT);saveT=setTimeout(forceSave,1000);}
-function forceSave(){clearTimeout(saveT);saveT=null;save();dirty=false;lastSaved=horaAgora();updateSaveUI();}
+function markDirty(){
+  dirty=true;updateSaveUI();
+  clearTimeout(saveT);
+  saveT=setTimeout(forceSave,1000); // segurança: salva sozinho logo depois
+}
+function forceSave(){
+  clearTimeout(saveT);saveT=null;
+  save();dirty=false;lastSaved=horaAgora();updateSaveUI();
+}
 window.addEventListener('beforeunload',()=>{if(dirty)save();});
 
 let tt;
@@ -328,14 +330,24 @@ const nomeDe=(g,id)=>{const b=S.groups[g].people.find(x=>x.id===id);return b?b.n
 const up=(g,id)=>nomeDe(g,id).toUpperCase();
 function limparOverridesDe(id){Object.keys(S.manual).forEach(k=>{if(S.manual[k]===id)delete S.manual[k];});}
 
-function idxBase(d){return Math.floor((d.getDate()-1)/7);}
-function calcShift(){const ini=S.cfg.inicio;if(ini==='auto')return 0;return mod(Number(ini),4);}
+/* ---------- ciclo ---------- */
+function idxBase(d){
+  const dw=(d.getDay()+6)%7;
+  const seg=new Date(d.getFullYear(),d.getMonth(),d.getDate()-dw);
+  return Math.round((seg-REF)/(7*864e5));
+}
+function calcShift(){
+  const ini=S.cfg.inicio;if(ini==='auto')return 0;
+  const first=new Date(S.cfg.ano,S.cfg.mes-1,1);
+  return mod(Number(ini)-mod(idxBase(first),4),4);
+}
 function habituais(g){
   const h={};S.groups[g].people.forEach(p=>h[p.id]=new Set());
   S.groups[g].cycle.forEach(w=>{for(const k in w)(w[k]||[]).forEach(id=>{if(id&&h[id])h[id].add(k);});});
   return h;
 }
 
+/* ---------- pessoas ---------- */
 function usoTexto(g,id){
   const partes=[];
   SLOTS.forEach(sl=>{
@@ -354,39 +366,24 @@ function renderLista(){
   const g=aba,G=S.groups[g];
   $('#titAba').textContent=g==='M'?'Irmãos cadastrados':'Irmãs cadastradas';
   $('#novo').placeholder=(g==='M'?'Nome do irmão':'Nome da irmã')+' (para vários, separe por vírgula)';
-  $('#hintAba').innerHTML='Cadastrou? <b>Clique no nome</b> para editar o nome e marcar em quais dias/semanas a pessoa serve. Cada dia tem <b>3 posições</b>.';
+  $('#hintAba').innerHTML='Cadastrou? Coloque nos dias no <b>modelo abaixo</b> para entrar na escala. <b>Remover</b> tira a pessoa da lista, do modelo e da escala de uma vez.';
   const ul=$('#lista');
-  if(!G.people.length){ul.innerHTML='<li>Ninguém cadastrado nesta aba ainda.</li>';return;}
+  if(!G.people.length){ul.innerHTML='<li>Ninguém cadastrado nesta aba ainda. Digite um nome acima.</li>';return;}
   ul.innerHTML=G.people.map(p=>{
     const eh=editId===p.id;
-    if(eh){
-      const diasHtml=SLOTS.map(sl=>(
-        '<div class="editSlot"><div class="editSlotNome">'+esc(sl.nome)+'</div><div class="editSemanas">'
-        +[0,1,2,3].map(w=>{
-          const on=(G.cycle[w][sl.k]||[]).indexOf(p.id)>=0;
-          return '<label class="chkSem"><input type="checkbox" data-dia="'+sl.k+'" data-sem="'+w+'"'+(on?' checked':'')+'> Sem '+(w+1)+'</label>';
-        }).join('')
-        +'</div></div>'
-      )).join('');
-      return '<li>'
-        +'<div class="editRow"><input type="text" id="editNome" value="'+esc(p.nome)+'" aria-label="Nome"></div>'
-        +'<div class="editDias">'+diasHtml+'</div>'
-        +'<div class="acoes"><button class="pri" data-act="saveEdit" data-id="'+p.id+'">Salvar</button><button class="ghost" data-act="cancelEdit">Cancelar</button></div>'
-        +'</li>';
-    }
-    return '<li>'
-      +'<div class="nome" data-act="edit" data-id="'+p.id+'" role="button" tabindex="0">'+esc(p.nome)+'</div>'
-      +'<div class="uso">'+usoTexto(g,p.id)+'</div>'
-      +'<div class="acoes">'
-      +'<button class="ghost" data-act="edit" data-id="'+p.id+'">Editar</button>'
+    const corpo=eh
+      ?'<div class="editRow"><input type="text" id="editNome" value="'+esc(p.nome)+'" aria-label="Novo nome"><button class="pri" data-act="saveEdit" data-id="'+p.id+'">Salvar</button><button class="ghost" data-act="cancelEdit">Cancelar</button></div>'
+      :'<div class="nome">'+esc(p.nome)+'</div>';
+    const acoes=eh?'':'<div class="acoes">'
+      +'<button class="ghost" data-act="edit" data-id="'+p.id+'">Renomear</button>'
       +'<button class="ghost" data-act="mv" data-id="'+p.id+'" data-to="'+(g==='M'?'F':'M')+'">'+(g==='M'?'→ Irmãs':'→ Irmãos')+'</button>'
-      +'<button class="ghost" data-act="rm" data-id="'+p.id+'">Remover</button>'
-      +'</div>'
-      +'</li>';
+      +'<button class="ghost" data-act="rm" data-id="'+p.id+'" aria-label="Remover '+esc(p.nome)+'">Remover</button></div>';
+    return '<li>'+corpo+'<div class="uso">'+usoTexto(g,p.id)+'</div>'+acoes+'</li>';
   }).join('');
   if(editId){
     const i=$('#editNome');
-    if(i){i.focus();i.select();
+    if(i){
+      i.focus();i.select();
       i.addEventListener('keydown',ev=>{
         if(ev.key==='Enter'){ev.preventDefault();salvarEdit(aba,editId,i.value);}
         if(ev.key==='Escape'){editId=null;renderLista();}
@@ -405,67 +402,45 @@ function addPessoas(){
     G.people.push({id:uid(),nome:nome});n++;
   });
   G.people.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
-  inp.value='';markDirty();regerar();renderAll();
-  toast(n?n+' cadastrado(s) em '+GS[g]+'.'+(dup?' '+dup+' já existia(m).':''):'Esse nome já está cadastrado.');
-}
-function aplicarDiasNoCiclo(g,id,marcados){
-  const G=S.groups[g];
-  SLOTS.forEach(sl=>{
-    for(let w=0;w<4;w++){
-      G.cycle[w][sl.k]=normalizarTrio(G.cycle[w][sl.k]);
-      const arr=G.cycle[w][sl.k];
-      const deve=marcados.has(sl.k+'|'+w);
-      const pos=arr.indexOf(id);
-      if(deve&&pos<0){let livre=arr.indexOf(null);if(livre<0)livre=arr.length;arr[livre]=id;}
-      else if(!deve&&pos>=0){arr[pos]=null;}
-    }
-  });
+  inp.value='';markDirty();renderAll();
+  toast(n?n+' cadastrado(s) em '+GS[g]+'. Agora coloque nos dias no modelo abaixo.'+(dup?' '+dup+' nome(s) já existia(m).':''):'Esse nome já está cadastrado em '+GS[g]+'.');
 }
 function salvarEdit(g,id,v){
   const p=S.groups[g].people.find(x=>x.id===id);if(!p)return;
   const nome=capNome((v||'').trim());
   if(!nome){toast('Digite um nome.');return;}
   if(S.groups[g].people.some(x=>x.id!==id&&x.nome.toLowerCase()===nome.toLowerCase())){toast('Já existe alguém com esse nome em '+GS[g]+'.');return;}
-  p.nome=nome;
-  const marcados=new Set();
-  document.querySelectorAll('#lista input[type=checkbox][data-dia]').forEach(cb=>{
-    if(cb.checked)marcados.add(cb.dataset.dia+'|'+cb.dataset.sem);
-  });
-  aplicarDiasNoCiclo(g,id,marcados);
-  limparOverridesDe(id);
-  editId=null;markDirty();regerar();renderAll();
-  toast(nome+' atualizado(a).');
+  p.nome=nome;editId=null;markDirty();renderAll();toast('Nome atualizado para '+nome+'.');
 }
 function remover(g,id){
   const G=S.groups[g],p=G.people.find(x=>x.id===id);if(!p)return;
   G.people=G.people.filter(x=>x.id!==id);
-  G.cycle.forEach(w=>{for(const k in w)w[k]=normalizarTrio((w[k]||[]).map(x=>x===id?null:x));});
-  const e=S.escala[g];if(e)e.forEach(ev=>ev.irmaos=normalizarTrio((ev.irmaos||[]).map(x=>x===id?null:x)));
+  G.cycle.forEach(w=>{for(const k in w)w[k]=(w[k]||[]).map(x=>x===id?null:x);});
+  const e=S.escala[g];if(e)e.forEach(ev=>ev.irmaos=(ev.irmaos||[]).map(x=>x===id?null:x));
   limparOverridesDe(id);
   if(editId===id)editId=null;
-  markDirty();regerar();renderAll();
-  toast(p.nome+' removido(a).');
+  markDirty();renderAll();toast(p.nome+' foi removido(a) da escala.');
 }
 function mover(g,id,para){
   const G=S.groups[g],P=S.groups[para],p=G.people.find(x=>x.id===id);if(!p)return;
   G.people=G.people.filter(x=>x.id!==id);
-  G.cycle.forEach(w=>{for(const k in w)w[k]=normalizarTrio((w[k]||[]).map(x=>x===id?null:x));});
-  const e=S.escala[g];if(e)e.forEach(ev=>ev.irmaos=normalizarTrio((ev.irmaos||[]).map(x=>x===id?null:x)));
+  G.cycle.forEach(w=>{for(const k in w)w[k]=(w[k]||[]).map(x=>x===id?null:x);});
+  const e=S.escala[g];if(e)e.forEach(ev=>ev.irmaos=(ev.irmaos||[]).map(x=>x===id?null:x));
   limparOverridesDe(id);
   P.people.push(p);P.people.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
-  markDirty();regerar();renderAll();
-  toast(p.nome+' agora está em '+GS[para]+'.');
+  markDirty();renderAll();toast(p.nome+' agora está na aba '+GS[para]+'. Coloque nos dias no modelo dela.');
 }
 function criarPessoa(g){
   const nome=capNome((prompt('Nome da pessoa nova (entrará em '+GS[g]+'):')||'').trim());
   if(!nome)return null;
   const G=S.groups[g];
-  if(G.people.some(p=>p.nome.toLowerCase()===nome.toLowerCase())){toast(nome+' já está cadastrado(a).');return null;}
+  if(G.people.some(p=>p.nome.toLowerCase()===nome.toLowerCase())){toast(nome+' já está cadastrado(a) em '+GS[g]+'.');return null;}
   const nb={id:uid(),nome:nome};
   G.people.push(nb);G.people.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
   return nb;
 }
 
+/* ---------- modelo ---------- */
 function opts(g,sel){
   return '<option value="">—</option>'+S.groups[g].people.map(p=>'<option value="'+p.id+'"'+(p.id===sel?' selected':'')+'>'+esc(p.nome)+'</option>').join('')+'<option value="__new">＋ Nova pessoa…</option>';
 }
@@ -473,35 +448,24 @@ function renderModelo(){
   $('#titModelo').textContent='Modelo da escala '+(aba==='M'?'dos irmãos':'das irmãs')+' (dias fixos, 4 semanas)';
   $('#semanas').innerHTML=S.groups[aba].cycle.map((w,i)=>
     '<div class="semana'+(aba==='F'?' fem':'')+'"><h3>Semana '+(i+1)+'</h3>'+SLOTS.map(sl=>{
-      const ids=normalizarTrio(w[sl.k]);
+      const ids=w[sl.k]||[null,null,null];
       return '<div class="lin"><span>'+sl.nome+'</span><div class="trio">'+[0,1,2].map(p=>'<select data-g="'+aba+'" data-w="'+i+'" data-k="'+sl.k+'" data-p="'+p+'">'+opts(aba,ids[p])+'</select>').join('')+'</div></div>';
     }).join('')+'</div>'
   ).join('');
 }
 
+/* ---------- geração ---------- */
 function ovKey(g,data,tipo,j){return g+'|'+data+'|'+tipo+'|'+j;}
 function montar(g){
   const G=S.groups[g],mes=S.cfg.mes,ano=S.cfg.ano,ult=new Date(ano,mes,0).getDate(),sh=calcShift(),ev=[];
-  const rotPorPool={};
-  function proximaRotacao(pool){
-    const assin=assinaturaPool(pool);
-    if(!assin)return 0;
-    const r=rotPorPool[assin]||0;
-    rotPorPool[assin]=r+1;
-    return r;
-  }
   for(let d=1;d<=ult;d++){
     const dt=new Date(ano,mes-1,d),w=mod(idxBase(dt)+sh,4);
     SLOTS.forEach(sl=>{
       if(sl.dow!==dt.getDay())return;
-      const pool=G.cycle[w][sl.k]||[];
-      ev.push({data:iso(ano,mes,d),tipo:sl.tipo,irmaos:distribuirTrio(pool,proximaRotacao(pool))});
+      ev.push({data:iso(ano,mes,d),tipo:sl.tipo,irmaos:(G.cycle[w][sl.k]||[null,null,null]).slice()});
     });
     if(S.cfg.ensaio&&dt.getDay()===6&&d>=8&&d<=14){
-      const k=iso(ano,mes,d);
-      const culto=ev.find(e=>e.data===k&&e.tipo==='CULTO');
-      const irmaos=culto?culto.irmaos.slice():[null,null,null];
-      ev.push({data:k,tipo:'ENSAIO',irmaos});
+      ev.push({data:iso(ano,mes,d),tipo:'ENSAIO',irmaos:(G.cycle[w]['6|CULTO']||[null,null,null]).slice()});
     }
   }
   const pre=ano+'-'+pad(mes);
@@ -509,50 +473,45 @@ function montar(g){
   const vistos={};
   const lista=ev.filter(e=>{const k=e.data+'|'+e.tipo;if(vistos[k]||S.cfg.excluir.indexOf(g+'|'+k)>=0)return false;vistos[k]=1;return true;})
     .sort((a,b)=>a.data.localeCompare(b.data)||RANK[a.tipo]-RANK[b.tipo]);
-  lista.forEach(e=>{
-    e.irmaos=normalizarTrio(e.irmaos);
-    for(let j=0;j<N_POR_DIA;j++){
-      const k=ovKey(g,e.data,e.tipo,j);
-      if(Object.prototype.hasOwnProperty.call(S.manual,k))e.irmaos[j]=S.manual[k];
-    }
-  });
+  // reaplica edições manuais salvas (sobrevivem ao "Gerar escala")
+  lista.forEach(e=>{for(let j=0;j<e.irmaos.length;j++){const k=ovKey(g,e.data,e.tipo,j);if(Object.prototype.hasOwnProperty.call(S.manual,k))e.irmaos[j]=S.manual[k];}});
   return lista;
 }
-function temEscalaGerada(){return !!(S.escala&&(S.escala.M||S.escala.F));}
-function regerar(){if(!temEscalaGerada())return false;S.escala={M:montar('M'),F:montar('F')};return true;}
 function gerar(){
   S.escala={M:montar('M'),F:montar('F')};
   markDirty();renderChips();renderResultado();
-  toast('Escalas de '+MESES[S.cfg.mes-1]+' '+S.cfg.ano+' geradas.');
+  toast('Escalas de '+MESES[S.cfg.mes-1]+' '+S.cfg.ano+' geradas. Suas edições manuais foram mantidas.');
 }
 
+/* ---------- resultado ---------- */
 function slotKey(e){const dow=parse(e.data).getDay();return dow+'|'+(e.tipo==='ENSAIO'?'CULTO':e.tipo);}
-function segundaKey(data){
-  const d=parse(data);
-  const bloco=Math.floor((d.getDate()-1)/7);
-  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-B'+bloco;
-}
+function segundaKey(data){const d=parse(data);const dw=(d.getDay()+6)%7;const s=new Date(d.getFullYear(),d.getMonth(),d.getDate()-dw);return iso(s.getFullYear(),s.getMonth()+1,s.getDate());}
+
 function renderResultado(){
   const folha=$('#folha'),av=$('#avisos'),ct=$('#contagem');
   const gerada=S.escala&&((S.escala.M&&S.escala.M.length)||(S.escala.F&&S.escala.F.length));
-  if(!gerada){folha.innerHTML='<div class="vazio no-print">Escolha o mês e clique em <b>Gerar escala</b>.</div>';av.innerHTML='';ct.innerHTML='';return;}
+  if(!gerada){
+    folha.innerHTML='<div class="vazio no-print">Escolha o mês e clique em <b>Gerar escala</b>.</div>';
+    av.innerHTML='';ct.innerHTML='';return;
+  }
   const avisos=[];let html='',htmlC='';
   ['M','F'].forEach(g=>{
     const G=S.groups[g],lista=S.escala[g]||[];
     html+='<div class="grupoBloco">';
-    if(!G.people.length){html+='<div class="vazio">Nenhuma '+(g==='F'?'irmã':'irmão')+' cadastrada(o).</div>';}
-    else if(!lista.length){html+='<div class="vazio">Sem eventos de '+GS[g].toLowerCase()+' neste mês.</div>';}
-    else{
+    if(!G.people.length){
+      html+='<div class="vazio">Nenhuma '+(g==='F'?'irmã':'irmão')+' cadastrada(o). Use a aba "'+GS[g]+'".</div>';
+    }else if(!lista.length){
+      html+='<div class="vazio">Sem eventos de '+GS[g].toLowerCase()+' neste mês.</div>';
+    }else{
       const hab=habituais(g),valid=SLOTS.map(s=>s.k);
-      const N=N_POR_DIA;
+      const N=Math.max.apply(null,lista.map(e=>e.irmaos.length).concat([3]));
       html+='<table class="escala"><thead><tr><th class="titulo" colspan="'+(N+3)+'">ESCALA DOS '+GS[g].toUpperCase()+' · '+MESES[S.cfg.mes-1].toUpperCase()+' '+S.cfg.ano+'</th><th class="no-print titulo" style="width:1%"></th></tr>'
         +'<tr><th>Data</th><th>Dia</th><th>Culto / RJM</th><th colspan="'+N+'">Nomes</th><th class="no-print"></th></tr></thead><tbody>';
-      let bloco=null;
+      let semana=null;
       lista.forEach((e,i)=>{
-        e.irmaos=normalizarTrio(e.irmaos);
         const sk=segundaKey(e.data);
-        if(bloco!==null&&sk!==bloco)html+='<tr class="esp"><td colspan="'+(N+4)+'"></td></tr>';
-        bloco=sk;
+        if(semana!==null&&sk!==semana)html+='<tr class="esp"><td colspan="'+(N+4)+'"></td></tr>';
+        semana=sk;
         const chave=slotKey(e),checar=valid.indexOf(chave)>=0;
         const dup={};e.irmaos.forEach(x=>{if(x)dup[x]=(dup[x]||0)+1;});
         let vagas=0;
@@ -562,10 +521,10 @@ function renderResultado(){
           if(!id)vagas++;
           else if(dup[id]>1){cls='dup';avisos.push(['b',GS[g]+': '+up(g,id)+' aparece duas vezes em '+br(e.data)+' ('+e.tipo+').']);}
           else if(checar&&hab[id]&&!hab[id].has(chave)){cls='fora';avisos.push(['w',GS[g]+': '+up(g,id)+' está fora do dia habitual em '+br(e.data)+' ('+e.tipo+').']);}
-          html+='<td><select class="'+cls+'" data-g="'+g+'" data-i="'+i+'" data-j="'+j+'">'+opts(g,id)+'</select></td>';
+          html+='<td><select class="'+cls+'" data-g="'+g+'" data-i="'+i+'" data-j="'+j+'" aria-label="'+GS[g]+' em '+br(e.data)+' '+e.tipo+'">'+opts(g,id)+'</select></td>';
         }
         if(vagas)avisos.push(['b',GS[g]+': vaga em aberto em '+br(e.data)+' ('+e.tipo+').']);
-        html+='<td class="no-print"><button class="ghost" data-act="del" data-g="'+g+'" data-i="'+i+'">✕</button></td></tr>';
+        html+='<td class="no-print"><button class="ghost" data-act="del" data-g="'+g+'" data-i="'+i+'" aria-label="Remover evento">✕</button></td></tr>';
       });
       html+='</tbody></table>';
       const cont={};
@@ -580,17 +539,19 @@ function renderResultado(){
   ct.innerHTML=htmlC;
 }
 
+/* ---------- extras / excluídos ---------- */
 function renderChips(){
   $('#chipsExtra').innerHTML=S.cfg.extras.map((x,i)=>{
     const gl=x.g==='A'?'Irmãos + Irmãs':GS[x.g];
-    return '<span class="chip">Extra: '+br(x.data)+' '+x.tipo+' · '+gl+'<button data-act="rmExtra" data-i="'+i+'">✕</button></span>';
+    return '<span class="chip">Extra: '+br(x.data)+' '+x.tipo+' · '+gl+'<button data-act="rmExtra" data-i="'+i+'" aria-label="Remover extra">✕</button></span>';
   }).join('');
   $('#chipsExcl').innerHTML=S.cfg.excluir.map((k,i)=>{
     const p=k.split('|');
-    return '<span class="chip">Removido: '+br(p[1])+' '+p[2]+' ('+GS[p[0]]+')<button data-act="rmExcl" data-i="'+i+'">Restaurar</button></span>';
+    return '<span class="chip">Removido: '+br(p[1])+' '+p[2]+' ('+GS[p[0]]+')<button data-act="rmExcl" data-i="'+i+'" aria-label="Restaurar">Restaurar</button></span>';
   }).join('');
 }
 
+/* ---------- exportar ---------- */
 function textoEscala(){
   if(!S.escala)return '';
   let out='';
@@ -598,12 +559,12 @@ function textoEscala(){
     const lista=S.escala[g]||[];
     if(!S.groups[g].people.length||!lista.length)return;
     out+=(out?'\n':'')+'== ESCALA DOS '+GS[g].toUpperCase()+' ==\n';
-    let bloco=null;
+    let sem=null;
     lista.forEach(e=>{
       const sk=segundaKey(e.data);
-      if(bloco!==null&&sk!==bloco)out+='\n';
-      bloco=sk;
-      out+=DIAS[parse(e.data).getDay()]+' '+br(e.data).slice(0,5)+' - '+e.tipo+': '+normalizarTrio(e.irmaos).map(x=>x?up(g,x):'(vago)').join(', ')+'\n';
+      if(sem!==null&&sk!==sem)out+='\n';
+      sem=sk;
+      out+=DIAS[parse(e.data).getDay()]+' '+br(e.data).slice(0,5)+' - '+e.tipo+': '+e.irmaos.map(x=>x?up(g,x):'(vago)').join(', ')+'\n';
     });
   });
   return out;
@@ -615,15 +576,15 @@ function copiar(){
 }
 function baixarCsv(){
   if(!S.escala){toast('Gere a escala primeiro.');return;}
-  const NG=N_POR_DIA;
+  let NG=3;
+  ['M','F'].forEach(g=>{(S.escala[g]||[]).forEach(e=>{if(e.irmaos.length>NG)NG=e.irmaos.length;});});
   const head=['Grupo','Data','Dia','Culto/RJM'];for(let j=1;j<=NG;j++)head.push('Nome '+j);
   const linhas=[head.join(';')];
   ['M','F'].forEach(g=>{
     if(!S.groups[g].people.length)return;
     (S.escala[g]||[]).forEach(e=>{
-      const trio=normalizarTrio(e.irmaos);
       const r=[GS[g].toUpperCase(),br(e.data),DIAS[parse(e.data).getDay()],e.tipo];
-      for(let j=0;j<NG;j++)r.push(trio[j]?up(g,trio[j]):'');
+      for(let j=0;j<NG;j++)r.push(e.irmaos[j]?up(g,e.irmaos[j]):'');
       linhas.push(r.join(';'));
     });
   });
@@ -632,9 +593,10 @@ function baixarCsv(){
     const blob=new Blob(['\ufeff'+linhas.join('\r\n')],{type:'text/csv;charset=utf-8'});
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);
     a.download='escalas-'+S.cfg.ano+'-'+pad(S.cfg.mes)+'.csv';document.body.appendChild(a);a.click();a.remove();
-  }catch(e){toast('Download indisponível. Use "Copiar texto".');}
+  }catch(e){toast('Download indisponível aqui. Use "Copiar texto".');}
 }
 
+/* ---------- init / eventos ---------- */
 function renderCfg(){
   $('#mes').innerHTML=MESES.map((m,i)=>'<option value="'+(i+1)+'"'+(i+1===S.cfg.mes?' selected':'')+'>'+m+'</option>').join('');
   $('#ano').value=S.cfg.ano;
@@ -657,70 +619,65 @@ document.addEventListener('click',ev=>{
     const g=b.dataset.g,e=S.escala[g]&&S.escala[g][Number(b.dataset.i)];if(!e)return;
     S.cfg.excluir.push(g+'|'+e.data+'|'+e.tipo);
     S.escala[g].splice(Number(b.dataset.i),1);
-    markDirty();renderChips();regerar();renderResultado();
+    markDirty();renderChips();renderResultado();
   }
-  else if(act==='rmExtra'){S.cfg.extras.splice(Number(b.dataset.i),1);markDirty();renderChips();regerar();renderResultado();}
-  else if(act==='rmExcl'){S.cfg.excluir.splice(Number(b.dataset.i),1);markDirty();renderChips();regerar();renderResultado();toast('Restaurado.');}
-});
-document.addEventListener('keydown',ev=>{
-  if(ev.key==='Enter'&&ev.target.classList&&ev.target.classList.contains('nome')){
-    ev.preventDefault();editId=ev.target.dataset.id;renderLista();
-  }
+  else if(act==='rmExtra'){S.cfg.extras.splice(Number(b.dataset.i),1);markDirty();renderChips();}
+  else if(act==='rmExcl'){S.cfg.excluir.splice(Number(b.dataset.i),1);markDirty();renderChips();toast('Restaurado. Clique em Gerar escala para atualizar.');}
 });
 document.addEventListener('change',ev=>{
   const t=ev.target;
   if(t.dataset.g&&t.dataset.w!==undefined){
     const g=t.dataset.g,G=S.groups[g],k=t.dataset.k,w=Number(t.dataset.w),p=Number(t.dataset.p);
-    G.cycle[w][k]=normalizarTrio(G.cycle[w][k]);
+    if(!G.cycle[w][k])G.cycle[w][k]=[null,null,null];
     if(t.value==='__new'){
-      const nb=criarPessoa(g);if(!nb){renderModelo();return;}
-      G.cycle[w][k][p]=nb.id;markDirty();regerar();renderAll();
-      toast(nb.nome+' cadastrado(a).');return;
+      const nb=criarPessoa(g);
+      if(!nb){renderModelo();return;}
+      G.cycle[w][k][p]=nb.id;markDirty();renderAll();
+      toast(nb.nome+' cadastrado(a) e já colocado(a) na vaga.');
+      return;
     }
-    G.cycle[w][k][p]=t.value||null;markDirty();regerar();renderLista();renderResultado();return;
+    G.cycle[w][k][p]=t.value||null;markDirty();renderLista();return;
   }
   if(t.dataset.g&&t.dataset.i!==undefined&&t.closest('#folha')&&S.escala){
     const g=t.dataset.g,e=S.escala[g][Number(t.dataset.i)];if(!e)return;
-    const j=Number(t.dataset.j);e.irmaos=normalizarTrio(e.irmaos);
+    const j=Number(t.dataset.j);
     if(t.value==='__new'){
-      const nb=criarPessoa(g);if(!nb){renderResultado();return;}
+      const nb=criarPessoa(g);
+      if(!nb){renderResultado();return;}
       e.irmaos[j]=nb.id;S.manual[ovKey(g,e.data,e.tipo,j)]=nb.id;markDirty();renderAll();
-      toast(nb.nome+' cadastrado(a).');return;
+      toast(nb.nome+' cadastrado(a) e já colocado(a) na vaga.');
+      return;
     }
-    e.irmaos[j]=t.value||null;S.manual[ovKey(g,e.data,e.tipo,j)]=e.irmaos[j];
+    e.irmaos[j]=t.value||null;
+    S.manual[ovKey(g,e.data,e.tipo,j)]=e.irmaos[j]; // grava a edição para sobreviver ao "Gerar escala"
     markDirty();renderResultado();return;
   }
 });
-$('#btnAdd').addEventListener('click',addPessoas);
-$('#novo').addEventListener('keydown',e=>{if(e.key==='Enter')addPessoas();});
-$('#btnSalvar').addEventListener('click',()=>{forceSave();toast('✓ Salvo.');});
-$('#btnSalvar2').addEventListener('click',()=>{forceSave();toast('✓ Salvo.');});
-$('#btnLimpar').addEventListener('click',()=>{
-  if(!confirm('Apagar todas as edições manuais feitas na tabela e regerar a partir do modelo?\n(Isso não mexe em nomes nem no modelo — só nas trocas feitas célula a célula.)'))return;
-  S.manual={};
-  markDirty();
-  regerar();renderResultado();
-  toast('Edições da tabela limpas. Escala regerada do modelo.');
-});
-$('#mes').addEventListener('change',e=>{S.cfg.mes=Number(e.target.value);markDirty();regerar();renderResultado();});
-$('#ano').addEventListener('change',e=>{const v=Number(e.target.value);if(v>=2024&&v<=2100){S.cfg.ano=v;markDirty();regerar();renderResultado();}});
-$('#inicio').addEventListener('change',e=>{S.cfg.inicio=e.target.value;markDirty();regerar();renderResultado();});
-$('#ensaio').addEventListener('change',e=>{S.cfg.ensaio=e.target.checked;markDirty();regerar();renderResultado();});
-$('#btnExtra').addEventListener('click',()=>{
+ $('#btnAdd').addEventListener('click',addPessoas);
+ $('#novo').addEventListener('keydown',e=>{if(e.key==='Enter')addPessoas();});
+ $('#btnSalvar').addEventListener('click',()=>{forceSave();toast('✓ Salvo no navegador.');});
+ $('#btnSalvar2').addEventListener('click',()=>{forceSave();toast('✓ Salvo no navegador.');});
+ $('#mes').addEventListener('change',e=>{S.cfg.mes=Number(e.target.value);markDirty();});
+ $('#ano').addEventListener('change',e=>{const v=Number(e.target.value);if(v>=2024&&v<=2100){S.cfg.ano=v;markDirty();}});
+ $('#inicio').addEventListener('change',e=>{S.cfg.inicio=e.target.value;markDirty();});
+ $('#ensaio').addEventListener('change',e=>{S.cfg.ensaio=e.target.checked;markDirty();});
+ $('#btnExtra').addEventListener('click',()=>{
   const d=$('#exData').value;if(!d){toast('Escolha a data do evento extra.');return;}
   S.cfg.extras.push({data:d,tipo:$('#exTipo').value,g:$('#exGrupo').value});
-  markDirty();renderChips();regerar();renderResultado();toast('Extra adicionado.');
+  markDirty();renderChips();toast('Extra adicionado. Clique em Gerar escala.');
 });
-$('#btnGerar').addEventListener('click',gerar);
-$('#btnCopiar').addEventListener('click',copiar);
-$('#btnCsv').addEventListener('click',baixarCsv);
-$('#btnPrint').addEventListener('click',()=>{if(!S.escala){toast('Gere a escala primeiro.');return;}window.print();});
-$('#btnReset').addEventListener('click',()=>{
-  if(!confirm('Voltar aos dados originais e apagar as mudanças?'))return;
-  S=defaults();normalizarCiclo('M');normalizarCiclo('F');aba='M';editId=null;forceSave();renderCfg();renderAll();toast('Dados originais restaurados.');
+ $('#btnGerar').addEventListener('click',gerar);
+ $('#btnCopiar').addEventListener('click',copiar);
+ $('#btnCsv').addEventListener('click',baixarCsv);
+ $('#btnPrint').addEventListener('click',()=>{if(!S.escala){toast('Gere a escala primeiro.');return;}window.print();});
+ $('#btnReset').addEventListener('click',()=>{
+  if(!confirm('Voltar aos dados originais (setembro/2026, sem William) e apagar as mudanças?'))return;
+  S=defaults();aba='M';editId=null;forceSave();renderCfg();renderAll();toast('Dados originais restaurados.');
 });
-renderCfg();renderAll();forceSave();
-if(_mig)toast('Dados antigos migrados. William foi excluído.');
+
+renderCfg();renderAll();
+forceSave(); // grava já no primeiro abrir (inclusive a exclusão do William)
+if(_mig)toast('Dados antigos migrados. William foi excluído — as vagas dele ficaram abertas (—).');
 })();
 </script>
 </body>
