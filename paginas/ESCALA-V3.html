@@ -250,8 +250,9 @@ const cp=o=>JSON.parse(JSON.stringify(o));
 
 function defaults(){
   const nomes={vilas:'Vilas',paulinho:'Paulinho',saulo:'Saulo',nelson:'Nelson',vanderlei:'Vanderlei',edimilson:'Edimilson',rubens:'Rubens',marcos:'Marcos',santo:'Santo',iago:'Iago'};
-  const A1={'4|CULTO':['vilas','paulinho','saulo'],'6|CULTO':['nelson','paulinho','vanderlei'],'0|RJM':['vanderlei','paulinho','edimilson'],'0|CULTO':['rubens','paulinho','nelson']};
-  const B1={'4|CULTO':['vilas',null,'saulo'],'6|CULTO':['marcos',null,'santo'],'0|RJM':['marcos',null,'iago'],'0|CULTO':['iago',null,'santo']};
+  // Marcos foi movido do Domingo: RJM para o Domingo: Culto (à noite), no lugar de Paulinho.
+  const A1={'4|CULTO':['vilas','paulinho','saulo'],'6|CULTO':['nelson','paulinho','vanderlei'],'0|RJM':['vanderlei','paulinho','edimilson'],'0|CULTO':['rubens','marcos','nelson']};
+  const B1={'4|CULTO':['vilas',null,'saulo'],'6|CULTO':['marcos',null,'santo'],'0|RJM':[null,null,'iago'],'0|CULTO':['iago',null,'santo']};
   const A2=cp(A1),B2=cp(B1);
   const h=new Date();let mes=h.getMonth()+2,ano=h.getFullYear();if(mes>12){mes=1;ano++;}
   return {
