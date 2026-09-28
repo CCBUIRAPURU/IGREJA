@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Escalas dos Irmãos e das Irmãs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef1f4; --card:#ffffff; --ink:#1b2733; --mute:#5d6b79; --line:#c9d1d9;
+  --acc:#1d5a86; --acc-ink:#ffffff; --acc-soft:#dcebf5;
+  --fem:#93407c; --fem-ink:#ffffff; --fem-soft:#f7e3f2;
+  --warn:#8a5a00; --warn-bg:#fff2cf; --bad:#a3271f; --bad-bg:#fde3e0;
+  --head:#1b2733; --head-ink:#ffffff;
+  --f-title:"Archivo Narrow","Arial Narrow",Arial,sans-serif;
+  --f-body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12181e; --card:#1b232b; --ink:#e6ebf0; --mute:#97a5b3; --line:#34424f;
+    --acc:#6fb1de; --acc-ink:#0d1a24; --acc-soft:#1f3546;
+    --fem:#c77fb2; --fem-ink:#1c0f18; --fem-soft:#3d2739;
+    --warn:#f0c46a; --warn-bg:#3a2f14; --bad:#ff9d94; --bad-bg:#40201d;
+    --head:#0c1116; --head-ink:#e6ebf0;
+  }
+}
+*{box-sizing:border-box}
+html{height:100%}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font:16px/1.45 var(--f-body)}
+.wrap{max-width:1040px;margin:0 auto;padding:20px 16px 60px}
+h1{font:700 34px/1.1 var(--f-title);margin:0 0 4px;letter-spacing:.2px}
+h2{font:700 22px/1.2 var(--f-title);margin:0 0 12px}
+.sub{color:var(--mute);margin:0 0 18px;max-width:75ch}
+section.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:18px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+input[type=text],input[type=date],input[type=number],select{
+  font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:6px;padding:8px 10px;min-height:40px}
+input[type=text]{flex:1;min-width:200px}
+button{font:600 15px var(--f-body);cursor:pointer;border-radius:6px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 14px;min-height:40px}
+button:hover{border-color:var(--acc)}
+button.pri{background:var(--acc);color:var(--acc-ink);border-color:var(--acc)}
+button.ghost{border-color:transparent;color:var(--mute);padding:4px 10px;min-height:32px}
+button.ghost:hover{color:var(--bad)}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.hint{color:var(--mute);font-size:14px;margin:6px 0 0}
+
+/* abas */
+.tabs{display:flex;gap:8px;margin:0 0 14px;flex-wrap:wrap}
+.tabbtn{font:700 19px var(--f-title);letter-spacing:.4px;padding:10px 22px;border-radius:8px;min-height:44px}
+.tabbtn .n{font-size:14px;font-weight:600;opacity:.75;margin-left:6px}
+.tabbtn.on{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
+.tabbtn.on.fem{background:var(--fem);border-color:var(--fem);color:var(--fem-ink)}
+
+/* lista */
+#lista{list-style:none;margin:14px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px}
+#lista li{border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+#lista .nome{font:700 18px var(--f-title);text-transform:uppercase;letter-spacing:.3px}
+#lista .uso{font-size:13.5px;color:var(--mute);margin-top:2px}
+#lista .uso b{color:var(--ink);font-weight:600}
+.acoes{display:flex;gap:2px;flex-wrap:wrap;margin-top:6px}
+.editRow{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:2px 0 6px}
+.editRow input{flex:1;min-width:150px;font-weight:700}
+
+/* modelo */
+details.modelo summary{cursor:pointer;font:700 22px var(--f-title);list-style:none}
+details.modelo summary::-webkit-details-marker{display:none}
+details.modelo summary::before{content:"▸ ";color:var(--acc)}
+details.modelo[open] summary::before{content:"▾ "}
+.semanas{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-top:12px}
+.semana{border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.semana h3{margin:0;padding:8px 12px;background:var(--acc-soft);font:700 17px var(--f-title)}
+.semana.fem h3{background:var(--fem-soft)}
+.semana .lin{display:grid;grid-template-columns:96px 1fr;gap:6px;align-items:center;padding:8px 10px;border-top:1px solid var(--line)}
+.semana .lin span{font-size:14px;color:var(--mute)}
+.semana .trio{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.semana select{min-height:34px;padding:4px 6px;width:100%;font-size:14px;text-transform:uppercase}
+
+/* gerar */
+.cfg{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;align-items:end;margin-bottom:12px}
+.cfg label{display:flex;flex-direction:column;gap:4px;font-size:14px;color:var(--mute)}
+.cfg label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--ink);min-height:40px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{display:inline-flex;align-items:center;gap:4px;background:var(--acc-soft);border-radius:999px;padding:2px 4px 2px 10px;font-size:13.5px}
+.chip button{border:0;background:transparent;min-height:24px;padding:0 6px;color:var(--mute)}
+.chip button:hover{color:var(--bad)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 12px}
+.avisos{display:grid;gap:6px;margin:0 0 12px}
+.aviso{padding:8px 12px;border-radius:8px;font-size:14.5px}
+.aviso.w{background:var(--warn-bg);color:var(--warn)}
+.aviso.b{background:var(--bad-bg);color:var(--bad)}
+.tabwrap{overflow-x:auto}
+table.escala{border-collapse:collapse;width:100%;min-width:640px;background:var(--card);border:2px solid var(--head)}
+table.escala th,table.escala td{border:1px solid var(--head);padding:4px 6px;text-align:center;font:500 17px var(--f-title)}
+table.escala th.titulo{font-size:28px;font-weight:700;padding:8px;text-transform:uppercase;background:var(--card)}
+table.escala thead th{font-weight:700;font-size:20px}
+table.escala tr.esp td{border:0;height:12px;padding:0;background:transparent}
+table.escala tbody tr:not(.esp) td:first-child{white-space:nowrap}
+table.escala select{width:100%;border:0;background:transparent;text-align:center;text-align-last:center;font:500 17px var(--f-title);text-transform:uppercase;padding:2px;min-height:30px;border-radius:0}
+table.escala select.fora{background:var(--warn-bg);color:var(--warn)}
+table.escala select.dup{background:var(--bad-bg);color:var(--bad)}
+table.escala td.tipo{text-transform:uppercase}
+.vazio{padding:24px;text-align:center;color:var(--mute);border:1px dashed var(--line);border-radius:8px}
+.contagem{margin-top:10px;display:grid;gap:6px}
+.linhaCont{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.linhaCont>b{font-family:var(--f-title);font-size:16px;text-transform:uppercase;margin-right:4px}
+.linhaCont span{border:1px solid var(--line);border-radius:6px;padding:3px 10px;font-size:14px}
+.linhaCont span b{text-transform:uppercase;font-family:var(--f-title);font-size:15px}
+.grupoBloco{margin-bottom:26px}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--head);color:var(--head-ink);padding:10px 16px;border-radius:8px;font-size:15px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;z-index:9}
+#toast.on{opacity:1}
+
+@media print{
+  :root{--bg:#fff;--card:#fff;--ink:#000;--head:#000}
+  body{background:#fff}
+  .no-print{display:none!important}
+  .wrap{padding:0;max-width:none}
+  section.card{border:0;padding:0;margin:0}
+  table.escala{min-width:0;border:2px solid #000}
+  table.escala select{appearance:none;-webkit-appearance:none;color:#000;background:transparent!important}
+  .grupoBloco{break-inside:avoid-page;margin-bottom:30px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="no-print">
+    <h1>Escalas dos Irmãos e das Irmãs</h1>
+    <p class="sub"><b>Duas escalas separadas:</b> use a aba <b>Irmãos</b> ou <b>Irmãs</b> para cadastrar as pessoas e montar o modelo de dias fixos de cada grupo. Na hora de gerar, saem as duas tabelas do mês. Incluir e excluir pessoa é um clique — nada fica trancado.</p>
+  </header>
+
+  <section class="card no-print">
+    <div class="tabs">
+      <button class="tabbtn on" id="btnTabM" data-tab="M">Irmãos <span class="n" id="cntM"></span></button>
+      <button class="tabbtn fem" id="btnTabF" data-tab="F">Irmãs <span class="n" id="cntF"></span></button>
+    </div>
+    <h2 id="titAba">Irmãos cadastrados</h2>
+    <div class="row">
+      <input type="text" id="novo" placeholder="Nome do irmão (para vários, separe por vírgula)">
+      <button class="pri" id="btnAdd">Cadastrar</button>
+    </div>
+    <p class="hint" id="hintAba"></p>
+    <ul id="lista"></ul>
+    <details class="modelo" id="detModelo">
+      <summary id="titModelo">Modelo da escala dos irmãos (dias fixos)</summary>
+      <p class="hint">Sem tranca — pode editar a qualquer momento. “—” deixa a vaga aberta. Vaga aberta aparece como aviso na escala.</p>
+      <div class="semanas" id="semanas"></div>
+    </details>
+  </section>
+
+  <section class="card" aria-labelledby="t-gerar">
+    <h2 id="t-gerar" class="no-print">Gerar as duas escalas do mês</h2>
+    <div class="cfg no-print">
+      <label>Mês
+        <select id="mes"></select>
+      </label>
+      <label>Ano
+        <input type="number" id="ano" min="2024" max="2100">
+      </label>
+      <label>Ciclo na 1ª semana do mês
+        <select id="inicio">
+          <option value="auto">Automático (continua de setembro)</option>
+          <option value="0">Semana 1</option>
+          <option value="1">Semana 2</option>
+          <option value="2">Semana 3</option>
+          <option value="3">Semana 4</option>
+        </select>
+      </label>
+      <label class="chk"><input type="checkbox" id="ensaio"> Ensaio no 2º sábado (mesma equipe do culto)</label>
+    </div>
+
+    <div class="no-print">
+      <div class="row">
+        <input type="date" id="exData" aria-label="Data do evento extra">
+        <select id="exTipo" aria-label="Tipo do evento extra"><option>CULTO</option><option>RJM</option><option>ENSAIO</option></select>
+        <select id="exGrupo" aria-label="Grupo do evento extra">
+          <option value="M">Irmãos</option>
+          <option value="F">Irmãs</option>
+          <option value="A">Irmãos + Irmãs</option>
+        </select>
+        <button id="btnExtra">Adicionar evento extra</button>
+      </div>
+      <div class="chips" id="chipsExtra"></div>
+      <div class="chips" id="chipsExcl"></div>
+    </div>
+
+    <div class="toolbar no-print">
+      <button class="pri" id="btnGerar">Gerar escala</button>
+      <button id="btnCopiar">Copiar texto</button>
+      <button id="btnCsv">Baixar CSV</button>
+      <button id="btnPrint">Imprimir / PDF</button>
+    </div>
+
+    <div class="avisos no-print" id="avisos"></div>
+    <div class="tabwrap" id="folha"></div>
+    <div class="contagem no-print" id="contagem"></div>
+    <p class="row no-print" style="margin-top:22px"><button class="ghost" id="btnReset">Restaurar dados originais (setembro/2026, sem William)</button></p>
+  </section>
+</div>
+<div id="toast" role="status"></div>
+
+<script>
+(function(){
+'use strict';
+const KEY='escalas-v3';
+const KEY_OLD='escala-irmaos-v2';
+const DIAS=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const RANK={ENSAIO:0,RJM:1,CULTO:2};
+const SLOTS=[
+  {k:'4|CULTO',dow:4,tipo:'CULTO',nome:'Quinta: Culto'},
+  {k:'6|CULTO',dow:6,tipo:'CULTO',nome:'Sábado: Culto'},
+  {k:'0|RJM',dow:0,tipo:'RJM',nome:'Domingo: RJM'},
+  {k:'0|CULTO',dow:0,tipo:'CULTO',nome:'Domingo: Culto'}
+];
+const GS={M:'Irmãos',F:'Irmãs'};
+const REF=new Date(2026,7,31); // segunda-feira da semana 1 do ciclo (03/09/2026)
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const iso=(y,m,d)=>y+'-'+pad(m)+'-'+pad(d);
+const parse=s=>{const p=s.split('-').map(Number);return new Date(p[0],p[1]-1,p[2]);};
+const br=s=>{const p=s.split('-');return p[2]+'/'+p[1]+'/'+p[0];};
+const mod=(a,n)=>((a%n)+n)%n;
+const uid=()=>Math.random().toString(36).slice(2,9);
+const capNome=s=>String(s).replace(/\S+/g,w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase());
+const cp=o=>JSON.parse(JSON.stringify(o));
+
+function defaults(){
+  const nomes={vilas:'Vilas',paulinho:'Paulinho',saulo:'Saulo',nelson:'Nelson',vanderlei:'Vanderlei',edimilson:'Edimilson',rubens:'Rubens',marcos:'Marcos',santo:'Santo',iago:'Iago'};
+  const A1={'4|CULTO':['vilas','paulinho','saulo'],'6|CULTO':['nelson','paulinho','vanderlei'],'0|RJM':['vanderlei','paulinho','edimilson'],'0|CULTO':['rubens','paulinho','nelson']};
+  const B1={'4|CULTO':['vilas',null,'saulo'],'6|CULTO':['marcos',null,'santo'],'0|RJM':['marcos',null,'iago'],'0|CULTO':['iago',null,'santo']};
+  const A2=cp(A1),B2=cp(B1);
+  const h=new Date();let mes=h.getMonth()+2,ano=h.getFullYear();if(mes>12){mes=1;ano++;}
+  return {
+    groups:{
+      M:{people:Object.keys(nomes).map(id=>({id:id,nome:nomes[id]})),cycle:[A1,B1,A2,B2]},
+      F:{people:[],cycle:[{},{},{},{}]}
+    },
+    cfg:{mes:mes,ano:ano,inicio:'auto',ensaio:true,extras:[],excluir:[]},
+    escala:{M:null,F:null}
+  };
+}
+function stripWilliam(s){
+  let n=0;
+  ['M','F'].forEach(g=>{
+    const G=s.groups[g];if(!G)return;
+    const ids=G.people.filter(p=>p.nome.toLowerCase().trim()==='william').map(p=>p.id);
+    if(!ids.length)return;
+    n+=ids.length;
+    G.people=G.people.filter(p=>ids.indexOf(p.id)<0);
+    G.cycle.forEach(w=>{for(const k in w)w[k]=(w[k]||[]).map(id=>ids.indexOf(id)>=0?null:id);});
+    const e=s.escala[g];if(e)e.forEach(ev=>ev.irmaos=(ev.irmaos||[]).map(x=>ids.indexOf(x)>=0?null:x));
+  });
+  return n;
+}
+function migrarOld(o){
+  const s=defaults();
+  if(Array.isArray(o.brothers))s.groups.M.people=o.brothers;
+  if(Array.isArray(o.cycle)&&o.cycle.length===4)s.groups.M.cycle=o.cycle;
+  if(o.cfg){
+    if(o.cfg.mes)s.cfg.mes=o.cfg.mes;
+    if(o.cfg.ano)s.cfg.ano=o.cfg.ano;
+    if(o.cfg.inicio!==undefined)s.cfg.inicio=o.cfg.inicio;
+    if(o.cfg.ensaio!==undefined)s.cfg.ensaio=!!o.cfg.ensaio;
+    if(Array.isArray(o.cfg.extras))s.cfg.extras=o.cfg.extras.map(x=>({data:x.data,tipo:x.tipo,g:'M'}));
+    if(Array.isArray(o.cfg.excluir))s.cfg.excluir=o.cfg.excluir.map(k=>'M|'+k);
+  }
+  if(Array.isArray(o.escala))s.escala.M=o.escala;
+  stripWilliam(s);
+  return s;
+}
+let _mig=false,_will=0;
+function load(){
+  try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.groups&&s.cfg)return s;}catch(e){}
+  try{const o=JSON.parse(localStorage.getItem(KEY_OLD));if(o&&o.brothers){_mig=true;return migrarOld(o);}}catch(e){}
+  return defaults();
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+let S=load();
+_will=stripWilliam(S); // garante: William fora mesmo em dados já salvos
+let aba='M',editId=null;
+
+let tt;
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),3400);}
+
+const nomeDe=(g,id)=>{const b=S.groups[g].people.find(x=>x.id===id);return b?b.nome:'';};
+const up=(g,id)=>nomeDe(g,id).toUpperCase();
+
+/* ---------- ciclo ---------- */
+function idxBase(d){
+  const dw=(d.getDay()+6)%7;
+  const seg=new Date(d.getFullYear(),d.getMonth(),d.getDate()-dw);
+  return Math.round((seg-REF)/(7*864e5));
+}
+function calcShift(){
+  const ini=S.cfg.inicio;if(ini==='auto')return 0;
+  const first=new Date(S.cfg.ano,S.cfg.mes-1,1);
+  return mod(Number(ini)-mod(idxBase(first),4),4);
+}
+function habituais(g){
+  const h={};S.groups[g].people.forEach(p=>h[p.id]=new Set());
+  S.groups[g].cycle.forEach(w=>{for(const k in w)(w[k]||[]).forEach(id=>{if(id&&h[id])h[id].add(k);});});
+  return h;
+}
+
+/* ---------- pessoas ---------- */
+function usoTexto(g,id){
+  const partes=[];
+  SLOTS.forEach(sl=>{
+    const ws=[];S.groups[g].cycle.forEach((w,i)=>{if((w[sl.k]||[]).indexOf(id)>=0)ws.push(i+1);});
+    if(ws.length)partes.push('<b>'+sl.nome+'</b> '+(ws.length===4?'(todas as semanas)':'(sem. '+ws.join(', ')+')'));
+  });
+  return partes.length?partes.join('<br>'):'Sem dias no modelo';
+}
+function renderTabs(){
+  $('#btnTabM').classList.toggle('on',aba==='M');
+  $('#btnTabF').classList.toggle('on',aba==='F');
+  $('#cntM').textContent='('+S.groups.M.people.length+')';
+  $('#cntF').textContent='('+S.groups.F.people.length+')';
+}
+function renderLista(){
+  const g=aba,G=S.groups[g];
+  $('#titAba').textContent=g==='M'?'Irmãos cadastrados':'Irmãs cadastradas';
+  $('#novo').placeholder=(g==='M'?'Nome do irmão':'Nome da irmã')+' (para vários, separe por vírgula)';
+  $('#hintAba').innerHTML='Cadastrou? Coloque nos dias no <b>modelo abaixo</b> para entrar na escala. <b>Remover</b> tira a pessoa da lista, do modelo e da escala de uma vez.';
+  const ul=$('#lista');
+  if(!G.people.length){ul.innerHTML='<li>Ninguém cadastrado nesta aba ainda. Digite um nome acima.</li>';return;}
+  ul.innerHTML=G.people.map(p=>{
+    const eh=editId===p.id;
+    const corpo=eh
+      ?'<div class="editRow"><input type="text" id="editNome" value="'+esc(p.nome)+'" aria-label="Novo nome"><button class="pri" data-act="saveEdit" data-id="'+p.id+'">Salvar</button><button class="ghost" data-act="cancelEdit">Cancelar</button></div>'
+      :'<div class="nome">'+esc(p.nome)+'</div>';
+    const acoes=eh?'':'<div class="acoes">'
+      +'<button class="ghost" data-act="edit" data-id="'+p.id+'">Renomear</button>'
+      +'<button class="ghost" data-act="mv" data-id="'+p.id+'" data-to="'+(g==='M'?'F':'M')+'">'+(g==='M'?'→ Irmãs':'→ Irmãos')+'</button>'
+      +'<button class="ghost" data-act="rm" data-id="'+p.id+'" aria-label="Remover '+esc(p.nome)+'">Remover</button></div>';
+    return '<li>'+corpo+'<div class="uso">'+usoTexto(g,p.id)+'</div>'+acoes+'</li>';
+  }).join('');
+  if(editId){
+    const i=$('#editNome');
+    if(i){
+      i.focus();i.select();
+      i.addEventListener('keydown',ev=>{
+        if(ev.key==='Enter'){ev.preventDefault();salvarEdit(aba,editId,i.value);}
+        if(ev.key==='Escape'){editId=null;renderLista();}
+      });
+    }
+  }
+}
+function addPessoas(){
+  const g=aba,inp=$('#novo');
+  const nomes=inp.value.split(/[,;\n]/).map(s=>s.trim()).filter(Boolean);
+  if(!nomes.length){toast('Digite pelo menos um nome.');return;}
+  const G=S.groups[g];let n=0,dup=0;
+  nomes.forEach(raw=>{
+    const nome=capNome(raw);
+    if(G.people.some(p=>p.nome.toLowerCase()===nome.toLowerCase())){dup++;return;}
+    G.people.push({id:uid(),nome:nome});n++;
+  });
+  G.people.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  inp.value='';save();renderAll();
+  toast(n?n+' cadastrado(s) em '+GS[g]+'. Agora coloque nos dias no modelo abaixo.'+(dup?' '+dup+' nome(s) já existia(m).':''):'Esse nome já está cadastrado em '+GS[g]+'.');
+}
+function salvarEdit(g,id,v){
+  const p=S.groups[g].people.find(x=>x.id===id);if(!p)return;
+  const nome=capNome((v||'').trim());
+  if(!nome){toast('Digite um nome.');return;}
+  if(S.groups[g].people.some(x=>x.id!==id&&x.nome.toLowerCase()===nome.toLowerCase())){toast('Já existe alguém com esse nome em '+GS[g]+'.');return;}
+  p.nome=nome;editId=null;save();renderAll();toast('Nome atualizado para '+nome+'.');
+}
+function remover(g,id){
+  const G=S.groups[g],p=G.people.find(x=>x.id===id);if(!p)return;
+  G.people=G.people.filter(x=>x.id!==id);
+  G.cycle.forEach(w=>{for(const k in w)w[k]=(w[k]||[]).map(x=>x===id?null:x);});
+  const e=S.escala[g];if(e)e.forEach(ev=>ev.irmaos=(ev.irmaos||[]).map(x=>x===id?null:x));
+  if(editId===id)editId=null;
+  save();renderAll();toast(p.nome+' foi removido(a) da escala.');
+}
+function mover(g,id,para){
+  const G=S.groups[g],P=S.groups[para],p=G.people.find(x=>x.id===id);if(!p)return;
+  G.people=G.people.filter(x=>x.id!==id);
+  G.cycle.forEach(w=>{for(const k in w)w[k]=(w[k]||[]).map(x=>x===id?null:x);});
+  const e=S.escala[g];if(e)e.forEach(ev=>ev.irmaos=(ev.irmaos||[]).map(x=>x===id?null:x));
+  P.people.push(p);P.people.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  save();renderAll();toast(p.nome+' agora está na aba '+GS[para]+'. Coloque nos dias no modelo dela.');
+}
+function criarPessoa(g){
+  const nome=capNome((prompt('Nome da pessoa nova (entrará em '+GS[g]+'):')||'').trim());
+  if(!nome)return null;
+  const G=S.groups[g];
+  if(G.people.some(p=>p.nome.toLowerCase()===nome.toLowerCase())){toast(nome+' já está cadastrado(a) em '+GS[g]+'.');return null;}
+  const nb={id:uid(),nome:nome};
+  G.people.push(nb);G.people.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  return nb;
+}
+
+/* ---------- modelo ---------- */
+function opts(g,sel){
+  return '<option value="">—</option>'+S.groups[g].people.map(p=>'<option value="'+p.id+'"'+(p.id===sel?' selected':'')+'>'+esc(p.nome)+'</option>').join('')+'<option value="__new">＋ Nova pessoa…</option>';
+}
+function renderModelo(){
+  $('#titModelo').textContent='Modelo da escala '+(aba==='M'?'dos irmãos':'das irmãs')+' (dias fixos, 4 semanas)';
+  $('#semanas').innerHTML=S.groups[aba].cycle.map((w,i)=>
+    '<div class="semana'+(aba==='F'?' fem':'')+'"><h3>Semana '+(i+1)+'</h3>'+SLOTS.map(sl=>{
+      const ids=w[sl.k]||[null,null,null];
+      return '<div class="lin"><span>'+sl.nome+'</span><div class="trio">'+[0,1,2].map(p=>'<select data-g="'+aba+'" data-w="'+i+'" data-k="'+sl.k+'" data-p="'+p+'">'+opts(aba,ids[p])+'</select>').join('')+'</div></div>';
+    }).join('')+'</div>'
+  ).join('');
+}
+
+/* ---------- geração ---------- */
+function montar(g){
+  const G=S.groups[g],mes=S.cfg.mes,ano=S.cfg.ano,ult=new Date(ano,mes,0).getDate(),sh=calcShift(),ev=[];
+  for(let d=1;d<=ult;d++){
+    const dt=new Date(ano,mes-1,d),w=mod(idxBase(dt)+sh,4);
+    SLOTS.forEach(sl=>{
+      if(sl.dow!==dt.getDay())return;
+      ev.push({data:iso(ano,mes,d),tipo:sl.tipo,irmaos:(G.cycle[w][sl.k]||[null,null,null]).slice()});
+    });
+    if(S.cfg.ensaio&&dt.getDay()===6&&d>=8&&d<=14){
+      ev.push({data:iso(ano,mes,d),tipo:'ENSAIO',irmaos:(G.cycle[w]['6|CULTO']||[null,null,null]).slice()});
+    }
+  }
+  const pre=ano+'-'+pad(mes);
+  S.cfg.extras.forEach(x=>{if(x.data.indexOf(pre)===0&&(x.g===g||x.g==='A'))ev.push({data:x.data,tipo:x.tipo,irmaos:[null,null,null]});});
+  const vistos={};
+  return ev.filter(e=>{const k=e.data+'|'+e.tipo;if(vistos[k]||S.cfg.excluir.indexOf(g+'|'+k)>=0)return false;vistos[k]=1;return true;})
+    .sort((a,b)=>a.data.localeCompare(b.data)||RANK[a.tipo]-RANK[b.tipo]);
+}
+function gerar(){
+  S.escala={M:montar('M'),F:montar('F')};
+  save();renderChips();renderResultado();
+  toast('Escalas de '+MESES[S.cfg.mes-1]+' '+S.cfg.ano+' geradas (irmãos e irmãs). Toque num nome para trocar.');
+}
+
+/* ---------- resultado ---------- */
+function slotKey(e){const dow=parse(e.data).getDay();return dow+'|'+(e.tipo==='ENSAIO'?'CULTO':e.tipo);}
+function segundaKey(data){const d=parse(data);const dw=(d.getDay()+6)%7;const s=new Date(d.getFullYear(),d.getMonth(),d.getDate()-dw);return iso(s.getFullYear(),s.getMonth()+1,s.getDate());}
+
+function renderResultado(){
+  const folha=$('#folha'),av=$('#avisos'),ct=$('#contagem');
+  const gerada=S.escala&&((S.escala.M&&S.escala.M.length)||(S.escala.F&&S.escala.F.length));
+  if(!gerada){
+    folha.innerHTML='<div class="vazio no-print">Escolha o mês e clique em <b>Gerar escala</b>.</div>';
+    av.innerHTML='';ct.innerHTML='';return;
+  }
+  const avisos=[];let html='',htmlC='';
+  ['M','F'].forEach(g=>{
+    const G=S.groups[g],lista=S.escala[g]||[];
+    html+='<div class="grupoBloco">';
+    if(!G.people.length){
+      html+='<div class="vazio">Nenhuma '+(g==='F'?'irmã':'irmão')+' cadastrada(o). Use a aba "'+GS[g]+'".</div>';
+    }else if(!lista.length){
+      html+='<div class="vazio">Sem eventos de '+GS[g].toLowerCase()+' neste mês.</div>';
+    }else{
+      const hab=habituais(g),valid=SLOTS.map(s=>s.k);
+      const N=Math.max.apply(null,lista.map(e=>e.irmaos.length).concat([3]));
+      html+='<table class="escala"><thead><tr><th class="titulo" colspan="'+(N+3)+'">ESCALA DOS '+GS[g].toUpperCase()+' · '+MESES[S.cfg.mes-1].toUpperCase()+' '+S.cfg.ano+'</th><th class="no-print titulo" style="width:1%"></th></tr>'
+        +'<tr><th>Data</th><th>Dia</th><th>Culto / RJM</th><th colspan="'+N+'">Nomes</th><th class="no-print"></th></tr></thead><tbody>';
+      let semana=null;
+      lista.forEach((e,i)=>{
+        const sk=segundaKey(e.data);
+        if(semana!==null&&sk!==semana)html+='<tr class="esp"><td colspan="'+(N+4)+'"></td></tr>';
+        semana=sk;
+        const chave=slotKey(e),checar=valid.indexOf(chave)>=0;
+        const dup={};e.irmaos.forEach(x=>{if(x)dup[x]=(dup[x]||0)+1;});
+        let vagas=0;
+        html+='<tr><td>'+br(e.data)+'</td><td>'+DIAS[parse(e.data).getDay()]+'</td><td class="tipo">'+e.tipo+'</td>';
+        for(let j=0;j<N;j++){
+          const id=e.irmaos[j]||null;let cls='';
+          if(!id)vagas++;
+          else if(dup[id]>1){cls='dup';avisos.push(['b',GS[g]+': '+up(g,id)+' aparece duas vezes em '+br(e.data)+' ('+e.tipo+').']);}
+          else if(checar&&hab[id]&&!hab[id].has(chave)){cls='fora';avisos.push(['w',GS[g]+': '+up(g,id)+' está fora do dia habitual em '+br(e.data)+' ('+e.tipo+').']);}
+          html+='<td><select class="'+cls+'" data-g="'+g+'" data-i="'+i+'" data-j="'+j+'" aria-label="'+GS[g]+' em '+br(e.data)+' '+e.tipo+'">'+opts(g,id)+'</select></td>';
+        }
+        if(vagas)avisos.push(['b',GS[g]+': vaga em aberto em '+br(e.data)+' ('+e.tipo+').']);
+        html+='<td class="no-print"><button class="ghost" data-act="del" data-g="'+g+'" data-i="'+i+'" aria-label="Remover evento">✕</button></td></tr>';
+      });
+      html+='</tbody></table>';
+      const cont={};
+      lista.forEach(e=>e.irmaos.forEach(x=>{if(x)cont[x]=(cont[x]||0)+1;}));
+      const chips=Object.keys(cont).sort((a,b)=>cont[b]-cont[a]||nomeDe(g,a).localeCompare(nomeDe(g,b))).map(id=>'<span><b>'+esc(nomeDe(g,id))+'</b> '+cont[id]+'x</span>').join('');
+      htmlC+='<div class="linhaCont"><b>'+GS[g]+':</b>'+(chips||'<span>sem nomes ainda</span>')+'</div>';
+    }
+    html+='</div>';
+  });
+  folha.innerHTML=html;
+  av.innerHTML=avisos.slice(0,14).map(a=>'<div class="aviso '+a[0]+'">'+esc(a[1])+'</div>').join('')+(avisos.length>14?'<div class="aviso w">E mais '+(avisos.length-14)+' aviso(s).</div>':'');
+  ct.innerHTML=htmlC;
+}
+
+/* ---------- extras / excluídos ---------- */
+function renderChips(){
+  $('#chipsExtra').innerHTML=S.cfg.extras.map((x,i)=>{
+    const gl=x.g==='A'?'Irmãos + Irmãs':GS[x.g];
+    return '<span class="chip">Extra: '+br(x.data)+' '+x.tipo+' · '+gl+'<button data-act="rmExtra" data-i="'+i+'" aria-label="Remover extra">✕</button></span>';
+  }).join('');
+  $('#chipsExcl').innerHTML=S.cfg.excluir.map((k,i)=>{
+    const p=k.split('|');
+    return '<span class="chip">Removido: '+br(p[1])+' '+p[2]+' ('+GS[p[0]]+')<button data-act="rmExcl" data-i="'+i+'" aria-label="Restaurar">Restaurar</button></span>';
+  }).join('');
+}
+
+/* ---------- exportar ---------- */
+function textoEscala(){
+  if(!S.escala)return '';
+  let out='';
+  ['M','F'].forEach(g=>{
+    const lista=S.escala[g]||[];
+    if(!S.groups[g].people.length||!lista.length)return;
+    out+=(out?'\n':'')+'== ESCALA DOS '+GS[g].toUpperCase()+' ==\n';
+    let sem=null;
+    lista.forEach(e=>{
+      const sk=segundaKey(e.data);
+      if(sem!==null&&sk!==sem)out+='\n';
+      sem=sk;
+      out+=DIAS[parse(e.data).getDay()]+' '+br(e.data).slice(0,5)+' - '+e.tipo+': '+e.irmaos.map(x=>x?up(g,x):'(vago)').join(', ')+'\n';
+    });
+  });
+  return out;
+}
+function copiar(){
+  const t=textoEscala();if(!t){toast('Gere a escala primeiro.');return;}
+  const fb=()=>{const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');toast('Texto copiado.');}catch(e){toast('Não foi possível copiar.');}a.remove();};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(()=>toast('Texto copiado.'),fb);}else fb();
+}
+function baixarCsv(){
+  if(!S.escala){toast('Gere a escala primeiro.');return;}
+  let NG=3;
+  ['M','F'].forEach(g=>{(S.escala[g]||[]).forEach(e=>{if(e.irmaos.length>NG)NG=e.irmaos.length;});});
+  const head=['Grupo','Data','Dia','Culto/RJM'];for(let j=1;j<=NG;j++)head.push('Nome '+j);
+  const linhas=[head.join(';')];
+  ['M','F'].forEach(g=>{
+    if(!S.groups[g].people.length)return;
+    (S.escala[g]||[]).forEach(e=>{
+      const r=[GS[g].toUpperCase(),br(e.data),DIAS[parse(e.data).getDay()],e.tipo];
+      for(let j=0;j<NG;j++)r.push(e.irmaos[j]?up(g,e.irmaos[j]):'');
+      linhas.push(r.join(';'));
+    });
+  });
+  if(linhas.length===1){toast('Nada para exportar.');return;}
+  try{
+    const blob=new Blob(['\ufeff'+linhas.join('\r\n')],{type:'text/csv;charset=utf-8'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download='escalas-'+S.cfg.ano+'-'+pad(S.cfg.mes)+'.csv';document.body.appendChild(a);a.click();a.remove();
+  }catch(e){toast('Download indisponível aqui. Use "Copiar texto".');}
+}
+
+/* ---------- init / eventos ---------- */
+function renderCfg(){
+  $('#mes').innerHTML=MESES.map((m,i)=>'<option value="'+(i+1)+'"'+(i+1===S.cfg.mes?' selected':'')+'>'+m+'</option>').join('');
+  $('#ano').value=S.cfg.ano;
+  $('#inicio').value=String(S.cfg.inicio);
+  $('#ensaio').checked=!!S.cfg.ensaio;
+}
+function renderAll(){renderTabs();renderLista();renderModelo();renderChips();renderResultado();}
+
+document.addEventListener('click',ev=>{
+  const tb=ev.target.closest('.tabbtn');
+  if(tb){aba=tb.dataset.tab;editId=null;renderTabs();renderLista();renderModelo();return;}
+  const b=ev.target.closest('[data-act]');if(!b)return;
+  const act=b.dataset.act,id=b.dataset.id;
+  if(act==='rm')remover(aba,id);
+  else if(act==='edit'){editId=id;renderLista();}
+  else if(act==='cancelEdit'){editId=null;renderLista();}
+  else if(act==='saveEdit'){const i=$('#editNome');salvarEdit(aba,id,i?i.value:'');}
+  else if(act==='mv')mover(aba,id,b.dataset.to);
+  else if(act==='del'){
+    const g=b.dataset.g,e=S.escala[g]&&S.escala[g][Number(b.dataset.i)];if(!e)return;
+    S.cfg.excluir.push(g+'|'+e.data+'|'+e.tipo);
+    S.escala[g].splice(Number(b.dataset.i),1);
+    save();renderChips();renderResultado();
+  }
+  else if(act==='rmExtra'){S.cfg.extras.splice(Number(b.dataset.i),1);save();renderChips();}
+  else if(act==='rmExcl'){S.cfg.excluir.splice(Number(b.dataset.i),1);save();renderChips();toast('Restaurado. Clique em Gerar escala para atualizar.');}
+});
+document.addEventListener('change',ev=>{
+  const t=ev.target;
+  if(t.dataset.g&&t.dataset.w!==undefined){
+    const g=t.dataset.g,G=S.groups[g],k=t.dataset.k,w=Number(t.dataset.w),p=Number(t.dataset.p);
+    if(!G.cycle[w][k])G.cycle[w][k]=[null,null,null];
+    if(t.value==='__new'){
+      const nb=criarPessoa(g);
+      if(!nb){renderModelo();return;}
+      G.cycle[w][k][p]=nb.id;save();renderAll();
+      toast(nb.nome+' cadastrado(a) e já colocado(a) na vaga.');
+      return;
+    }
+    G.cycle[w][k][p]=t.value||null;save();renderLista();return;
+  }
+  if(t.dataset.g&&t.dataset.i!==undefined&&t.closest('#folha')&&S.escala){
+    const g=t.dataset.g,e=S.escala[g][Number(t.dataset.i)];if(!e)return;
+    const j=Number(t.dataset.j);
+    if(t.value==='__new'){
+      const nb=criarPessoa(g);
+      if(!nb){renderResultado();return;}
+      e.irmaos[j]=nb.id;save();renderAll();
+      toast(nb.nome+' cadastrado(a) e já colocado(a) na vaga.');
+      return;
+    }
+    e.irmaos[j]=t.value||null;save();renderResultado();return;
+  }
+});
+ $('#btnAdd').addEventListener('click',addPessoas);
+ $('#novo').addEventListener('keydown',e=>{if(e.key==='Enter')addPessoas();});
+ $('#mes').addEventListener('change',e=>{S.cfg.mes=Number(e.target.value);save();});
+ $('#ano').addEventListener('change',e=>{const v=Number(e.target.value);if(v>=2024&&v<=2100){S.cfg.ano=v;save();}});
+ $('#inicio').addEventListener('change',e=>{S.cfg.inicio=e.target.value;save();});
+ $('#ensaio').addEventListener('change',e=>{S.cfg.ensaio=e.target.checked;save();});
+ $('#btnExtra').addEventListener('click',()=>{
+  const d=$('#exData').value;if(!d){toast('Escolha a data do evento extra.');return;}
+  S.cfg.extras.push({data:d,tipo:$('#exTipo').value,g:$('#exGrupo').value});
+  save();renderChips();toast('Extra adicionado. Clique em Gerar escala.');
+});
+ $('#btnGerar').addEventListener('click',gerar);
+ $('#btnCopiar').addEventListener('click',copiar);
+ $('#btnCsv').addEventListener('click',baixarCsv);
+ $('#btnPrint').addEventListener('click',()=>{if(!S.escala){toast('Gere a escala primeiro.');return;}window.print();});
+ $('#btnReset').addEventListener('click',()=>{
+  if(!confirm('Voltar aos dados originais (setembro/2026, sem William) e apagar as mudanças?'))return;
+  S=defaults();aba='M';editId=null;save();renderCfg();renderAll();toast('Dados originais restaurados.');
+});
+
+renderCfg();renderAll();
+if(_mig)toast('Dados antigos migrados. William foi excluído automaticamente — as vagas dele ficaram abertas (—).');
+})();
+</script>
+</body>
+</html>
