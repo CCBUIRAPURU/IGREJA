@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Escala dos Irmãos e Irmãs</title>
+<title>Escala dos Irmãos e Irmãs — V3</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
@@ -130,7 +130,7 @@ table.escala td.tipo{text-transform:uppercase}
 <body>
 <div class="wrap">
   <header class="no-print">
-    <h1>Escala dos Irmãos e Irmãs</h1>
+    <h1>Escala dos Irmãos e Irmãs <span style="font-size:18px;color:var(--mute);font-weight:500">— V3</span></h1>
     <p class="sub"><b>1)</b> Cadastre irmãos e irmãs &nbsp;·&nbsp; <b>2)</b> Confira o modelo de dias fixos &nbsp;·&nbsp; <b>3)</b> Gere a escala do mês. A escala segue o ciclo de 4 semanas que já é usado hoje (começou em 03/09/2026).</p>
   </header>
 
@@ -208,7 +208,7 @@ table.escala td.tipo{text-transform:uppercase}
 <script>
 (function(){
 'use strict';
-const KEY='escala-irmaos-v2';
+const KEY='escala-irmaos-v3';
 const DIAS=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
 const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const RANK={ENSAIO:0,RJM:1,CULTO:2};
@@ -230,9 +230,10 @@ const uid=()=>Math.random().toString(36).slice(2,9);
 const capNome=s=>s.replace(/\S+/g,w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase());
 
 function defaults(){
-  const nomes={vilas:'Vilas',paulinho:'Paulinho',saulo:'Saulo',nelson:'Nelson',vanderlei:'Vanderlei',edimilson:'Edimilson',rubens:'Rubens',william:'William',marcos:'Marcos',santo:'Santo',iago:'Iago'};
+  /* V3 — William removido; Paulinho ocupou o lugar dele nas semanas 2 e 4 (B1/B2). */
+  const nomes={vilas:'Vilas',paulinho:'Paulinho',saulo:'Saulo',nelson:'Nelson',vanderlei:'Vanderlei',edimilson:'Edimilson',rubens:'Rubens',marcos:'Marcos',santo:'Santo',iago:'Iago'};
   const A1={'4|CULTO':['vilas','paulinho','saulo'],'6|CULTO':['nelson','paulinho','vanderlei'],'0|RJM':['vanderlei','paulinho','edimilson'],'0|CULTO':['rubens','paulinho','nelson']};
-  const B1={'4|CULTO':['vilas','william','saulo'],'6|CULTO':['marcos','william','santo'],'0|RJM':['marcos','william','iago'],'0|CULTO':['iago','william','santo']};
+  const B1={'4|CULTO':['vilas','paulinho','saulo'],'6|CULTO':['marcos','paulinho','santo'],'0|RJM':['marcos','paulinho','iago'],'0|CULTO':['iago','paulinho','santo']};
   const A2={'4|CULTO':['vilas','paulinho','saulo'],'6|CULTO':['rubens','paulinho','edimilson'],'0|RJM':['vanderlei','paulinho','edimilson'],'0|CULTO':['rubens','paulinho','nelson']};
   const B2=JSON.parse(JSON.stringify(B1));
   const h=new Date();let mes=h.getMonth()+2,ano=h.getFullYear();if(mes>12){mes=1;ano++;}
