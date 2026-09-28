@@ -3,17 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Escalas dos Irmãos e das Irmãs</title>
+<title>Escala dos Irmãos e Irmãs</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#eef1f4; --card:#ffffff; --ink:#1b2733; --mute:#5d6b79; --line:#c9d1d9;
   --acc:#1d5a86; --acc-ink:#ffffff; --acc-soft:#dcebf5;
-  --fem:#93407c; --fem-ink:#ffffff; --fem-soft:#f7e3f2;
   --warn:#8a5a00; --warn-bg:#fff2cf; --bad:#a3271f; --bad-bg:#fde3e0;
-  --ok:#2e7d32; --ok-ink:#ffffff;
-  --head:#1b2733; --head-ink:#ffffff;
+  --fem-bg:#f7e3f2; --fem-ink:#93407c;
+  --head:#1b2733; --head-ink:#ffffff; --zebra:#f6f8fa;
   --f-title:"Archivo Narrow","Arial Narrow",Arial,sans-serif;
   --f-body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   box-sizing:border-box;
@@ -24,19 +23,25 @@
   :root:not([data-theme="light"]){
     --bg:#12181e; --card:#1b232b; --ink:#e6ebf0; --mute:#97a5b3; --line:#34424f;
     --acc:#6fb1de; --acc-ink:#0d1a24; --acc-soft:#1f3546;
-    --fem:#c77fb2; --fem-ink:#1c0f18; --fem-soft:#3d2739;
     --warn:#f0c46a; --warn-bg:#3a2f14; --bad:#ff9d94; --bad-bg:#40201d;
-    --ok:#66bb6a; --ok-ink:#0c1a0e;
-    --head:#0c1116; --head-ink:#e6ebf0;
+    --fem-bg:#3d2739; --fem-ink:#e3a9d2;
+    --head:#0c1116; --head-ink:#e6ebf0; --zebra:#202a33;
   }
 }
+:root[data-theme="dark"]{
+  --bg:#12181e; --card:#1b232b; --ink:#e6ebf0; --mute:#97a5b3; --line:#34424f;
+  --acc:#6fb1de; --acc-ink:#0d1a24; --acc-soft:#1f3546;
+  --warn:#f0c46a; --warn-bg:#3a2f14; --bad:#ff9d94; --bad-bg:#40201d;
+  --fem-bg:#3d2739; --fem-ink:#e3a9d2;
+  --head:#0c1116; --head-ink:#e6ebf0; --zebra:#202a33;
+}
 *{box-sizing:border-box}
-html{height:100%}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font:16px/1.45 var(--f-body)}
 .wrap{max-width:1040px;margin:0 auto;padding:20px 16px 60px}
 h1{font:700 34px/1.1 var(--f-title);margin:0 0 4px;letter-spacing:.2px}
 h2{font:700 22px/1.2 var(--f-title);margin:0 0 12px}
-.sub{color:var(--mute);margin:0 0 18px;max-width:75ch}
+.sub{color:var(--mute);margin:0 0 22px;max-width:70ch}
 section.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:18px}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 input[type=text],input[type=date],input[type=number],select{
@@ -45,29 +50,21 @@ input[type=text]{flex:1;min-width:200px}
 button{font:600 15px var(--f-body);cursor:pointer;border-radius:6px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 14px;min-height:40px}
 button:hover{border-color:var(--acc)}
 button.pri{background:var(--acc);color:var(--acc-ink);border-color:var(--acc)}
-button.ok{background:var(--ok);color:var(--ok-ink);border-color:var(--ok)}
-button.ok:not(:disabled){animation:pulsa 1.6s infinite}
-@keyframes pulsa{0%,100%{box-shadow:0 0 0 0 rgba(46,125,50,.45)}50%{box-shadow:0 0 0 7px rgba(46,125,50,0)}}
 button.ghost{border-color:transparent;color:var(--mute);padding:4px 10px;min-height:32px}
 button.ghost:hover{color:var(--bad)}
 :focus-visible{outline:3px solid var(--acc);outline-offset:2px}
 .hint{color:var(--mute);font-size:14px;margin:6px 0 0}
 
-/* abas */
-.tabs{display:flex;gap:8px;margin:0 0 14px;flex-wrap:wrap}
-.tabbtn{font:700 19px var(--f-title);letter-spacing:.4px;padding:10px 22px;border-radius:8px;min-height:44px}
-.tabbtn .n{font-size:14px;font-weight:600;opacity:.75;margin-left:6px}
-.tabbtn.on{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
-.tabbtn.on.fem{background:var(--fem);border-color:var(--fem);color:var(--fem-ink)}
-
-/* lista */
+/* lista de pessoas */
 #lista{list-style:none;margin:14px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px}
-#lista li{border:1px solid var(--line);border-radius:8px;padding:10px 12px}
-#lista .nome{font:700 18px var(--f-title);text-transform:uppercase;letter-spacing:.3px;cursor:pointer}
-#lista .nome:hover{color:var(--acc)}
+#lista li{border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;gap:8px;align-items:center;justify-content:space-between}
+#lista .nome{font:700 18px var(--f-title);text-transform:uppercase;letter-spacing:.3px}
 #lista .uso{font-size:13.5px;color:var(--mute);margin-top:2px}
 #lista .uso b{color:var(--ink);font-weight:600}
-.acoes{display:flex;gap:2px;flex-wrap:wrap;margin-top:6px}
+.gb{display:inline-block;font:700 11px/1 var(--f-body);letter-spacing:.8px;padding:3px 8px;border-radius:999px;margin-left:8px;vertical-align:2px}
+.gb.m{background:var(--acc-soft);color:var(--acc)}
+.gb.f{background:var(--fem-bg);color:var(--fem-ink)}
+.acoes{display:flex;gap:2px;flex-wrap:wrap;justify-content:flex-end}
 .editRow{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:2px 0 6px}
 .editRow input{flex:1;min-width:150px;font-weight:700}
 
@@ -76,14 +73,17 @@ details.modelo summary{cursor:pointer;font:700 22px var(--f-title);list-style:no
 details.modelo summary::-webkit-details-marker{display:none}
 details.modelo summary::before{content:"▸ ";color:var(--acc)}
 details.modelo[open] summary::before{content:"▾ "}
-.semanas{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-top:12px}
+.lock{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0;padding:10px 12px;background:var(--warn-bg);color:var(--warn);border-radius:8px;font-size:14.5px}
+.lock.aberta{background:var(--bad-bg);color:var(--bad)}
+.lockTxt{flex:1;min-width:180px}
+.semanas{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
 .semana{border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .semana h3{margin:0;padding:8px 12px;background:var(--acc-soft);font:700 17px var(--f-title)}
-.semana.fem h3{background:var(--fem-soft)}
 .semana .lin{display:grid;grid-template-columns:96px 1fr;gap:6px;align-items:center;padding:8px 10px;border-top:1px solid var(--line)}
 .semana .lin span{font-size:14px;color:var(--mute)}
 .semana .trio{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
 .semana select{min-height:34px;padding:4px 6px;width:100%;font-size:14px;text-transform:uppercase}
+.semana select:disabled{opacity:1;background:var(--zebra);color:var(--ink);cursor:not-allowed}
 
 /* gerar */
 .cfg{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;align-items:end;margin-bottom:12px}
@@ -93,8 +93,7 @@ details.modelo[open] summary::before{content:"▾ "}
 .chip{display:inline-flex;align-items:center;gap:4px;background:var(--acc-soft);border-radius:999px;padding:2px 4px 2px 10px;font-size:13.5px}
 .chip button{border:0;background:transparent;min-height:24px;padding:0 6px;color:var(--mute)}
 .chip button:hover{color:var(--bad)}
-.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 12px;align-items:center}
-#saveStatus{font-size:13.5px;color:var(--mute)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 12px}
 .avisos{display:grid;gap:6px;margin:0 0 12px}
 .aviso{padding:8px 12px;border-radius:8px;font-size:14.5px}
 .aviso.w{background:var(--warn-bg);color:var(--warn)}
@@ -102,7 +101,7 @@ details.modelo[open] summary::before{content:"▾ "}
 .tabwrap{overflow-x:auto}
 table.escala{border-collapse:collapse;width:100%;min-width:640px;background:var(--card);border:2px solid var(--head)}
 table.escala th,table.escala td{border:1px solid var(--head);padding:4px 6px;text-align:center;font:500 17px var(--f-title)}
-table.escala th.titulo{font-size:28px;font-weight:700;padding:8px;text-transform:uppercase;background:var(--card)}
+table.escala th.titulo{font-size:32px;font-weight:700;padding:8px;text-transform:uppercase;background:var(--card)}
 table.escala thead th{font-weight:700;font-size:20px}
 table.escala tr.esp td{border:0;height:12px;padding:0;background:transparent}
 table.escala tbody tr:not(.esp) td:first-child{white-space:nowrap}
@@ -110,62 +109,58 @@ table.escala select{width:100%;border:0;background:transparent;text-align:center
 table.escala select.fora{background:var(--warn-bg);color:var(--warn)}
 table.escala select.dup{background:var(--bad-bg);color:var(--bad)}
 table.escala td.tipo{text-transform:uppercase}
-.vazio{padding:24px;text-align:center;color:var(--mute);border:1px dashed var(--line);border-radius:8px}
-.contagem{margin-top:10px;display:grid;gap:6px}
-.linhaCont{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.linhaCont>b{font-family:var(--f-title);font-size:16px;text-transform:uppercase;margin-right:4px}
-.linhaCont span{border:1px solid var(--line);border-radius:6px;padding:3px 10px;font-size:14px}
-.linhaCont span b{text-transform:uppercase;font-family:var(--f-title);font-size:15px}
-.grupoBloco{margin-bottom:26px}
-
-/* barra de salvar */
-#saveBar{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(140%);display:flex;gap:12px;align-items:center;background:var(--warn);color:#fff;padding:10px 14px;border-radius:10px;font-weight:600;font-size:15px;box-shadow:0 6px 18px rgba(0,0,0,.3);transition:transform .25s;z-index:8;max-width:94vw}
-#saveBar.on{transform:translateX(-50%) translateY(0)}
-#saveBar button{min-height:36px;padding:6px 16px}
-#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(80px + env(safe-area-inset-bottom,0px));background:var(--head);color:var(--head-ink);padding:10px 16px;border-radius:8px;font-size:15px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;z-index:9}
+.vazio{padding:28px;text-align:center;color:var(--mute);border:1px dashed var(--line);border-radius:8px}
+.contagem{margin-top:16px;display:flex;flex-wrap:wrap;gap:6px}
+.contagem span{border:1px solid var(--line);border-radius:6px;padding:3px 10px;font-size:14px}
+.contagem b{text-transform:uppercase;font-family:var(--f-title);font-size:15px}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--head);color:var(--head-ink);padding:10px 16px;border-radius:8px;font-size:15px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;z-index:9}
 #toast.on{opacity:1}
 
 @media print{
   :root{--bg:#fff;--card:#fff;--ink:#000;--head:#000}
   body{background:#fff}
   .no-print{display:none!important}
-  #saveBar{display:none!important}
   .wrap{padding:0;max-width:none}
   section.card{border:0;padding:0;margin:0}
   table.escala{min-width:0;border:2px solid #000}
   table.escala select{appearance:none;-webkit-appearance:none;color:#000;background:transparent!important}
-  .grupoBloco{break-inside:avoid-page;margin-bottom:30px}
 }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header class="no-print">
-    <h1>Escalas dos Irmãos e das Irmãs</h1>
-    <p class="sub">Cada grupo é responsável pela sua escala: selecione a aba <b>Irmãos</b> para gerenciar e visualizar a escala dos irmãos, ou <b>Irmãs</b> para a escala das irmãs. Qualquer edição é salva automaticamente e pode ser gravada pelo botão <b>💾 Salvar</b>.</p>
+    <h1>Escala dos Irmãos e Irmãs</h1>
+    <p class="sub"><b>1)</b> Cadastre irmãos e irmãs &nbsp;·&nbsp; <b>2)</b> Confira o modelo de dias fixos &nbsp;·&nbsp; <b>3)</b> Gere a escala do mês. A escala segue o ciclo de 4 semanas que já é usado hoje (começou em 03/09/2026).</p>
   </header>
 
-  <section class="card no-print">
-    <div class="tabs">
-      <button class="tabbtn on" id="btnTabM" data-tab="M">Irmãos <span class="n" id="cntM"></span></button>
-      <button class="tabbtn fem" id="btnTabF" data-tab="F">Irmãs <span class="n" id="cntF"></span></button>
-    </div>
-    <h2 id="titAba">Irmãos cadastrados</h2>
+  <section class="card no-print" aria-labelledby="t-irmaos">
+    <h2 id="t-irmaos">1 · Irmãos e irmãs cadastrados</h2>
     <div class="row">
-      <input type="text" id="novo" placeholder="Nome do irmão (para vários, separe por vírgula)">
+      <input type="text" id="novo" placeholder="Nome (para vários, separe por vírgula)" aria-label="Nome da pessoa">
+      <select id="novoG" aria-label="Irmão ou irmã">
+        <option value="M">Irmão</option>
+        <option value="F">Irmã</option>
+      </select>
       <button class="pri" id="btnAdd">Cadastrar</button>
     </div>
-    <p class="hint" id="hintAba"></p>
+    <p class="hint">Quem já serve aparece com os dias atuais. Uma pessoa nova só entra na escala depois de colocada no modelo (passo 2). Para corrigir um nome, use <b>Renomear</b>.</p>
     <ul id="lista"></ul>
-    <details class="modelo" id="detModelo">
-      <summary id="titModelo">Modelo da escala dos irmãos (dias fixos)</summary>
-      <p class="hint">Sem tranca — edite quando quiser. “—” deixa a vaga aberta (aparece como aviso na escala). Use <b>💾 Salvar</b> para gravar, ou deixe que salva sozinho.</p>
+  </section>
+
+  <section class="card no-print">
+    <details class="modelo" id="det">
+      <summary>2 · Modelo da escala (dias fixos de cada um)</summary>
+      <div class="lock" id="lockBox">
+        <button id="btnLock" class="pri" type="button">🔓 Liberar edição do modelo</button>
+        <span id="lockTxt" class="lockTxt"></span>
+      </div>
       <div class="semanas" id="semanas"></div>
     </details>
   </section>
 
   <section class="card" aria-labelledby="t-gerar">
-    <h2 id="t-gerar" class="no-print">Escala do mês</h2>
+    <h2 id="t-gerar" class="no-print">3 · Gerar a escala do mês</h2>
     <div class="cfg no-print">
       <label>Mês
         <select id="mes"></select>
@@ -197,9 +192,7 @@ table.escala td.tipo{text-transform:uppercase}
 
     <div class="toolbar no-print">
       <button class="pri" id="btnGerar">Gerar escala</button>
-      <button id="btnSalvar" class="ok">💾 Salvar</button>
-      <span id="saveStatus"></span>
-      <button id="btnCopiar">Copiar texto da escala</button>
+      <button id="btnCopiar">Copiar texto</button>
       <button id="btnCsv">Baixar CSV</button>
       <button id="btnPrint">Imprimir / PDF</button>
     </div>
@@ -207,21 +200,15 @@ table.escala td.tipo{text-transform:uppercase}
     <div class="avisos no-print" id="avisos"></div>
     <div class="tabwrap" id="folha"></div>
     <div class="contagem no-print" id="contagem"></div>
-    <p class="row no-print" style="margin-top:22px"><button class="ghost" id="btnReset">Restaurar dados originais (Outubro/2026 com Márcio à noite)</button></p>
+    <p class="row no-print" style="margin-top:22px"><button class="ghost" id="btnReset">Restaurar dados originais (setembro/2026)</button></p>
   </section>
-</div>
-
-<div id="saveBar" role="status">
-  <span>Alterações não salvas</span>
-  <button class="pri" id="btnSalvar2">Salvar agora</button>
 </div>
 <div id="toast" role="status"></div>
 
 <script>
 (function(){
 'use strict';
-const KEY='escalas-v3';
-const KEY_OLD='escala-irmaos-v2';
+const KEY='escala-irmaos-v2';
 const DIAS=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
 const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const RANK={ENSAIO:0,RJM:1,CULTO:2};
@@ -231,484 +218,344 @@ const SLOTS=[
   {k:'0|RJM',dow:0,tipo:'RJM',nome:'Domingo: RJM'},
   {k:'0|CULTO',dow:0,tipo:'CULTO',nome:'Domingo: Culto'}
 ];
-const GS={M:'Irmãos',F:'Irmãs'};
-// Base de referência sincronizada às 12:00
-const REF=new Date(2026,7,31,12,0,0);
+const REF=new Date(2026,7,31); // segunda-feira da semana 1 do ciclo (03/09/2026)
 const $=s=>document.querySelector(s);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pad=n=>String(n).padStart(2,'0');
 const iso=(y,m,d)=>y+'-'+pad(m)+'-'+pad(d);
-const parse=s=>{const p=s.split('-').map(Number);return new Date(p[0],p[1]-1,p[2],12,0,0);};
+const parse=s=>{const p=s.split('-').map(Number);return new Date(p[0],p[1]-1,p[2]);};
 const br=s=>{const p=s.split('-');return p[2]+'/'+p[1]+'/'+p[0];};
 const mod=(a,n)=>((a%n)+n)%n;
 const uid=()=>Math.random().toString(36).slice(2,9);
-const capNome=s=>String(s).replace(/\S+/g,w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase());
-const cp=o=>JSON.parse(JSON.stringify(o));
+const capNome=s=>s.replace(/\S+/g,w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase());
 
 function defaults(){
-  const nomes={
-    vilas:'Vilas',paulinho:'Paulinho',saulo:'Saulo',nelson:'Nelson',
-    vanderlei:'Vanderlei',edimilson:'Edimilson',rubens:'Rubens',
-    marcos:'Marcos',santo:'Santo',iago:'Iago',marcio:'Marcio'
-  };
-  // Marcio entra nos Domingos à noite (0|CULTO)
-  const A1={'4|CULTO':['vilas','paulinho','saulo'],'6|CULTO':['nelson','paulinho','vanderlei'],'0|RJM':['vanderlei','paulinho','edimilson'],'0|CULTO':['rubens','marcio','nelson']};
-  const B1={'4|CULTO':['vilas','paulinho','saulo'],'6|CULTO':['marcos','paulinho','santo'],'0|RJM':['marcos','paulinho','iago'],'0|CULTO':['iago','marcio','santo']};
-  const A2={'4|CULTO':['vilas','paulinho','saulo'],'6|CULTO':['rubens','paulinho','edimilson'],'0|RJM':['vanderlei','paulinho','edimilson'],'0|CULTO':['rubens','marcio','nelson']};
-  const B2={'4|CULTO':['vilas','paulinho','saulo'],'6|CULTO':['marcos','paulinho','santo'],'0|RJM':['marcos','paulinho','iago'],'0|CULTO':['iago','marcio','santo']};
+  const nomes={vilas:'Vilas',paulinho:'Paulinho',saulo:'Saulo',nelson:'Nelson',vanderlei:'Vanderlei',edimilson:'Edimilson',rubens:'Rubens',william:'William',marcos:'Marcos',santo:'Santo',iago:'Iago'};
+  const A1={'4|CULTO':['vilas','paulinho','saulo'],'6|CULTO':['nelson','paulinho','vanderlei'],'0|RJM':['vanderlei','paulinho','edimilson'],'0|CULTO':['rubens','paulinho','nelson']};
+  const B1={'4|CULTO':['vilas','william','saulo'],'6|CULTO':['marcos','william','santo'],'0|RJM':['marcos','william','iago'],'0|CULTO':['iago','william','santo']};
+  const A2={'4|CULTO':['vilas','paulinho','saulo'],'6|CULTO':['rubens','paulinho','edimilson'],'0|RJM':['vanderlei','paulinho','edimilson'],'0|CULTO':['rubens','paulinho','nelson']};
+  const B2=JSON.parse(JSON.stringify(B1));
+  const h=new Date();let mes=h.getMonth()+2,ano=h.getFullYear();if(mes>12){mes=1;ano++;}
   return {
-    groups:{
-      M:{people:Object.keys(nomes).map(id=>({id:id,nome:nomes[id]})),cycle:[A1,B1,A2,B2]},
-      F:{
-        people:[{id:'maria',nome:'Maria'},{id:'ruth',nome:'Ruth'},{id:'ester',nome:'Ester'},{id:'noemi',nome:'Noemi'}],
-        cycle:[
-          {'4|CULTO':['maria',null,null],'6|CULTO':['ruth',null,null],'0|RJM':['ester',null,null],'0|CULTO':['noemi',null,null]},
-          {'4|CULTO':['maria',null,null],'6|CULTO':['ruth',null,null],'0|RJM':['ester',null,null],'0|CULTO':['noemi',null,null]},
-          {'4|CULTO':['maria',null,null],'6|CULTO':['ruth',null,null],'0|RJM':['ester',null,null],'0|CULTO':['noemi',null,null]},
-          {'4|CULTO':['maria',null,null],'6|CULTO':['ruth',null,null],'0|RJM':['ester',null,null],'0|CULTO':['noemi',null,null]}
-        ]
-      }
-    },
-    cfg:{mes:10,ano:2026,inicio:'0',ensaio:true,extras:[],excluir:[]},
-    manual:{},
-    escala:{M:null,F:null}
+    brothers:Object.keys(nomes).map(id=>({id:id,nome:nomes[id],g:'M'})),
+    cycle:[A1,B1,A2,B2],
+    cfg:{mes:mes,ano:ano,inicio:'auto',ensaio:true,extras:[],excluir:[]},
+    escala:null,lock:true
   };
-}
-function stripWilliam(s){
-  ['M','F'].forEach(g=>{
-    const G=s.groups[g];if(!G)return;
-    const ids=G.people.filter(p=>p.nome.toLowerCase().trim()==='william').map(p=>p.id);
-    if(!ids.length)return;
-    G.people=G.people.filter(p=>ids.indexOf(p.id)<0);
-    G.cycle.forEach(w=>{for(const k in w)w[k]=(w[k]||[]).map(id=>ids.indexOf(id)>=0?null:id);});
-    const e=s.escala[g];if(e)e.forEach(ev=>ev.irmaos=(ev.irmaos||[]).map(x=>ids.indexOf(x)>=0?null:x));
-  });
-}
-function migrarOuGarantirMarcio(s){
-  if(s.groups&&s.groups.M){
-    const temMarcio=s.groups.M.people.some(p=>p.nome.toLowerCase().includes('marcio'));
-    if(!temMarcio){s.groups.M.people.push({id:'marcio',nome:'Marcio'});}
-    s.groups.M.cycle.forEach(w=>{
-      if(w['0|CULTO']&&!w['0|CULTO'].includes('marcio')){
-        if(w['0|CULTO'][1]===null||w['0|CULTO'][1]==='paulinho'||w['0|CULTO'][1]==='')w['0|CULTO'][1]='marcio';
-      }
-    });
-  }
-  stripWilliam(s);
-  return s;
 }
 function load(){
-  try{
-    const raw=localStorage.getItem(KEY);
-    if(raw){const s=JSON.parse(raw);if(s&&s.groups&&s.cfg){if(!s.manual)s.manual={};return migrarOuGarantirMarcio(s);}}
-  }catch(e){}
+  try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.brothers&&s.cycle&&s.cfg)return s;}catch(e){}
   return defaults();
 }
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 let S=load();
-let aba='M',editId=null;
-
-/* ---------- salvar / sujo ---------- */
-let dirty=false,lastSaved='',saveT=null;
-function horaAgora(){const h=new Date();return pad(h.getHours())+':'+pad(h.getMinutes());}
-function updateSaveUI(){
-  const b=$('#btnSalvar');if(!b)return;
-  if(dirty){b.textContent='💾 Salvar alterações';b.classList.add('ok');}
-  else{b.textContent='✓ Salvo';b.classList.remove('ok');}
-  const st=$('#saveStatus');if(st)st.textContent=lastSaved?('Salvo no navegador às '+lastSaved):'';
-  const sb=$('#saveBar');if(sb)sb.classList.toggle('on',dirty);
-}
-function markDirty(){
-  dirty=true;updateSaveUI();
-  clearTimeout(saveT);
-  saveT=setTimeout(forceSave,1000);
-}
-function forceSave(){
-  clearTimeout(saveT);saveT=null;
-  save();dirty=false;lastSaved=horaAgora();updateSaveUI();
-}
-window.addEventListener('beforeunload',()=>{if(dirty)save();});
+let editId=null;
 
 let tt;
-function toast(m){const t=$('#toast');if(!t)return;t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),3200);}
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),3200);}
 
-const nomeDe=(g,id)=>{const b=S.groups[g].people.find(x=>x.id===id);return b?b.nome:'';};
-const up=(g,id)=>nomeDe(g,id).toUpperCase();
-function limparOverridesDe(id){Object.keys(S.manual).forEach(k=>{if(S.manual[k]===id)delete S.manual[k];});}
+const nomeDe=id=>{const b=S.brothers.find(x=>x.id===id);return b?b.nome:'';};
+const up=id=>nomeDe(id).toUpperCase();
 
 /* ---------- ciclo ---------- */
 function idxBase(d){
   const dw=(d.getDay()+6)%7;
-  const seg=new Date(d.getFullYear(),d.getMonth(),d.getDate()-dw,12,0,0);
-  return Math.round((seg.getTime()-REF.getTime())/(7*864e5));
+  const seg=new Date(d.getFullYear(),d.getMonth(),d.getDate()-dw);
+  return Math.round((seg-REF)/(7*864e5));
 }
 function calcShift(){
   const ini=S.cfg.inicio;if(ini==='auto')return 0;
-  const first=new Date(S.cfg.ano,S.cfg.mes-1,1,12,0,0);
+  const first=new Date(S.cfg.ano,S.cfg.mes-1,1);
   return mod(Number(ini)-mod(idxBase(first),4),4);
 }
-function habituais(g){
-  const h={};S.groups[g].people.forEach(p=>h[p.id]=new Set());
-  S.groups[g].cycle.forEach(w=>{for(const k in w)(w[k]||[]).forEach(id=>{if(id&&h[id])h[id].add(k);});});
+function habituais(){
+  const h={};S.brothers.forEach(b=>h[b.id]=new Set());
+  S.cycle.forEach(w=>{for(const k in w)w[k].forEach(id=>{if(id&&h[id])h[id].add(k);});});
   return h;
 }
 
 /* ---------- pessoas ---------- */
-function usoTexto(g,id){
+function usoTexto(id){
   const partes=[];
   SLOTS.forEach(sl=>{
-    const ws=[];S.groups[g].cycle.forEach((w,i)=>{if((w[sl.k]||[]).indexOf(id)>=0)ws.push(i+1);});
-    if(ws.length)partes.push('<b>'+sl.nome+'</b> '+(ws.length===4?'(todas as semanas)':'(sem. '+ws.join(', ')+')'));
+    const ws=[];S.cycle.forEach((w,i)=>{if((w[sl.k]||[]).includes(id))ws.push(i+1);});
+    if(ws.length){partes.push('<b>'+sl.nome+'</b> '+(ws.length===4?'(todas as semanas)':'(sem. '+ws.join(', ')+')'));}
   });
   return partes.length?partes.join('<br>'):'Sem dias no modelo';
 }
-function renderTabs(){
-  const bm=$('#btnTabM'),bf=$('#btnTabF');
-  if(bm)bm.classList.toggle('on',aba==='M');
-  if(bf)bf.classList.toggle('on',aba==='F');
-  const cm=$('#cntM'),cf=$('#cntF');
-  if(cm)cm.textContent='('+S.groups.M.people.length+')';
-  if(cf)cf.textContent='('+S.groups.F.people.length+')';
-  const tgerar=$('#t-gerar');if(tgerar)tgerar.textContent='Escala dos '+GS[aba]+' do mês';
-  const btnCopiar=$('#btnCopiar');if(btnCopiar)btnCopiar.textContent='Copiar texto dos '+GS[aba];
-}
 function renderLista(){
-  const g=aba,G=S.groups[g];
-  const tit=$('#titAba');if(tit)tit.textContent=g==='M'?'Irmãos cadastrados':'Irmãs cadastradas';
-  const novoInp=$('#novo');if(novoInp)novoInp.placeholder=(g==='M'?'Nome do irmão':'Nome da irmã')+' (para vários, separe por vírgula)';
-  const hnt=$('#hintAba');if(hnt)hnt.innerHTML='Cadastrou? Coloque nos dias no <b>modelo abaixo</b> para entrar na escala. Clique no nome para editar/renomear.';
   const ul=$('#lista');
-  if(!ul)return;
-  if(!G.people.length){ul.innerHTML='<li>Ninguém cadastrado nesta aba ainda. Digite um nome acima.</li>';return;}
-  ul.innerHTML=G.people.map(p=>{
-    const eh=editId===p.id;
-    const corpo=eh
-      ?'<div class="editRow"><input type="text" id="editNome" value="'+esc(p.nome)+'" aria-label="Novo nome"><button class="pri" data-act="saveEdit" data-id="'+p.id+'">Salvar</button><button class="ghost" data-act="cancelEdit">Cancelar</button></div>'
-      :'<div class="nome" data-act="edit" data-id="'+p.id+'" title="Clique para editar">'+esc(p.nome)+(p.nome.toLowerCase()==='marcio'?' <span style="font-size:12px;color:var(--warn);background:var(--warn-bg);padding:1px 6px;border-radius:4px;">Domingos à noite</span>':'')+'</div>';
-    const acoes=eh?'':'<div class="acoes">'
-      +'<button class="ghost" data-act="edit" data-id="'+p.id+'">Editar</button>'
-      +'<button class="ghost" data-act="mv" data-id="'+p.id+'" data-to="'+(g==='M'?'F':'M')+'">'+(g==='M'?'→ Irmãs':'→ Irmãos')+'</button>'
-      +'<button class="ghost" data-act="rm" data-id="'+p.id+'" aria-label="Remover '+esc(p.nome)+'">Remover</button></div>';
-    return '<li>'+corpo+'<div class="uso">'+usoTexto(g,p.id)+'</div>'+acoes+'</li>';
+  if(!S.brothers.length){ul.innerHTML='<li>Nenhuma pessoa cadastrada ainda. Use o campo acima.</li>';return;}
+  ul.innerHTML=S.brothers.map(b=>{
+    const ehEdit=editId===b.id;
+    const cabecalho='<div class="nome">'+esc(b.nome)+'</div><span class="gb '+(b.g==='F'?'f':'m')+'">'+(b.g==='F'?'IRMÃ':'IRMÃO')+'</span>';
+    const corpo=ehEdit
+      ?'<div class="editRow"><input type="text" id="editNome" value="'+esc(b.nome)+'" aria-label="Novo nome"><button class="pri" data-act="saveEdit" data-id="'+b.id+'">Salvar</button><button class="ghost" data-act="cancelEdit">Cancelar</button></div>'
+      :cabecalho;
+    const acoes=ehEdit
+      ?''
+      :'<div class="acoes">'
+        +'<button class="ghost" data-act="edit" data-id="'+b.id+'">Renomear</button>'
+        +'<button class="ghost" data-act="tg" data-id="'+b.id+'">'+(b.g==='F'?'Tornar irmão':'Tornar irmã')+'</button>'
+        +'<button class="ghost" data-act="rm" data-id="'+b.id+'" aria-label="Remover '+esc(b.nome)+'">Remover</button>'
+      +'</div>';
+    return '<li><div style="flex:1">'+corpo+'<div class="uso">'+usoTexto(b.id)+'</div></div>'+acoes+'</li>';
   }).join('');
   if(editId){
     const i=$('#editNome');
     if(i){
       i.focus();i.select();
       i.addEventListener('keydown',ev=>{
-        if(ev.key==='Enter'){ev.preventDefault();salvarEdit(aba,editId,i.value);}
+        if(ev.key==='Enter'){ev.preventDefault();salvarEdit(editId,i.value);}
         if(ev.key==='Escape'){editId=null;renderLista();}
       });
     }
   }
 }
-function addPessoas(){
-  const g=aba,inp=$('#novo');if(!inp)return;
-  const nomes=inp.value.split(/[,;\n]/).map(s=>s.trim()).filter(Boolean);
-  if(!nomes.length){toast('Digite pelo menos um nome.');return;}
-  const G=S.groups[g];let n=0,dup=0;
-  nomes.forEach(raw=>{
-    const nome=capNome(raw);
-    if(G.people.some(p=>p.nome.toLowerCase()===nome.toLowerCase())){dup++;return;}
-    G.people.push({id:uid(),nome:nome});n++;
-  });
-  G.people.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
-  inp.value='';markDirty();renderAll();
-  toast(n?n+' cadastrado(s) em '+GS[g]+'.':dup+' nome(s) já existia(m).');
-}
-function salvarEdit(g,id,v){
-  const p=S.groups[g].people.find(x=>x.id===id);if(!p)return;
+function salvarEdit(id,v){
+  const b=S.brothers.find(x=>x.id===id);if(!b)return;
   const nome=capNome((v||'').trim());
   if(!nome){toast('Digite um nome.');return;}
-  if(S.groups[g].people.some(x=>x.id!==id&&x.nome.toLowerCase()===nome.toLowerCase())){toast('Já existe alguém com esse nome em '+GS[g]+'.');return;}
-  p.nome=nome;editId=null;markDirty();renderAll();toast('Nome atualizado para '+nome+'.');
+  if(S.brothers.some(x=>x.id!==id&&x.nome.toLowerCase()===nome.toLowerCase())){toast('Já existe alguém com esse nome.');return;}
+  b.nome=nome;editId=null;save();renderAll();toast('Nome atualizado para '+nome+'.');
 }
-function remover(g,id){
-  const G=S.groups[g],p=G.people.find(x=>x.id===id);if(!p)return;
-  G.people=G.people.filter(x=>x.id!==id);
-  G.cycle.forEach(w=>{for(const k in w)w[k]=(w[k]||[]).map(x=>x===id?null:x);});
-  const e=S.escala[g];if(e)e.forEach(ev=>ev.irmaos=(ev.irmaos||[]).map(x=>x===id?null:x));
-  limparOverridesDe(id);
-  if(editId===id)editId=null;
-  markDirty();renderAll();toast(p.nome+' foi removido(a) da escala.');
+function addIrmaos(){
+  const inp=$('#novo'),g=$('#novoG').value;
+  const nomes=inp.value.split(/[,;\n]/).map(s=>s.trim()).filter(Boolean);
+  if(!nomes.length){toast('Digite pelo menos um nome.');return;}
+  let n=0,dup=0;
+  nomes.forEach(raw=>{
+    const nome=capNome(raw);
+    if(S.brothers.some(b=>b.nome.toLowerCase()===nome.toLowerCase())){dup++;return;}
+    S.brothers.push({id:uid(),nome:nome,g:g});n++;
+  });
+  S.brothers.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  inp.value='';save();renderAll();
+  if(n)toast(n+' cadastrado(s) como '+(g==='F'?'irmã':'irmão')+'. Coloque no modelo (passo 2) para entrar na escala.'+(dup?' '+dup+' nome(s) já existia(m).':''));
+  else toast('Esse nome já está cadastrado.');
 }
-function mover(g,id,para){
-  const G=S.groups[g],P=S.groups[para],p=G.people.find(x=>x.id===id);if(!p)return;
-  G.people=G.people.filter(x=>x.id!==id);
-  G.cycle.forEach(w=>{for(const k in w)w[k]=(w[k]||[]).map(x=>x===id?null:x);});
-  const e=S.escala[g];if(e)e.forEach(ev=>ev.irmaos=(ev.irmaos||[]).map(x=>x===id?null:x));
-  limparOverridesDe(id);
-  P.people.push(p);P.people.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
-  markDirty();renderAll();toast(p.nome+' transferido(a) para '+GS[para]+'.');
+function removerIrmao(id){
+  if(habituais()[id]&&habituais()[id].size){toast('Esta pessoa está no modelo da escala. Troque-a no modelo (passo 2) antes de remover.');return;}
+  S.brothers=S.brothers.filter(b=>b.id!==id);
+  if(S.escala)S.escala.forEach(e=>e.irmaos=e.irmaos.map(x=>x===id?null:x));
+  save();renderAll();
 }
-function criarPessoa(g){
-  const nome=capNome((prompt('Nome da pessoa nova (entrará em '+GS[g]+'):')||'').trim());
+function criarPessoa(){
+  const nome=capNome((prompt('Nome da pessoa nova:')||'').trim());
   if(!nome)return null;
-  const G=S.groups[g];
-  if(G.people.some(p=>p.nome.toLowerCase()===nome.toLowerCase())){toast(nome+' já está cadastrado(a) em '+GS[g]+'.');return null;}
-  const nb={id:uid(),nome:nome};
-  G.people.push(nb);G.people.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  const ex=S.brothers.find(b=>b.nome.toLowerCase()===nome.toLowerCase());
+  if(ex){toast(ex.nome+' já está cadastrado(a).');return null;}
+  const nb={id:uid(),nome:nome,g:'M'};
+  S.brothers.push(nb);
+  S.brothers.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
   return nb;
 }
 
 /* ---------- modelo ---------- */
-function opts(g,sel){
-  return '<option value="">—</option>'+S.groups[g].people.map(p=>'<option value="'+p.id+'"'+(p.id===sel?' selected':'')+'>'+esc(p.nome)+'</option>').join('')+'<option value="__new">＋ Nova pessoa…</option>';
+function opts(sel){
+  return '<option value="">—</option>'+S.brothers.map(b=>'<option value="'+b.id+'"'+(b.id===sel?' selected':'')+'>'+esc(b.nome)+'</option>').join('')+'<option value="__new">＋ Nova pessoa…</option>';
 }
 function renderModelo(){
-  const tm=$('#titModelo');if(tm)tm.textContent='Modelo da escala '+(aba==='M'?'dos irmãos':'das irmãs')+' (dias fixos, 4 semanas)';
-  const sem=$('#semanas');if(!sem)return;
-  sem.innerHTML=S.groups[aba].cycle.map((w,i)=>
-    '<div class="semana'+(aba==='F'?' fem':'')+'"><h3>Semana '+(i+1)+'</h3>'+SLOTS.map(sl=>{
+  const lb=$('#btnLock'),lt=$('#lockTxt');
+  lb.textContent=S.lock?'🔓 Liberar edição do modelo':'🔒 Trancar o modelo';
+  lb.className=S.lock?'pri':'';
+  lt.textContent=S.lock
+    ?'Trancado para ninguém mudar os dias de escala sem querer. Clique no botão para liberar.'
+    :'Edição liberada — troque os nomes abaixo. Tranque de novo quando terminar.';
+  $('#lockBox').classList.toggle('aberta',!S.lock);
+  $('#semanas').innerHTML=S.cycle.map((w,i)=>{
+    return '<div class="semana"><h3>Semana '+(i+1)+'</h3>'+SLOTS.map(sl=>{
       const ids=w[sl.k]||[null,null,null];
-      return '<div class="lin"><span>'+sl.nome+'</span><div class="trio">'+[0,1,2].map(p=>'<select data-g="'+aba+'" data-w="'+i+'" data-k="'+sl.k+'" data-p="'+p+'">'+opts(aba,ids[p])+'</select>').join('')+'</div></div>';
-    }).join('')+'</div>'
-  ).join('');
+      return '<div class="lin"><span>'+sl.nome+'</span><div class="trio">'+[0,1,2].map(p=>'<select data-w="'+i+'" data-k="'+sl.k+'" data-p="'+p+'"'+(S.lock?' disabled':'')+'>'+opts(ids[p])+'</select>').join('')+'</div></div>';
+    }).join('')+'</div>';
+  }).join('');
 }
 
 /* ---------- geração ---------- */
-function ovKey(g,data,tipo,j){return g+'|'+data+'|'+tipo+'|'+j;}
-function montar(g){
-  const G=S.groups[g],mes=S.cfg.mes,ano=S.cfg.ano,ult=new Date(ano,mes,0).getDate(),sh=calcShift(),ev=[];
+function montar(){
+  const mes=S.cfg.mes,ano=S.cfg.ano,ult=new Date(ano,mes,0).getDate(),sh=calcShift(),ev=[];
   for(let d=1;d<=ult;d++){
-    const dt=new Date(ano,mes-1,d,12,0,0),w=mod(idxBase(dt)+sh,4);
+    const dt=new Date(ano,mes-1,d),w=mod(idxBase(dt)+sh,4);
     SLOTS.forEach(sl=>{
       if(sl.dow!==dt.getDay())return;
-      ev.push({data:iso(ano,mes,d),tipo:sl.tipo,irmaos:(G.cycle[w][sl.k]||[null,null,null]).slice()});
+      ev.push({data:iso(ano,mes,d),tipo:sl.tipo,irmaos:(S.cycle[w][sl.k]||[null,null,null]).slice()});
     });
     if(S.cfg.ensaio&&dt.getDay()===6&&d>=8&&d<=14){
-      ev.push({data:iso(ano,mes,d),tipo:'ENSAIO',irmaos:(G.cycle[w]['6|CULTO']||[null,null,null]).slice()});
+      ev.push({data:iso(ano,mes,d),tipo:'ENSAIO',irmaos:(S.cycle[w]['6|CULTO']||[null,null,null]).slice()});
     }
   }
   const pre=ano+'-'+pad(mes);
-  S.cfg.extras.forEach(x=>{if(x.data.indexOf(pre)===0&&(x.g===g||x.g==='A'))ev.push({data:x.data,tipo:x.tipo,irmaos:[null,null,null]});});
+  S.cfg.extras.filter(x=>x.data.indexOf(pre)===0).forEach(x=>ev.push({data:x.data,tipo:x.tipo,irmaos:[null,null,null]}));
   const vistos={};
-  const lista=ev.filter(e=>{const k=e.data+'|'+e.tipo;if(vistos[k]||S.cfg.excluir.indexOf(g+'|'+k)>=0)return false;vistos[k]=1;return true;})
+  return ev.filter(e=>{const k=e.data+'|'+e.tipo;if(vistos[k]||S.cfg.excluir.includes(k))return false;vistos[k]=1;return true;})
     .sort((a,b)=>a.data.localeCompare(b.data)||RANK[a.tipo]-RANK[b.tipo]);
-  lista.forEach(e=>{for(let j=0;j<e.irmaos.length;j++){const k=ovKey(g,e.data,e.tipo,j);if(Object.prototype.hasOwnProperty.call(S.manual,k))e.irmaos[j]=S.manual[k];}});
-  return lista;
 }
 function gerar(){
-  S.escala[aba]=montar(aba);
-  markDirty();renderChips();renderResultado();
-  toast('Escala dos '+GS[aba]+' gerada com sucesso.');
+  S.escala=montar();save();renderChips();renderResultado();
+  toast('Escala de '+MESES[S.cfg.mes-1]+' '+S.cfg.ano+' gerada. Toque num nome para trocar.');
+  const f=$('#folha');
+  if(f.firstElementChild&&f.firstElementChild.tagName==='TABLE')f.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
 /* ---------- resultado ---------- */
 function slotKey(e){const dow=parse(e.data).getDay();return dow+'|'+(e.tipo==='ENSAIO'?'CULTO':e.tipo);}
-function segundaKey(data){const d=parse(data);const dw=(d.getDay()+6)%7;const s=new Date(d.getFullYear(),d.getMonth(),d.getDate()-dw,12,0,0);return iso(s.getFullYear(),s.getMonth()+1,s.getDate());}
+function segundaKey(data){const d=parse(data);const dw=(d.getDay()+6)%7;const s=new Date(d.getFullYear(),d.getMonth(),d.getDate()-dw);return iso(s.getFullYear(),s.getMonth()+1,s.getDate());}
 
-// Visualização individual: Cada grupo vê exclusivamente a sua escala
 function renderResultado(){
   const folha=$('#folha'),av=$('#avisos'),ct=$('#contagem');
-  if(!folha||!av||!ct)return;
-  const g=aba;
-  const G=S.groups[g];
-  const lista=S.escala[g]||[];
-  if(!lista.length&&!G.people.length){
-    folha.innerHTML='<div class="vazio">Nenhum(a) '+(g==='F'?'irmã':'irmão')+' cadastrado(a). Cadastre acima.</div>';
+  if(!S.escala||!S.escala.length){
+    folha.innerHTML='<div class="vazio no-print">Escolha o mês e clique em <b>Gerar escala</b>.</div>';
     av.innerHTML='';ct.innerHTML='';return;
   }
+  const hab=habituais(),valid=SLOTS.map(s=>s.k);
+  const N=Math.max.apply(null,S.escala.map(e=>e.irmaos.length).concat([3]));
   const avisos=[];
-  let html='<div class="grupoBloco">';
-  if(!lista.length){
-    html+='<div class="vazio">Sem eventos gerados para os '+GS[g].toLowerCase()+'. Clique em <b>Gerar escala</b>.</div>';
-  }else{
-    const hab=habituais(g),valid=SLOTS.map(s=>s.k);
-    const N=Math.max.apply(null,lista.map(e=>e.irmaos.length).concat([3]));
-    html+='<table class="escala"><thead><tr><th class="titulo" colspan="'+(N+3)+'">ESCALA DOS '+GS[g].toUpperCase()+' · '+MESES[S.cfg.mes-1].toUpperCase()+' '+S.cfg.ano+'</th><th class="no-print titulo" style="width:1%"></th></tr>'
-      +'<tr><th>Data</th><th>Dia</th><th>Culto / RJM</th><th colspan="'+N+'">Nomes</th><th class="no-print"></th></tr></thead><tbody>';
-    let semana=null;
-    lista.forEach((e,i)=>{
-      const sk=segundaKey(e.data);
-      if(semana!==null&&sk!==semana)html+='<tr class="esp"><td colspan="'+(N+4)+'"></td></tr>';
-      semana=sk;
-      const chave=slotKey(e),checar=valid.indexOf(chave)>=0;
-      const dup={};e.irmaos.forEach(x=>{if(x)dup[x]=(dup[x]||0)+1;});
-      let vagas=0;
-      html+='<tr><td>'+br(e.data)+'</td><td>'+DIAS[parse(e.data).getDay()]+'</td><td class="tipo">'+e.tipo+'</td>';
-      for(let j=0;j<N;j++){
-        const id=e.irmaos[j]||null;let cls='';
-        if(!id)vagas++;
-        else if(dup[id]>1){cls='dup';avisos.push(['b',GS[g]+': '+up(g,id)+' aparece duas vezes em '+br(e.data)+' ('+e.tipo+').']);}
-        else if(checar&&hab[id]&&!hab[id].has(chave)){cls='fora';avisos.push(['w',GS[g]+': '+up(g,id)+' está fora do dia habitual em '+br(e.data)+' ('+e.tipo+').']);}
-        html+='<td><select class="'+cls+'" data-g="'+g+'" data-i="'+i+'" data-j="'+j+'" aria-label="'+GS[g]+' em '+br(e.data)+' '+e.tipo+'">'+opts(g,id)+'</select></td>';
-      }
-      if(vagas)avisos.push(['b',GS[g]+': vaga em aberto em '+br(e.data)+' ('+e.tipo+').']);
-      html+='<td class="no-print"><button class="ghost" data-act="del" data-g="'+g+'" data-i="'+i+'" aria-label="Remover evento">✕</button></td></tr>';
-    });
-    html+='</tbody></table>';
-    const cont={};
-    lista.forEach(e=>e.irmaos.forEach(x=>{if(x)cont[x]=(cont[x]||0)+1;}));
-    const chips=Object.keys(cont).sort((a,b)=>cont[b]-cont[a]||nomeDe(g,a).localeCompare(nomeDe(g,b))).map(id=>'<span><b>'+esc(nomeDe(g,id))+'</b> '+cont[id]+'x</span>').join('');
-    ct.innerHTML='<div class="linhaCont"><b>'+GS[g]+':</b>'+(chips||'<span>sem nomes ainda</span>')+'</div>';
-  }
-  html+='</div>';
+  let html='<table class="escala"><thead><tr><th class="titulo" colspan="'+(N+3)+'">'+MESES[S.cfg.mes-1]+' '+S.cfg.ano+'</th><th class="no-print titulo" style="width:1%"></th></tr>'
+    +'<tr><th>Data</th><th>Dia</th><th>Culto / RJM</th><th colspan="'+N+'">Nomes</th><th class="no-print"></th></tr></thead><tbody>';
+  let semana=null;
+  S.escala.forEach((e,i)=>{
+    const sk=segundaKey(e.data);
+    if(semana!==null&&sk!==semana)html+='<tr class="esp"><td colspan="'+(N+4)+'"></td></tr>';
+    semana=sk;
+    const chave=slotKey(e),checar=valid.includes(chave);
+    const dupCount={};e.irmaos.forEach(x=>{if(x)dupCount[x]=(dupCount[x]||0)+1;});
+    let vagas=0;
+    html+='<tr><td>'+br(e.data)+'</td><td>'+DIAS[parse(e.data).getDay()]+'</td><td class="tipo">'+e.tipo+'</td>';
+    for(let j=0;j<N;j++){
+      const id=e.irmaos[j]||null;
+      let cls='';
+      if(!id)vagas++;
+      else if(dupCount[id]>1){cls='dup';avisos.push(['b',up(id)+' aparece duas vezes em '+br(e.data)+' ('+e.tipo+').']);}
+      else if(checar&&hab[id]&&!hab[id].has(chave)){cls='fora';avisos.push(['w',up(id)+' está fora do dia habitual em '+br(e.data)+' ('+e.tipo+').']);}
+      html+='<td><select class="'+cls+'" data-i="'+i+'" data-j="'+j+'" aria-label="Pessoa '+(j+1)+' em '+br(e.data)+' '+e.tipo+'">'+opts(id)+'</select></td>';
+    }
+    if(vagas)avisos.push(['b','Vaga em aberto em '+br(e.data)+' ('+e.tipo+'): '+vagas+' pessoa(s) faltando.']);
+    html+='<td class="no-print"><button class="ghost" data-act="del" data-i="'+i+'" aria-label="Remover '+br(e.data)+' '+e.tipo+'">✕</button></td></tr>';
+  });
+  html+='</tbody></table>';
   folha.innerHTML=html;
-  av.innerHTML=avisos.slice(0,14).map(a=>'<div class="aviso '+a[0]+'">'+esc(a[1])+'</div>').join('')+(avisos.length>14?'<div class="aviso w">E mais '+(avisos.length-14)+' aviso(s).</div>':'');
+  av.innerHTML=avisos.slice(0,12).map(a=>'<div class="aviso '+a[0]+'">'+esc(a[1])+'</div>').join('')+(avisos.length>12?'<div class="aviso w">E mais '+(avisos.length-12)+' aviso(s).</div>':'');
+  const cont={};
+  S.escala.forEach(e=>e.irmaos.forEach(x=>{if(x)cont[x]=(cont[x]||0)+1;}));
+  ct.innerHTML=Object.keys(cont).sort((a,b)=>cont[b]-cont[a]||nomeDe(a).localeCompare(nomeDe(b))).map(id=>'<span><b>'+esc(nomeDe(id))+'</b> '+cont[id]+'x</span>').join('');
 }
 
 /* ---------- extras / excluídos ---------- */
 function renderChips(){
-  const ce=$('#chipsExtra'),cx=$('#chipsExcl');
-  if(ce){
-    const extrasAba=S.cfg.extras.filter(x=>x.g===aba||x.g==='A');
-    ce.innerHTML=extrasAba.map(x=>{
-      const realIdx=S.cfg.extras.indexOf(x);
-      return '<span class="chip">Extra: '+br(x.data)+' '+x.tipo+'<button data-act="rmExtra" data-i="'+realIdx+'" aria-label="Remover extra">✕</button></span>';
-    }).join('');
-  }
-  if(cx){
-    const exclAba=S.cfg.excluir.filter(k=>k.startsWith(aba+'|'));
-    cx.innerHTML=exclAba.map(k=>{
-      const realIdx=S.cfg.excluir.indexOf(k);
-      const p=k.split('|');
-      return '<span class="chip">Removido: '+br(p[1])+' '+p[2]+'<button data-act="rmExcl" data-i="'+realIdx+'" aria-label="Restaurar">Restaurar</button></span>';
-    }).join('');
-  }
+  $('#chipsExtra').innerHTML=S.cfg.extras.map((x,i)=>'<span class="chip">Extra: '+br(x.data)+' '+x.tipo+'<button data-act="rmExtra" data-i="'+i+'" aria-label="Remover extra">✕</button></span>').join('');
+  $('#chipsExcl').innerHTML=S.cfg.excluir.map((k,i)=>{const p=k.split('|');return '<span class="chip">Removido: '+br(p[0])+' '+p[1]+'<button data-act="rmExcl" data-i="'+i+'" aria-label="Restaurar">Restaurar</button></span>';}).join('');
 }
 
 /* ---------- exportar ---------- */
 function textoEscala(){
-  const g=aba;
-  const lista=S.escala[g]||[];
-  if(!S.groups[g].people.length||!lista.length)return '';
-  let out='== ESCALA DOS '+GS[g].toUpperCase()+' · '+MESES[S.cfg.mes-1].toUpperCase()+' '+S.cfg.ano+' ==\n\n';
-  let sem=null;
-  lista.forEach(e=>{
+  if(!S.escala)return '';
+  let out='ESCALA '+MESES[S.cfg.mes-1].toUpperCase()+' '+S.cfg.ano+'\n',sem=null;
+  S.escala.forEach(e=>{
     const sk=segundaKey(e.data);
     if(sem!==null&&sk!==sem)out+='\n';
     sem=sk;
-    out+=DIAS[parse(e.data).getDay()]+' '+br(e.data).slice(0,5)+' - '+e.tipo+': '+e.irmaos.map(x=>x?up(g,x):'(vago)').join(', ')+'\n';
+    out+=DIAS[parse(e.data).getDay()]+' '+br(e.data).slice(0,5)+' - '+e.tipo+': '+e.irmaos.map(x=>x?up(x):'(vago)').join(', ')+'\n';
   });
   return out;
 }
 function copiar(){
-  const t=textoEscala();if(!t){toast('Gere a escala dos '+GS[aba].toLowerCase()+' primeiro.');return;}
+  const t=textoEscala();if(!t){toast('Gere a escala primeiro.');return;}
   const fb=()=>{const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');toast('Texto copiado.');}catch(e){toast('Não foi possível copiar.');}a.remove();};
   if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(()=>toast('Texto copiado.'),fb);}else fb();
 }
 function baixarCsv(){
-  const g=aba;
-  const lista=S.escala[g]||[];
-  if(!lista.length){toast('Gere a escala dos '+GS[aba].toLowerCase()+' primeiro.');return;}
-  let NG=3;
-  lista.forEach(e=>{if(e.irmaos.length>NG)NG=e.irmaos.length;});
-  const head=['Grupo','Data','Dia','Culto/RJM'];for(let j=1;j<=NG;j++)head.push('Nome '+j);
-  const linhas=[head.join(';')];
-  lista.forEach(e=>{
-    const r=[GS[g].toUpperCase(),br(e.data),DIAS[parse(e.data).getDay()],e.tipo];
-    for(let j=0;j<NG;j++)r.push(e.irmaos[j]?up(g,e.irmaos[j]):'');
-    linhas.push(r.join(';'));
-  });
+  if(!S.escala){toast('Gere a escala primeiro.');return;}
+  const N=Math.max.apply(null,S.escala.map(e=>e.irmaos.length).concat([3]));
+  const head=['Data','Dia','Culto/RJM'];for(let j=1;j<=N;j++)head.push('Nome '+j);
+  const linhas=[head.join(';')].concat(S.escala.map(e=>{
+    const r=[br(e.data),DIAS[parse(e.data).getDay()],e.tipo];
+    for(let j=0;j<N;j++)r.push(e.irmaos[j]?up(e.irmaos[j]):'');
+    return r.join(';');
+  }));
   try{
     const blob=new Blob(['\ufeff'+linhas.join('\r\n')],{type:'text/csv;charset=utf-8'});
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-    a.download='escala-'+GS[g].toLowerCase()+'-'+S.cfg.ano+'-'+pad(S.cfg.mes)+'.csv';document.body.appendChild(a);a.click();a.remove();
-  }catch(e){toast('Download indisponível.');}
+    a.download='escala-'+S.cfg.ano+'-'+pad(S.cfg.mes)+'.csv';document.body.appendChild(a);a.click();a.remove();
+  }catch(e){toast('Download indisponível aqui. Use "Copiar texto".');}
 }
 
 /* ---------- init / eventos ---------- */
 function renderCfg(){
-  const mesEl=$('#mes'),anoEl=$('#ano'),iniEl=$('#inicio'),ensEl=$('#ensaio');
-  if(mesEl)mesEl.innerHTML=MESES.map((m,i)=>'<option value="'+(i+1)+'"'+(i+1===S.cfg.mes?' selected':'')+'>'+m+'</option>').join('');
-  if(anoEl)anoEl.value=S.cfg.ano;
-  if(iniEl)iniEl.value=String(S.cfg.inicio);
-  if(ensEl)ensEl.checked=!!S.cfg.ensaio;
+  $('#mes').innerHTML=MESES.map((m,i)=>'<option value="'+(i+1)+'"'+(i+1===S.cfg.mes?' selected':'')+'>'+m+'</option>').join('');
+  $('#ano').value=S.cfg.ano;
+  $('#inicio').value=String(S.cfg.inicio);
+  $('#ensaio').checked=!!S.cfg.ensaio;
 }
-function renderAll(){renderTabs();renderLista();renderModelo();renderChips();renderResultado();}
+function renderAll(){renderLista();renderModelo();renderChips();renderResultado();}
 
 document.addEventListener('click',ev=>{
-  const tb=ev.target.closest('.tabbtn');
-  if(tb){
-    aba=tb.dataset.tab;
-    editId=null;
-    renderTabs();renderLista();renderModelo();renderChips();renderResultado();
-    return;
-  }
   const b=ev.target.closest('[data-act]');if(!b)return;
   const act=b.dataset.act,id=b.dataset.id;
-  if(act==='rm')remover(aba,id);
+  if(act==='rm')removerIrmao(id);
   else if(act==='edit'){editId=id;renderLista();}
   else if(act==='cancelEdit'){editId=null;renderLista();}
-  else if(act==='saveEdit'){const i=$('#editNome');salvarEdit(aba,id,i?i.value:'');}
-  else if(act==='mv')mover(aba,id,b.dataset.to);
+  else if(act==='saveEdit'){const i=$('#editNome');salvarEdit(id,i?i.value:'');}
+  else if(act==='tg'){
+    const p=S.brothers.find(x=>x.id===id);
+    if(p){p.g=p.g==='F'?'M':'F';save();renderAll();toast(p.nome+' agora consta como '+(p.g==='F'?'irmã':'irmão')+'.');}
+  }
   else if(act==='del'){
-    const g=b.dataset.g,e=S.escala[g]&&S.escala[g][Number(b.dataset.i)];if(!e)return;
-    S.cfg.excluir.push(g+'|'+e.data+'|'+e.tipo);
-    S.escala[g].splice(Number(b.dataset.i),1);
-    markDirty();renderChips();renderResultado();
+    const e=S.escala[Number(b.dataset.i)];if(!e)return;
+    S.cfg.excluir.push(e.data+'|'+e.tipo);S.escala.splice(Number(b.dataset.i),1);save();renderChips();renderResultado();
   }
-  else if(act==='rmExtra'){
-    const realIdx=Number(b.dataset.i);
-    S.cfg.extras.splice(realIdx,1);
-    markDirty();renderChips();
-  }
-  else if(act==='rmExcl'){
-    const realIdx=Number(b.dataset.i);
-    S.cfg.excluir.splice(realIdx,1);
-    markDirty();renderChips();toast('Restaurado. Clique em Gerar escala para atualizar.');
-  }
+  else if(act==='rmExtra'){S.cfg.extras.splice(Number(b.dataset.i),1);save();renderChips();}
+  else if(act==='rmExcl'){S.cfg.excluir.splice(Number(b.dataset.i),1);save();renderChips();toast('Restaurado. Clique em Gerar escala para atualizar.');}
 });
-
 document.addEventListener('change',ev=>{
   const t=ev.target;
-  if(t.dataset.g&&t.dataset.w!==undefined){
-    const g=t.dataset.g,G=S.groups[g],k=t.dataset.k,w=Number(t.dataset.w),p=Number(t.dataset.p);
-    if(!G.cycle[w][k])G.cycle[w][k]=[null,null,null];
+  if(t.dataset.w!==undefined){
+    const w=S.cycle[Number(t.dataset.w)],k=t.dataset.k,p=Number(t.dataset.p);
+    if(!w[k])w[k]=[null,null,null];
     if(t.value==='__new'){
-      const nb=criarPessoa(g);
+      const nb=criarPessoa();
       if(!nb){renderModelo();return;}
-      G.cycle[w][k][p]=nb.id;markDirty();renderAll();
-      toast(nb.nome+' cadastrado(a) e adicionado(a).');
+      w[k][p]=nb.id;save();renderAll();
+      toast(nb.nome+' cadastrado(a) como irmão. Se for irmã, mude no passo 1.');
       return;
     }
-    G.cycle[w][k][p]=t.value||null;markDirty();renderLista();return;
+    w[k][p]=t.value||null;save();renderLista();return;
   }
-  if(t.dataset.g&&t.dataset.i!==undefined&&t.closest('#folha')&&S.escala){
-    const g=t.dataset.g,e=S.escala[g][Number(t.dataset.i)];if(!e)return;
-    const j=Number(t.dataset.j);
+  if(t.dataset.i!==undefined&&t.closest('#folha')&&S.escala){
+    const e=S.escala[Number(t.dataset.i)],j=Number(t.dataset.j);
     if(t.value==='__new'){
-      const nb=criarPessoa(g);
+      const nb=criarPessoa();
       if(!nb){renderResultado();return;}
-      e.irmaos[j]=nb.id;S.manual[ovKey(g,e.data,e.tipo,j)]=nb.id;markDirty();renderAll();
-      toast(nb.nome+' cadastrado(a) e adicionado(a).');
+      e.irmaos[j]=nb.id;save();renderAll();
+      toast(nb.nome+' cadastrado(a) como irmão. Se for irmã, mude no passo 1.');
       return;
     }
-    e.irmaos[j]=t.value||null;
-    S.manual[ovKey(g,e.data,e.tipo,j)]=e.irmaos[j];
-    markDirty();renderResultado();return;
+    e.irmaos[j]=t.value||null;save();renderResultado();return;
   }
 });
-
-$('#btnAdd').addEventListener('click',addPessoas);
-$('#novo').addEventListener('keydown',e=>{if(e.key==='Enter')addPessoas();});
-$('#btnSalvar').addEventListener('click',()=>{forceSave();toast('✓ Salvo no navegador.');});
-$('#btnSalvar2').addEventListener('click',()=>{forceSave();toast('✓ Salvo no navegador.');});
-$('#mes').addEventListener('change',e=>{S.cfg.mes=Number(e.target.value);markDirty();});
-$('#ano').addEventListener('change',e=>{const v=Number(e.target.value);if(v>=2024&&v<=2100){S.cfg.ano=v;markDirty();}});
-$('#inicio').addEventListener('change',e=>{S.cfg.inicio=e.target.value;markDirty();});
-$('#ensaio').addEventListener('change',e=>{S.cfg.ensaio=e.target.checked;markDirty();});
-$('#btnExtra').addEventListener('click',()=>{
+ $('#btnAdd').addEventListener('click',addIrmaos);
+ $('#novo').addEventListener('keydown',e=>{if(e.key==='Enter')addIrmaos();});
+ $('#btnLock').addEventListener('click',()=>{
+  S.lock=!S.lock;save();renderModelo();
+  toast(S.lock?'Modelo trancado.':'Modelo liberado: mudanças aqui alteram os dias fixos de cada um.');
+});
+ $('#mes').addEventListener('change',e=>{S.cfg.mes=Number(e.target.value);save();});
+ $('#ano').addEventListener('change',e=>{const v=Number(e.target.value);if(v>=2024&&v<=2100){S.cfg.ano=v;save();}});
+ $('#inicio').addEventListener('change',e=>{S.cfg.inicio=e.target.value;save();});
+ $('#ensaio').addEventListener('change',e=>{S.cfg.ensaio=e.target.checked;save();});
+ $('#btnExtra').addEventListener('click',()=>{
   const d=$('#exData').value;if(!d){toast('Escolha a data do evento extra.');return;}
-  S.cfg.extras.push({data:d,tipo:$('#exTipo').value,g:aba});
-  markDirty();renderChips();toast('Extra adicionado. Clique em Gerar escala.');
+  S.cfg.extras.push({data:d,tipo:$('#exTipo').value});save();renderChips();toast('Extra adicionado. Clique em Gerar escala.');
 });
-$('#btnGerar').addEventListener('click',gerar);
-$('#btnCopiar').addEventListener('click',copiar);
-$('#btnCsv').addEventListener('click',baixarCsv);
-$('#btnPrint').addEventListener('click',()=>{if(!S.escala[aba]){toast('Gere a escala primeiro.');return;}window.print();});
-$('#btnReset').addEventListener('click',()=>{
-  if(!confirm('Restaurar escala padrão com Márcio aos domingos à noite?'))return;
-  S=defaults();aba='M';editId=null;forceSave();renderCfg();renderAll();toast('Dados originais restaurados.');
+ $('#btnGerar').addEventListener('click',gerar);
+ $('#btnCopiar').addEventListener('click',copiar);
+ $('#btnCsv').addEventListener('click',baixarCsv);
+ $('#btnPrint').addEventListener('click',()=>{if(!S.escala){toast('Gere a escala primeiro.');return;}window.print();});
+ $('#btnReset').addEventListener('click',()=>{
+  if(!confirm('Voltar ao modelo original de setembro/2026 e apagar mudanças?'))return;
+  S=defaults();editId=null;save();renderCfg();renderAll();toast('Dados originais restaurados.');
 });
 
-renderCfg();
-if(!S.escala||!S.escala.M||!S.escala.M.length){
-  S.escala={M:montar('M'),F:montar('F')};
-}
-renderAll();
-forceSave();
+renderCfg();renderAll();
 })();
 </script>
 </body>
