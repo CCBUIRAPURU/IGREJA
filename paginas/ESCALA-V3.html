@@ -12,6 +12,7 @@
   --acc:#1d5a86; --acc-ink:#ffffff; --acc-soft:#dcebf5;
   --fem:#93407c; --fem-ink:#ffffff; --fem-soft:#f7e3f2;
   --warn:#8a5a00; --warn-bg:#fff2cf; --bad:#a3271f; --bad-bg:#fde3e0;
+  --ok:#2e7d32; --ok-ink:#ffffff;
   --head:#1b2733; --head-ink:#ffffff;
   --f-title:"Archivo Narrow","Arial Narrow",Arial,sans-serif;
   --f-body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
@@ -25,6 +26,7 @@
     --acc:#6fb1de; --acc-ink:#0d1a24; --acc-soft:#1f3546;
     --fem:#c77fb2; --fem-ink:#1c0f18; --fem-soft:#3d2739;
     --warn:#f0c46a; --warn-bg:#3a2f14; --bad:#ff9d94; --bad-bg:#40201d;
+    --ok:#66bb6a; --ok-ink:#0c1a0e;
     --head:#0c1116; --head-ink:#e6ebf0;
   }
 }
@@ -43,6 +45,9 @@ input[type=text]{flex:1;min-width:200px}
 button{font:600 15px var(--f-body);cursor:pointer;border-radius:6px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 14px;min-height:40px}
 button:hover{border-color:var(--acc)}
 button.pri{background:var(--acc);color:var(--acc-ink);border-color:var(--acc)}
+button.ok{background:var(--ok);color:var(--ok-ink);border-color:var(--ok)}
+button.ok:not(:disabled){animation:pulsa 1.6s infinite}
+@keyframes pulsa{0%,100%{box-shadow:0 0 0 0 rgba(46,125,50,.45)}50%{box-shadow:0 0 0 7px rgba(46,125,50,0)}}
 button.ghost{border-color:transparent;color:var(--mute);padding:4px 10px;min-height:32px}
 button.ghost:hover{color:var(--bad)}
 :focus-visible{outline:3px solid var(--acc);outline-offset:2px}
@@ -87,7 +92,8 @@ details.modelo[open] summary::before{content:"▾ "}
 .chip{display:inline-flex;align-items:center;gap:4px;background:var(--acc-soft);border-radius:999px;padding:2px 4px 2px 10px;font-size:13.5px}
 .chip button{border:0;background:transparent;min-height:24px;padding:0 6px;color:var(--mute)}
 .chip button:hover{color:var(--bad)}
-.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 12px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 12px;align-items:center}
+#saveStatus{font-size:13.5px;color:var(--mute)}
 .avisos{display:grid;gap:6px;margin:0 0 12px}
 .aviso{padding:8px 12px;border-radius:8px;font-size:14.5px}
 .aviso.w{background:var(--warn-bg);color:var(--warn)}
@@ -110,13 +116,19 @@ table.escala td.tipo{text-transform:uppercase}
 .linhaCont span{border:1px solid var(--line);border-radius:6px;padding:3px 10px;font-size:14px}
 .linhaCont span b{text-transform:uppercase;font-family:var(--f-title);font-size:15px}
 .grupoBloco{margin-bottom:26px}
-#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--head);color:var(--head-ink);padding:10px 16px;border-radius:8px;font-size:15px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;z-index:9}
+
+/* barra de salvar */
+#saveBar{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(140%);display:flex;gap:12px;align-items:center;background:var(--warn);color:#fff;padding:10px 14px;border-radius:10px;font-weight:600;font-size:15px;box-shadow:0 6px 18px rgba(0,0,0,.3);transition:transform .25s;z-index:8;max-width:94vw}
+#saveBar.on{transform:translateX(-50%) translateY(0)}
+#saveBar button{min-height:36px;padding:6px 16px}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(80px + env(safe-area-inset-bottom,0px));background:var(--head);color:var(--head-ink);padding:10px 16px;border-radius:8px;font-size:15px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;z-index:9}
 #toast.on{opacity:1}
 
 @media print{
   :root{--bg:#fff;--card:#fff;--ink:#000;--head:#000}
   body{background:#fff}
   .no-print{display:none!important}
+  #saveBar{display:none!important}
   .wrap{padding:0;max-width:none}
   section.card{border:0;padding:0;margin:0}
   table.escala{min-width:0;border:2px solid #000}
@@ -129,7 +141,7 @@ table.escala td.tipo{text-transform:uppercase}
 <div class="wrap">
   <header class="no-print">
     <h1>Escalas dos Irmãos e das Irmãs</h1>
-    <p class="sub"><b>Duas escalas separadas:</b> use a aba <b>Irmãos</b> ou <b>Irmãs</b> para cadastrar as pessoas e montar o modelo de dias fixos de cada grupo. Na hora de gerar, saem as duas tabelas do mês. Incluir e excluir pessoa é um clique — nada fica trancado.</p>
+    <p class="sub"><b>Duas escalas separadas:</b> aba <b>Irmãos</b> e aba <b>Irmãs</b>, cada uma com sua lista e seu modelo de dias fixos. Ao gerar, saem as duas tabelas do mês. Qualquer edição pode ser salva com o botão <b>💾 Salvar</b> — e também salva sozinha por segurança.</p>
   </header>
 
   <section class="card no-print">
@@ -146,7 +158,7 @@ table.escala td.tipo{text-transform:uppercase}
     <ul id="lista"></ul>
     <details class="modelo" id="detModelo">
       <summary id="titModelo">Modelo da escala dos irmãos (dias fixos)</summary>
-      <p class="hint">Sem tranca — pode editar a qualquer momento. “—” deixa a vaga aberta. Vaga aberta aparece como aviso na escala.</p>
+      <p class="hint">Sem tranca — edite quando quiser. “—” deixa a vaga aberta (aparece como aviso na escala). Use <b>💾 Salvar</b> para gravar, ou deixe que salva sozinho.</p>
       <div class="semanas" id="semanas"></div>
     </details>
   </section>
@@ -189,6 +201,8 @@ table.escala td.tipo{text-transform:uppercase}
 
     <div class="toolbar no-print">
       <button class="pri" id="btnGerar">Gerar escala</button>
+      <button id="btnSalvar" class="ok">💾 Salvar</button>
+      <span id="saveStatus"></span>
       <button id="btnCopiar">Copiar texto</button>
       <button id="btnCsv">Baixar CSV</button>
       <button id="btnPrint">Imprimir / PDF</button>
@@ -199,6 +213,11 @@ table.escala td.tipo{text-transform:uppercase}
     <div class="contagem no-print" id="contagem"></div>
     <p class="row no-print" style="margin-top:22px"><button class="ghost" id="btnReset">Restaurar dados originais (setembro/2026, sem William)</button></p>
   </section>
+</div>
+
+<div id="saveBar" role="status">
+  <span>Alterações não salvas</span>
+  <button class="pri" id="btnSalvar2">Salvar agora</button>
 </div>
 <div id="toast" role="status"></div>
 
@@ -241,21 +260,19 @@ function defaults(){
       F:{people:[],cycle:[{},{},{},{}]}
     },
     cfg:{mes:mes,ano:ano,inicio:'auto',ensaio:true,extras:[],excluir:[]},
+    manual:{},
     escala:{M:null,F:null}
   };
 }
 function stripWilliam(s){
-  let n=0;
   ['M','F'].forEach(g=>{
     const G=s.groups[g];if(!G)return;
     const ids=G.people.filter(p=>p.nome.toLowerCase().trim()==='william').map(p=>p.id);
     if(!ids.length)return;
-    n+=ids.length;
     G.people=G.people.filter(p=>ids.indexOf(p.id)<0);
     G.cycle.forEach(w=>{for(const k in w)w[k]=(w[k]||[]).map(id=>ids.indexOf(id)>=0?null:id);});
     const e=s.escala[g];if(e)e.forEach(ev=>ev.irmaos=(ev.irmaos||[]).map(x=>ids.indexOf(x)>=0?null:x));
   });
-  return n;
 }
 function migrarOld(o){
   const s=defaults();
@@ -273,22 +290,44 @@ function migrarOld(o){
   stripWilliam(s);
   return s;
 }
-let _mig=false,_will=0;
+let _mig=false;
 function load(){
-  try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.groups&&s.cfg)return s;}catch(e){}
+  try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.groups&&s.cfg){if(!s.manual)s.manual={};return s;}}catch(e){}
   try{const o=JSON.parse(localStorage.getItem(KEY_OLD));if(o&&o.brothers){_mig=true;return migrarOld(o);}}catch(e){}
   return defaults();
 }
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 let S=load();
-_will=stripWilliam(S); // garante: William fora mesmo em dados já salvos
+stripWilliam(S); // garante: William fora mesmo em dados já salvos
 let aba='M',editId=null;
 
+/* ---------- salvar / sujo ---------- */
+let dirty=false,lastSaved='',saveT=null;
+function horaAgora(){const h=new Date();return pad(h.getHours())+':'+pad(h.getMinutes());}
+function updateSaveUI(){
+  const b=$('#btnSalvar');
+  if(dirty){b.textContent='💾 Salvar alterações';b.classList.add('ok');}
+  else{b.textContent='✓ Salvo';b.classList.remove('ok');}
+  $('#saveStatus').textContent=lastSaved?('Salvo no navegador às '+lastSaved):'';
+  $('#saveBar').classList.toggle('on',dirty);
+}
+function markDirty(){
+  dirty=true;updateSaveUI();
+  clearTimeout(saveT);
+  saveT=setTimeout(forceSave,1000); // segurança: salva sozinho logo depois
+}
+function forceSave(){
+  clearTimeout(saveT);saveT=null;
+  save();dirty=false;lastSaved=horaAgora();updateSaveUI();
+}
+window.addEventListener('beforeunload',()=>{if(dirty)save();});
+
 let tt;
-function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),3400);}
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),3200);}
 
 const nomeDe=(g,id)=>{const b=S.groups[g].people.find(x=>x.id===id);return b?b.nome:'';};
 const up=(g,id)=>nomeDe(g,id).toUpperCase();
+function limparOverridesDe(id){Object.keys(S.manual).forEach(k=>{if(S.manual[k]===id)delete S.manual[k];});}
 
 /* ---------- ciclo ---------- */
 function idxBase(d){
@@ -362,7 +401,7 @@ function addPessoas(){
     G.people.push({id:uid(),nome:nome});n++;
   });
   G.people.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
-  inp.value='';save();renderAll();
+  inp.value='';markDirty();renderAll();
   toast(n?n+' cadastrado(s) em '+GS[g]+'. Agora coloque nos dias no modelo abaixo.'+(dup?' '+dup+' nome(s) já existia(m).':''):'Esse nome já está cadastrado em '+GS[g]+'.');
 }
 function salvarEdit(g,id,v){
@@ -370,23 +409,25 @@ function salvarEdit(g,id,v){
   const nome=capNome((v||'').trim());
   if(!nome){toast('Digite um nome.');return;}
   if(S.groups[g].people.some(x=>x.id!==id&&x.nome.toLowerCase()===nome.toLowerCase())){toast('Já existe alguém com esse nome em '+GS[g]+'.');return;}
-  p.nome=nome;editId=null;save();renderAll();toast('Nome atualizado para '+nome+'.');
+  p.nome=nome;editId=null;markDirty();renderAll();toast('Nome atualizado para '+nome+'.');
 }
 function remover(g,id){
   const G=S.groups[g],p=G.people.find(x=>x.id===id);if(!p)return;
   G.people=G.people.filter(x=>x.id!==id);
   G.cycle.forEach(w=>{for(const k in w)w[k]=(w[k]||[]).map(x=>x===id?null:x);});
   const e=S.escala[g];if(e)e.forEach(ev=>ev.irmaos=(ev.irmaos||[]).map(x=>x===id?null:x));
+  limparOverridesDe(id);
   if(editId===id)editId=null;
-  save();renderAll();toast(p.nome+' foi removido(a) da escala.');
+  markDirty();renderAll();toast(p.nome+' foi removido(a) da escala.');
 }
 function mover(g,id,para){
   const G=S.groups[g],P=S.groups[para],p=G.people.find(x=>x.id===id);if(!p)return;
   G.people=G.people.filter(x=>x.id!==id);
   G.cycle.forEach(w=>{for(const k in w)w[k]=(w[k]||[]).map(x=>x===id?null:x);});
   const e=S.escala[g];if(e)e.forEach(ev=>ev.irmaos=(ev.irmaos||[]).map(x=>x===id?null:x));
+  limparOverridesDe(id);
   P.people.push(p);P.people.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
-  save();renderAll();toast(p.nome+' agora está na aba '+GS[para]+'. Coloque nos dias no modelo dela.');
+  markDirty();renderAll();toast(p.nome+' agora está na aba '+GS[para]+'. Coloque nos dias no modelo dela.');
 }
 function criarPessoa(g){
   const nome=capNome((prompt('Nome da pessoa nova (entrará em '+GS[g]+'):')||'').trim());
@@ -413,6 +454,7 @@ function renderModelo(){
 }
 
 /* ---------- geração ---------- */
+function ovKey(g,data,tipo,j){return g+'|'+data+'|'+tipo+'|'+j;}
 function montar(g){
   const G=S.groups[g],mes=S.cfg.mes,ano=S.cfg.ano,ult=new Date(ano,mes,0).getDate(),sh=calcShift(),ev=[];
   for(let d=1;d<=ult;d++){
@@ -428,13 +470,16 @@ function montar(g){
   const pre=ano+'-'+pad(mes);
   S.cfg.extras.forEach(x=>{if(x.data.indexOf(pre)===0&&(x.g===g||x.g==='A'))ev.push({data:x.data,tipo:x.tipo,irmaos:[null,null,null]});});
   const vistos={};
-  return ev.filter(e=>{const k=e.data+'|'+e.tipo;if(vistos[k]||S.cfg.excluir.indexOf(g+'|'+k)>=0)return false;vistos[k]=1;return true;})
+  const lista=ev.filter(e=>{const k=e.data+'|'+e.tipo;if(vistos[k]||S.cfg.excluir.indexOf(g+'|'+k)>=0)return false;vistos[k]=1;return true;})
     .sort((a,b)=>a.data.localeCompare(b.data)||RANK[a.tipo]-RANK[b.tipo]);
+  // reaplica edições manuais salvas (sobrevivem ao "Gerar escala")
+  lista.forEach(e=>{for(let j=0;j<e.irmaos.length;j++){const k=ovKey(g,e.data,e.tipo,j);if(Object.prototype.hasOwnProperty.call(S.manual,k))e.irmaos[j]=S.manual[k];}});
+  return lista;
 }
 function gerar(){
   S.escala={M:montar('M'),F:montar('F')};
-  save();renderChips();renderResultado();
-  toast('Escalas de '+MESES[S.cfg.mes-1]+' '+S.cfg.ano+' geradas (irmãos e irmãs). Toque num nome para trocar.');
+  markDirty();renderChips();renderResultado();
+  toast('Escalas de '+MESES[S.cfg.mes-1]+' '+S.cfg.ano+' geradas. Suas edições manuais foram mantidas.');
 }
 
 /* ---------- resultado ---------- */
@@ -573,10 +618,10 @@ document.addEventListener('click',ev=>{
     const g=b.dataset.g,e=S.escala[g]&&S.escala[g][Number(b.dataset.i)];if(!e)return;
     S.cfg.excluir.push(g+'|'+e.data+'|'+e.tipo);
     S.escala[g].splice(Number(b.dataset.i),1);
-    save();renderChips();renderResultado();
+    markDirty();renderChips();renderResultado();
   }
-  else if(act==='rmExtra'){S.cfg.extras.splice(Number(b.dataset.i),1);save();renderChips();}
-  else if(act==='rmExcl'){S.cfg.excluir.splice(Number(b.dataset.i),1);save();renderChips();toast('Restaurado. Clique em Gerar escala para atualizar.');}
+  else if(act==='rmExtra'){S.cfg.extras.splice(Number(b.dataset.i),1);markDirty();renderChips();}
+  else if(act==='rmExcl'){S.cfg.excluir.splice(Number(b.dataset.i),1);markDirty();renderChips();toast('Restaurado. Clique em Gerar escala para atualizar.');}
 });
 document.addEventListener('change',ev=>{
   const t=ev.target;
@@ -586,11 +631,11 @@ document.addEventListener('change',ev=>{
     if(t.value==='__new'){
       const nb=criarPessoa(g);
       if(!nb){renderModelo();return;}
-      G.cycle[w][k][p]=nb.id;save();renderAll();
+      G.cycle[w][k][p]=nb.id;markDirty();renderAll();
       toast(nb.nome+' cadastrado(a) e já colocado(a) na vaga.');
       return;
     }
-    G.cycle[w][k][p]=t.value||null;save();renderLista();return;
+    G.cycle[w][k][p]=t.value||null;markDirty();renderLista();return;
   }
   if(t.dataset.g&&t.dataset.i!==undefined&&t.closest('#folha')&&S.escala){
     const g=t.dataset.g,e=S.escala[g][Number(t.dataset.i)];if(!e)return;
@@ -598,23 +643,27 @@ document.addEventListener('change',ev=>{
     if(t.value==='__new'){
       const nb=criarPessoa(g);
       if(!nb){renderResultado();return;}
-      e.irmaos[j]=nb.id;save();renderAll();
+      e.irmaos[j]=nb.id;S.manual[ovKey(g,e.data,e.tipo,j)]=nb.id;markDirty();renderAll();
       toast(nb.nome+' cadastrado(a) e já colocado(a) na vaga.');
       return;
     }
-    e.irmaos[j]=t.value||null;save();renderResultado();return;
+    e.irmaos[j]=t.value||null;
+    S.manual[ovKey(g,e.data,e.tipo,j)]=e.irmaos[j]; // grava a edição para sobreviver ao "Gerar escala"
+    markDirty();renderResultado();return;
   }
 });
  $('#btnAdd').addEventListener('click',addPessoas);
  $('#novo').addEventListener('keydown',e=>{if(e.key==='Enter')addPessoas();});
- $('#mes').addEventListener('change',e=>{S.cfg.mes=Number(e.target.value);save();});
- $('#ano').addEventListener('change',e=>{const v=Number(e.target.value);if(v>=2024&&v<=2100){S.cfg.ano=v;save();}});
- $('#inicio').addEventListener('change',e=>{S.cfg.inicio=e.target.value;save();});
- $('#ensaio').addEventListener('change',e=>{S.cfg.ensaio=e.target.checked;save();});
+ $('#btnSalvar').addEventListener('click',()=>{forceSave();toast('✓ Salvo no navegador.');});
+ $('#btnSalvar2').addEventListener('click',()=>{forceSave();toast('✓ Salvo no navegador.');});
+ $('#mes').addEventListener('change',e=>{S.cfg.mes=Number(e.target.value);markDirty();});
+ $('#ano').addEventListener('change',e=>{const v=Number(e.target.value);if(v>=2024&&v<=2100){S.cfg.ano=v;markDirty();}});
+ $('#inicio').addEventListener('change',e=>{S.cfg.inicio=e.target.value;markDirty();});
+ $('#ensaio').addEventListener('change',e=>{S.cfg.ensaio=e.target.checked;markDirty();});
  $('#btnExtra').addEventListener('click',()=>{
   const d=$('#exData').value;if(!d){toast('Escolha a data do evento extra.');return;}
   S.cfg.extras.push({data:d,tipo:$('#exTipo').value,g:$('#exGrupo').value});
-  save();renderChips();toast('Extra adicionado. Clique em Gerar escala.');
+  markDirty();renderChips();toast('Extra adicionado. Clique em Gerar escala.');
 });
  $('#btnGerar').addEventListener('click',gerar);
  $('#btnCopiar').addEventListener('click',copiar);
@@ -622,11 +671,12 @@ document.addEventListener('change',ev=>{
  $('#btnPrint').addEventListener('click',()=>{if(!S.escala){toast('Gere a escala primeiro.');return;}window.print();});
  $('#btnReset').addEventListener('click',()=>{
   if(!confirm('Voltar aos dados originais (setembro/2026, sem William) e apagar as mudanças?'))return;
-  S=defaults();aba='M';editId=null;save();renderCfg();renderAll();toast('Dados originais restaurados.');
+  S=defaults();aba='M';editId=null;forceSave();renderCfg();renderAll();toast('Dados originais restaurados.');
 });
 
 renderCfg();renderAll();
-if(_mig)toast('Dados antigos migrados. William foi excluído automaticamente — as vagas dele ficaram abertas (—).');
+forceSave(); // grava já no primeiro abrir (inclusive a exclusão do William)
+if(_mig)toast('Dados antigos migrados. William foi excluído — as vagas dele ficaram abertas (—).');
 })();
 </script>
 </body>
