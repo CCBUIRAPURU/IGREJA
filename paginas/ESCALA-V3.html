@@ -139,7 +139,7 @@ table.escala td.tipo{text-transform:uppercase}
   <header class="no-print">
     <h1>Escalas dos Irmãos e das Irmãs</h1>
     <p class="sub"><b>Duas escalas separadas:</b> aba <b>Irmãos</b> e aba <b>Irmãs</b>. Cada dia tem <b>3 irmãos</b>. <b>Clique no nome</b> para editar o nome e marcar os dias/semanas.<br>
-    <b>Distribuição automática:</b> <b>1 nome</b> num slot = serve todas as ocorrências; <b>2 nomes</b> = revezam (metade cada, sempre preenchendo as 3 posições); <b>3 nomes</b> = servem juntos.</p>
+    <b>Distribuição automática:</b> <b>1 nome</b> = todas as ocorrências; <b>2 nomes</b> = revezam; <b>3 nomes</b> = servem juntos.</p>
   </header>
 
   <section class="card no-print">
@@ -189,6 +189,7 @@ table.escala td.tipo{text-transform:uppercase}
     </div>
     <div class="toolbar no-print">
       <button class="pri" id="btnGerar">Gerar escala</button>
+      <button id="btnLimpar" title="Remove as edições feitas diretamente na tabela e regera do modelo">🧹 Limpar edições da tabela</button>
       <button id="btnSalvar" class="ok">💾 Salvar</button>
       <span id="saveStatus"></span>
       <button id="btnCopiar">Copiar texto</button>
@@ -255,7 +256,6 @@ function distribuirTrio(pool, rotacao){
 
 function defaults(){
   const nomes={vilas:'Vilas',paulinho:'Paulinho',saulo:'Saulo',nelson:'Nelson',vanderlei:'Vanderlei',edimilson:'Edimilson',rubens:'Rubens',marcos:'Marcos',santo:'Santo',iago:'Iago'};
-  // Vanderlei já está no Domingo: RJM nas 4 semanas (A1, B1, A2, B2)
   const A1={'4|CULTO':['vilas','paulinho','saulo'],'6|CULTO':['nelson','paulinho','vanderlei'],'0|RJM':['vanderlei','paulinho','edimilson'],'0|CULTO':['rubens','marcos','nelson']};
   const B1={'4|CULTO':['vilas',null,'saulo'],'6|CULTO':['marcos',null,'santo'],'0|RJM':['vanderlei',null,'iago'],'0|CULTO':['iago',null,'santo']};
   const A2=cp(A1),B2=cp(B1);
@@ -695,6 +695,13 @@ $('#btnAdd').addEventListener('click',addPessoas);
 $('#novo').addEventListener('keydown',e=>{if(e.key==='Enter')addPessoas();});
 $('#btnSalvar').addEventListener('click',()=>{forceSave();toast('✓ Salvo.');});
 $('#btnSalvar2').addEventListener('click',()=>{forceSave();toast('✓ Salvo.');});
+$('#btnLimpar').addEventListener('click',()=>{
+  if(!confirm('Apagar todas as edições manuais feitas na tabela e regerar a partir do modelo?\n(Isso não mexe em nomes nem no modelo — só nas trocas feitas célula a célula.)'))return;
+  S.manual={};
+  markDirty();
+  regerar();renderResultado();
+  toast('Edições da tabela limpas. Escala regerada do modelo.');
+});
 $('#mes').addEventListener('change',e=>{S.cfg.mes=Number(e.target.value);markDirty();regerar();renderResultado();});
 $('#ano').addEventListener('change',e=>{const v=Number(e.target.value);if(v>=2024&&v<=2100){S.cfg.ano=v;markDirty();regerar();renderResultado();}});
 $('#inicio').addEventListener('change',e=>{S.cfg.inicio=e.target.value;markDirty();regerar();renderResultado();});
